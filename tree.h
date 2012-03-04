@@ -3,6 +3,8 @@
 /*
  *  (C) 2012 Janne Heikkarainen <janne.heikkarainen@tut.fi>
  *
+ *  All rights reserved.
+ *
  *  This file is part of Dubstep ANSI C Self-gravitating Smoothed Particle Hydrodynamics Simulator.
  *
  *  Dubstep is free software: you can redistribute it and/or modify
