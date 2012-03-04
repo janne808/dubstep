@@ -201,9 +201,6 @@ void *predictorThread(void *threadarg){
   int m;
   int n;
 
-  double r[3];
-  double a[3];
-
   double *a_sph;
   double *a_tree;
 

@@ -49,6 +49,7 @@ void colormap(double val, struct color *col){
   double g_map[6]={0.0, 0.0, 1.0, 1.0, 0.0, 0.0};
   double b_map[6]={0.65, 1.0, 1.0, 0.0, 0.0, 0.0};
 
+  /* linearly interpolate the value from the colormap */
   for(nn=0;nn<(6-1);nn++){
     if(val>x_map[nn]&&val<x_map[nn+1]){
       col->r=r_map[nn]+(val-x_map[nn])*(r_map[nn+1]-r_map[nn])/(x_map[nn+1]-x_map[nn]);
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
   struct cell *tree=0;
 
   /* physical variables */
-  double *r, *v_new, *a_tree, *a_sph;
+  double *r, *a_tree, *a_sph;
 
   /* gravitation constant normalized to astronomical units */
   /* i.e. mass is normalized to solar mass, time to 1 year and */
@@ -303,7 +304,6 @@ int main(int argc, char *argv[])
   world->cellindex=(int*)malloc(n*sizeof(int));
 
   r=(double*)malloc(m*sizeof(double));
-  v_new=(double*)malloc(m*sizeof(double));
   a_tree=(double*)malloc(m*n*sizeof(double));
   a_sph=(double*)malloc(m*n*sizeof(double));
 
@@ -644,18 +644,32 @@ int main(int argc, char *argv[])
   printf("\ncleaning up...\n");    
     
   /* clean up vectors */
-  free(r);
+  free(world->num_neighbours);
   free(a_tree);
   free(a_sph);
-  free(v_new);
-
-  free(world->r);
-  free(world->v);
-  free(world->v2);
-  free(world->rho);
+  free(r);
+  free(world->cellindex);
+  free(world->last_kick);
+  free(world->dt_CFL);
+  free(world->h);
+  free(world->del_rho);
   free(world->u);
-  free(world->p);
+  free(world->u2);
+  free(world->du);
+  free(world->du2);
   free(world->c);
+  free(world->p);
+  free(world->rho);
+  free(world->a2);
+  free(world->a);
+  free(world->v2);
+  free(world->v);
+  free(world->r2);
+  free(world->r);
+  free(world->m);
+  free(world->neighbour_list);
+
+  /* free universe structure */
   free(world);
     
   /* clean up tree */
