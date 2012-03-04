@@ -115,16 +115,28 @@ int main(int argc, char *argv[])
   /* physical variables */
   double *r, *a_tree, *a_sph;
 
+  /* computational model parameters */
+
   /* gravitation constant normalized to astronomical units */
   /* i.e. mass is normalized to solar mass, time to 1 year and */
   /* distance to AU */
   double G=4.0*PI*PI;
 
-  /* model constants */
-  double theta=0.5, dt=0.0, epsilon=0.025;
+  /* tree cell opening length parameter */
+  double theta=0.5;
+
+  /* initial timestep, determined from CFL before main loop */
+  double dt=0.0;
+
+  /* plummer gravitational softening factor*/
+  double epsilon=0.025;
 
   /* initial smoothing length */
   double h=4.0;
+
+  /* artificial viscosity parameters */
+  double alpha=1.0;
+  double beta=1.0;
 
   /* adiabatic exponent*/
   double gamma=1.4;
@@ -257,6 +269,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
+  /* set up world structure */
   world->tree=tree;
 
   world->G=G;
@@ -271,8 +284,8 @@ int main(int argc, char *argv[])
   world->theta=theta;
   world->epsilon=epsilon;
   world->gamma=gamma;
-  world->alpha=1.0;
-  world->beta=1.0;
+  world->alpha=alpha;
+  world->beta=beta;
 
   world->neighbour_list=(struct particlelist*)malloc(n*sizeof(struct particlelist));
 
@@ -310,8 +323,9 @@ int main(int argc, char *argv[])
   world->num_neighbours=(int*)malloc(n*sizeof(int));
 
   world->timediv=(int)(pow(2,3));
-  world->sub_dt=world->dt/world->timediv;
+  world->sub_dt=world->dt;
 
+  /* init world time */
   world->time=0.0;
 
   /* init pseudorandom number generator */
