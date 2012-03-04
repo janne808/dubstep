@@ -77,7 +77,7 @@ void writeframe(char* path){
     TIFFSetField(file, TIFFTAG_IMAGEWIDTH, (uint32) width);
     TIFFSetField(file, TIFFTAG_IMAGELENGTH, (uint32) height);
     TIFFSetField(file, TIFFTAG_BITSPERSAMPLE, 8);
-    TIFFSetField(file, TIFFTAG_COMPRESSION, COMPRESSION_PACKBITS);
+    TIFFSetField(file, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
     TIFFSetField(file, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
     TIFFSetField(file, TIFFTAG_SAMPLESPERPIXEL, 3);
     TIFFSetField(file, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
@@ -190,6 +190,8 @@ int main(int argc, char *argv[])
 
 #if ENABLE_GUI
   char filename[128];
+  double wtime=0;
+  int wtt=0;
 #endif
 
   /* world structure */
@@ -650,8 +652,16 @@ int main(int argc, char *argv[])
     SDL_GL_SwapBuffers();
 
     // write the opengl view as tiff on disk
-    //sprintf(filename, "/usr/crap/testrun/%08d.tif",tt);
-    //writeframe(filename);
+    /*
+    wtime+=world->sub_dt;
+    if(wtime>0.01){
+      sprintf(filename, "/home/janne808/testrun/%08d.tif",wtt);
+      writeframe(filename);
+      while(wtime>0.01)
+	wtime-=0.01;
+      wtt++;
+    }
+    */
 #endif
   }
     
