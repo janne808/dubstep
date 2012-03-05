@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
   double dt=0.0;
 
   /* plummer gravitational softening factor*/
-  double epsilon=0.025;
+  double epsilon=0.005;
 
   /* initial smoothing length */
   double h=4.0;
@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
     world->h[ii]=h;
     world->dt_CFL[ii]=world->sub_dt;
     world->last_kick[ii]=0.0;
-    world->m[ii]=4.0/(float)(n);
+    world->m[ii]=1.0/(float)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -386,21 +386,21 @@ int main(int argc, char *argv[])
       z=2*((double)(rand())/RAND_MAX)-1;
     }
 
-    world->r[ii*m+0]=8.0*x;
-    world->r[ii*m+1]=8.0*y;
-    world->r[ii*m+2]=8.0*z;
+    world->r[ii*m+0]=32.0*x;
+    world->r[ii*m+1]=32.0*y;
+    world->r[ii*m+2]=32.0*z;
     world->r2[ii*m+0]=world->r[ii*m+0];
     world->r2[ii*m+1]=world->r[ii*m+1];
     world->r2[ii*m+2]=world->r[ii*m+2];
 
     rr=sqrt(x*x+y*y+z*z);
 
-    world->v[ii*m+0]=-3.0*y/rr;
-    world->v[ii*m+1]=3.0*x/rr;
-    world->v[ii*m+2]=0;    
-    //world->v[ii*m+0]=0;
-    //world->v[ii*m+1]=0;
+    //world->v[ii*m+0]=-3.0*y/rr;
+    //world->v[ii*m+1]=3.0*x/rr;
     //world->v[ii*m+2]=0;    
+    world->v[ii*m+0]=0;
+    world->v[ii*m+1]=0;
+    world->v[ii*m+2]=0;    
     world->v2[ii*m+0]=world->v[ii*m+0];
     world->v2[ii*m+1]=world->v[ii*m+1];
     world->v2[ii*m+2]=world->v[ii*m+2];    
@@ -652,7 +652,6 @@ int main(int argc, char *argv[])
     SDL_GL_SwapBuffers();
 
     // write the opengl view as tiff on disk
-    /*
     wtime+=world->sub_dt;
     if(wtime>0.01){
       sprintf(filename, "/home/janne808/testrun/%08d.tif",wtt);
@@ -661,7 +660,6 @@ int main(int argc, char *argv[])
 	wtime-=0.01;
       wtt++;
     }
-    */
 #endif
   }
     

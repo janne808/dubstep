@@ -28,8 +28,8 @@
 #define ENABLE_GUI 1
 #endif
 
-#define NUM 500
-#define NUM_THREADS 2
+#define NUM 8000
+#define NUM_THREADS 4
 
 #ifndef PI
 #define PI 3.14159265358979323846264
