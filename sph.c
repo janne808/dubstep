@@ -1,4 +1,4 @@
-/* dubstep */
+/* smoothed particle hydrodynamics routines */
 
 /*
  *  (C) 2012 Janne Heikkarainen <janne.heikkarainen@tut.fi>
@@ -122,42 +122,48 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
 
   /* iterate towards optimum number of neighbours */
   for(ii=lo;ii<hi;ii++){
-    h=h_in[ii];
+    /* if CFL is not met, neighbour list should be updated */
+    if(world->time==0.0||world->time-world->last_kick[ii]>world->dt_CFL[ii]){
+      h=h_in[ii];
 
-    if(world->neighbour_list[ii].list){
-      world->neighbour_list[ii].num=0;
-      free(world->neighbour_list[ii].list);
-    }
-
-    for(kk=0;kk<iterations;kk++){
-      N=0;
-      for(jj=0;jj<n;jj++){
-	/* particle-particle distance */
-	dr[0]=r_in[3*ii+0]-r_in[3*jj+0];
-	dr[1]=r_in[3*ii+1]-r_in[3*jj+1];
-	dr[2]=r_in[3*ii+2]-r_in[3*jj+2];
-	r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
-	if(r/h<2.0||r/h_in[jj]<2.0){
-	  buffer[N]=jj;
-	  N++;
-	}
+      if(world->neighbour_list[ii].list){
+	world->neighbour_list[ii].num=0;
+	free(world->neighbour_list[ii].list);
       }
-      h_new=h*0.5*(1+pow((double)(N_target)/(double)(N),1.0/3.0));
-      if(h_new>0.01&&h_new<4.0)
-	h=h_new;
-      else
-	break;
-    }
-    h_in[ii]=h;
-    num_neighbours_in[ii]=N;
+
+      for(kk=0;kk<iterations;kk++){
+	N=0;
+	for(jj=0;jj<n;jj++){
+	  /* particle-particle distance */
+	  dr[0]=r_in[3*ii+0]-r_in[3*jj+0];
+	  dr[1]=r_in[3*ii+1]-r_in[3*jj+1];
+	  dr[2]=r_in[3*ii+2]-r_in[3*jj+2];
+	  r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+	  if(r/h<2.0||r/h_in[jj]<2.0){
+	    buffer[N]=jj;
+	    N++;
+	  }
+	}
+	h_new=h*0.5*(1+pow((double)(N_target)/(double)(N),1.0/3.0));
+	if(h_new>0.01&&h_new<4.0)
+	  h=h_new;
+	else
+	  break;
+      }
+      h_in[ii]=h;
+      num_neighbours_in[ii]=N;
     
-    world->neighbour_list[ii].num=N;
-    world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
-    if(!world->neighbour_list[ii].list){
-      printf("Out of memory: particle neighbour list not allocated.\n");
-      exit(1);
+      world->neighbour_list[ii].num=N;
+      world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
+      if(!world->neighbour_list[ii].list){
+	printf("Out of memory: particle neighbour list not allocated.\n");
+	exit(1);
+      }
+
+      memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
+
+      world->last_kick[ii]=world->time;
     }
-    memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
   }
   free(buffer);
 }
