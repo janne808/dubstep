@@ -50,13 +50,16 @@ __global__ void smoothing_length_iterator(float *r, float *origin, int *buffer, 
   if(idx==(BLOCK_SIZE*NUM_BLOCKS)){
     hi=n;
   }
+
+  // find particle neighbours in every thread slice
+  for(ii=lo;ii<hi;ii++){
+  }
+
+  // wait for threads to finish
+  __syncthreads();
 }
 
 void compute_smoothing_length_neighbours_cuda(struct universe *world, int iterations, int N_target){
-  /* vector norm variables */
-  double r;
-  double dr[3];
-
   /* loop variables */
   int ii,jj,kk;
 
@@ -67,8 +70,6 @@ void compute_smoothing_length_neighbours_cuda(struct universe *world, int iterat
   /* pointers to state vectors */
   double *r_in;
   double *h_in;
-
-  double *dt_CFL_in;
 
   int *num_neighbours_in;
 
@@ -101,7 +102,6 @@ void compute_smoothing_length_neighbours_cuda(struct universe *world, int iterat
 
   r_in=world->r2;
   h_in=world->h;
-  dt_CFL_in=world->dt_CFL;
 
   num_neighbours_in=world->num_neighbours;
 
