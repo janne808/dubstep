@@ -32,7 +32,7 @@
 #define BLOCK_SIZE 8
 #define NUM_BLOCKS 8
 
-__global__ void smoothing_length_iterator(float *r, float *origin, int *buffer, int *buffer_index, float *h, int n){
+__global__ void smoothing_length_iterator_kernel(float *r, float *origin, int *buffer, int *buffer_index, float *h, int n){
   // loop index
   int ii;
 
@@ -84,8 +84,8 @@ void compute_smoothing_length_neighbours_cuda(struct universe *world, int iterat
   int *buffer_index_d;
 
   float *h_d;
-
   float *h;
+
   int *buffer_index;
 
   float origin[3];
@@ -156,12 +156,13 @@ void compute_smoothing_length_neighbours_cuda(struct universe *world, int iterat
     }
 
     // call kernel
-    smoothing_length_iterator <<< nBlocks, blockSize >>> (r_d, origin_d, buffer_d, buffer_index_d, h_d, n);
+    smoothing_length_iterator_kernel <<< nBlocks, blockSize >>> (r_d, origin_d, buffer_d, buffer_index_d, h_d, n);
 
     // copy smoothing length parameter to host
     cudaMemcpy(h, h_d, sizeof(float), cudaMemcpyDeviceToHost);
 
-    h_in[ii]=*h;
+    h_in[ii]=(double)*h;
+
     num_neighbours_in[ii]=num_threads;
     
     world->neighbour_list[ii].num=num_threads;
