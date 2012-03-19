@@ -531,7 +531,7 @@ int main(int argc, char *argv[])
 	 interacting particle list generation */
       //createSmoothingThreads(world, 1, 25);
 
-      compute_smoothing_length_tree(world, 1, 25, tree, &tree[0]);
+      compute_smoothing_length_tree(world, h, 1, 25, tree, &tree[0]);
 
       /* create threads for density computation */
       createDensityThreads(world);

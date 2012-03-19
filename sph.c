@@ -77,7 +77,7 @@ double artificial_viscosity(double *dv_ij, double h_ij, double rho_ij,
   return (-alpha*mu_ij*c_ij+beta*mu_ij*mu_ij)/rho_ij;
 }
 
-void compute_smoothing_length_tree(struct universe *world, int iterations, int N_target,
+void compute_smoothing_length_tree(struct universe *world, double max_h, int iterations, int N_target,
 				   struct cell *tree, struct cell *root){
   /* loop variables */
   int ii,jj;
@@ -130,7 +130,7 @@ void compute_smoothing_length_tree(struct universe *world, int iterations, int N
       N=0;
       neighbourrecurse(tree, root, &r_in[3*ii], h, &N, buffer);
       h_new=h*0.5*(1+pow((double)(N_target)/(double)(N),1.0/3.0));
-      if(h_new>0.01&&h_new<2.0)
+      if(h_new>1E-10&&h_new<max_h)
 	h=h_new;
       else
 	break;
