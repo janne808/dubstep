@@ -130,7 +130,7 @@ void compute_smoothing_length_tree(struct universe *world, int iterations, int N
       N=0;
       neighbourrecurse(tree, root, &r_in[3*ii], h, &N, buffer);
       h_new=h*0.5*(1+pow((double)(N_target)/(double)(N),1.0/3.0));
-      if(h_new>0.01&&h_new<4.0)
+      if(h_new>0.01&&h_new<2.0)
 	h=h_new;
       else
 	break;

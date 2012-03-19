@@ -190,7 +190,7 @@ void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
       dy=r[1]-child->center[1];
       dz=r[2]-child->center[2];
       d=sqrt(dx*dx+dy*dy+dz*dz);
-      if(d<2*h){
+      if(d<2*h&&d>1E-15){
 	/* add particle index into the neighbouring particle list */
 	neighbour_list[*neighbour_num]=child->particle_index[0];
 	*neighbour_num+=1;

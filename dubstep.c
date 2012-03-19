@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
   double epsilon=0.005;
 
   /* initial smoothing length */
-  double h=4.0;
+  double h=2.0;
 
   /* artificial viscosity parameters */
   double alpha=1.0;
