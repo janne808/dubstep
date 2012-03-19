@@ -55,13 +55,13 @@ int init_treeroot(struct cell *tree, struct universe *world){
   memcpy(tree[0].m, world->m , n*sizeof(double));
   
   /* init particle index vector */
-  tree[0].particle_index=malloc(n*sizeof(int));
-  if(!tree[0].particle_index){
+  tree[0].particle_index_list=malloc(n*sizeof(int));
+  if(!tree[0].particle_index_list){
     printf("Out of memory: root particle index vector not allocated.\n");
     return -1;
   }
   for(ii=0;ii<n;ii++){
-    tree[0].particle_index[ii]=ii;
+    tree[0].particle_index_list[ii]=ii;
   }
 
   /* search for maximum values */
@@ -192,7 +192,7 @@ void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
       d=sqrt(dx*dx+dy*dy+dz*dz);
       if(d<2*h&&d>1E-15){
 	/* add particle index into the neighbouring particle list */
-	neighbour_list[*neighbour_num]=child->particle_index[0];
+	neighbour_list[*neighbour_num]=child->particle_index;
 	*neighbour_num+=1;
       }
     }
@@ -280,7 +280,7 @@ void branchrecurse(struct cell *tree, struct cell *root, int *cellindex){
     treebranch(tree, root, cellindex);
     free(root->r);
     free(root->m);
-    free(root->particle_index);
+    free(root->particle_index_list);
     for(ii=0;ii<root->numchild;ii++)
       branchrecurse(tree, &tree[root->children[ii]], cellindex);
   }
@@ -290,7 +290,7 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
     struct cell *newcell;
     double x,y,z;
     double *r,*m;
-    int *particle_index;
+    int *particle_index_list;
     double h;
     double cell_r[3*8];
     int ii,jj,nn;
@@ -298,7 +298,7 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
     /* root particle displacement, mass and particle index vectors */
     r=root->r;
     m=root->m;
-    particle_index=root->particle_index;
+    particle_index_list=root->particle_index_list;
     
     /* root cell side length divided by two to get the subcell side length */
     h=(root->space[0*3+2]-root->space[1*3+2])/2.0;
@@ -396,7 +396,7 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
       /* allocate memory for particle displacement, mass and index vectors */
       newcell->r=(double*)malloc(3*root->num*sizeof(double));
       newcell->m=(double*)malloc(root->num*sizeof(double));
-      newcell->particle_index=(int*)malloc(root->num*sizeof(int));
+      newcell->particle_index_list=(int*)malloc(root->num*sizeof(int));
 
       /* calculate new subcell particle displacement and mass vectors */
       nn=0;
@@ -409,7 +409,7 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
 	  newcell->r[nn*3+1]=r[ii*3+1];
 	  newcell->r[nn*3+2]=r[ii*3+2];
 	  newcell->m[nn]=m[ii];
-	  newcell->particle_index[nn]=particle_index[ii];
+	  newcell->particle_index_list[nn]=particle_index_list[ii];
 	  newcell->center[0]+=m[ii]*r[ii*3+0];
 	  newcell->center[1]+=m[ii]*r[ii*3+1];
 	  newcell->center[2]+=m[ii]*r[ii*3+2];
@@ -429,9 +429,11 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
         tree[0].numcells++;
         root->children[root->numchild++]=newcell->index;
 
-	/* write particle cell index if we reached the end of a branch */
-	if(newcell->num==1)
-	  cellindex[newcell->particle_index[0]]=newcell->index;
+	/* write particle cell indeces if we reached the end of a branch */
+	if(newcell->num==1){
+	  newcell->particle_index=newcell->particle_index_list[0];
+	  cellindex[newcell->particle_index]=newcell->index;
+	}
       }
 
       /* if subcell has only 1 or no particles, free useless vectors */
@@ -439,6 +441,7 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
       if(newcell->num<2){
         free(newcell->r);
         free(newcell->m);
+        free(newcell->particle_index_list);
       }
     }
 }

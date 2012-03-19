@@ -29,7 +29,9 @@ struct cell{
   double *r; /* cell particle displacement vector */
   double *m; /* cell particle mass vector */
 
-  int *particle_index; /* cell particle index relative to the world vector */
+  int *particle_index_list; /* cell particle index relative to the world vector */
+
+  int particle_index; /* particle index for tree branch end cell */
 
   double space[3*8]; /* cell spatial limits */
     
