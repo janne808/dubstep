@@ -368,7 +368,7 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=0.0006;
+    world->u[ii]=10.0;
     world->u2[ii]=world->u[ii];
   }
 
@@ -386,9 +386,9 @@ int main(int argc, char *argv[])
       z=2*((double)(rand())/RAND_MAX)-1;
     }
 
-    world->r[ii*m+0]=32.0*x;
-    world->r[ii*m+1]=32.0*y;
-    world->r[ii*m+2]=32.0*z;
+    world->r[ii*m+0]=4.0*x;
+    world->r[ii*m+1]=4.0*y;
+    world->r[ii*m+2]=4.0*z;
     world->r2[ii*m+0]=world->r[ii*m+0];
     world->r2[ii*m+1]=world->r[ii*m+1];
     world->r2[ii*m+2]=world->r[ii*m+2];
@@ -529,7 +529,9 @@ int main(int argc, char *argv[])
 
       /* create threads for smoothing length interation and
 	 interacting particle list generation */
-      createSmoothingThreads(world, 1, 25);
+      //createSmoothingThreads(world, 1, 25);
+
+      compute_smoothing_length_tree(world, 1, 25, tree, &tree[0]);
 
       /* create threads for density computation */
       createDensityThreads(world);
@@ -639,10 +641,10 @@ int main(int argc, char *argv[])
     }
 
     for(nn=0;nn<n;nn++){
-      density=(world->rho[nn]/max_density)*0.65+0.35;
+      density=(world->rho[nn]/max_density)*0.8+0.2;
       energy=(world->u[nn]/max_energy);
       colormap(energy,col);
-      glColor4f((float)(col->r),(float)(col->g),(float)(col->b),(float)(1.0));
+      glColor4f((float)(col->r),(float)(col->g),(float)(col->b),(float)(density));
       glVertex3f((zoom)*(world->r[nn*m+0]),
 		 (zoom)*(world->r[nn*m+1]),
 		 (zoom)*(world->r[nn*m+2]));
@@ -652,14 +654,14 @@ int main(int argc, char *argv[])
     SDL_GL_SwapBuffers();
 
     // write the opengl view as tiff on disk
-    wtime+=world->sub_dt;
-    if(wtime>0.01){
-      sprintf(filename, "/home/janne808/testrun/%08d.tif",wtt);
-      writeframe(filename);
-      while(wtime>0.01)
-	wtime-=0.01;
-      wtt++;
-    }
+    //wtime+=world->sub_dt;
+    //if(wtime>0.01){
+    //  sprintf(filename, "/home/janne808/testrun/%08d.tif",wtt);
+    //  writeframe(filename);
+    //  while(wtime>0.01)
+    //	wtime-=0.01;
+    //  wtt++;
+    //}
 #endif
   }
     

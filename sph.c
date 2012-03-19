@@ -77,6 +77,78 @@ double artificial_viscosity(double *dv_ij, double h_ij, double rho_ij,
   return (-alpha*mu_ij*c_ij+beta*mu_ij*mu_ij)/rho_ij;
 }
 
+void compute_smoothing_length_tree(struct universe *world, int iterations, int N_target,
+				   struct cell *tree, struct cell *root){
+  /* loop variables */
+  int ii,jj;
+
+  /* state vector dimensions */
+  int m;
+  int n;
+
+  /* pointers to state vectors */
+  double *r_in;
+  double *h_in;
+
+  double *dt_CFL_in;
+
+  int *num_neighbours_in;
+
+  double h,h_new;
+
+  /* number of interacting particles */
+  int N;
+
+  /* particle list buffer */
+  int *buffer;
+
+  m=world->dim;  
+  n=world->num;
+
+  r_in=world->r2;
+  h_in=world->h;
+  dt_CFL_in=world->dt_CFL;
+
+  num_neighbours_in=world->num_neighbours;
+
+  buffer=(int*)malloc(2*n*sizeof(int));
+  if(!buffer){
+    printf("Out of memory: smoothing length iteration buffer not allocated.\n");
+    exit(1);
+  }
+
+  /* iterate towards optimum number of neighbours */
+  for(ii=0;ii<n;ii++){
+    h=h_in[ii];
+      
+    if(world->neighbour_list[ii].list){
+      world->neighbour_list[ii].num=0;
+      free(world->neighbour_list[ii].list);
+    }
+
+    for(jj=0;jj<iterations;jj++){
+      N=0;
+      neighbourrecurse(tree, root, &r_in[3*ii], h, &N, buffer);
+      h_new=h*0.5*(1+pow((double)(N_target)/(double)(N),1.0/3.0));
+      if(h_new>0.01&&h_new<6.0)
+	h=h_new;
+      else
+	break;
+    }
+    h_in[ii]=h;
+    num_neighbours_in[ii]=N;
+
+    world->neighbour_list[ii].num=N;
+    world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
+    if(!world->neighbour_list[ii].list){
+      printf("Out of memory: particle neighbour list not allocated.\n");
+      exit(1);
+    }
+    memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
+  }
+  free(buffer);
+}
+
 void compute_smoothing_length_neighbours(struct universe *world, int iterations, int N_target, int lo, int hi){
   /* vector norm variables */
   double r;
@@ -143,7 +215,7 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
 	}
       }
       h_new=h*0.5*(1+pow((double)(N_target)/(double)(N),1.0/3.0));
-      if(h_new>0.01&&h_new<4.0)
+      if(h_new>0.01&&h_new<6.0)
 	h=h_new;
       else
 	break;

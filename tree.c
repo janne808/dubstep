@@ -55,7 +55,6 @@ int init_treeroot(struct cell *tree, struct universe *world){
   memcpy(tree[0].m, world->m , n*sizeof(double));
   
   /* init particle index vector */
-  /*
   tree[0].particle_index=malloc(n*sizeof(int));
   if(!tree[0].particle_index){
     printf("Out of memory: root particle index vector not allocated.\n");
@@ -64,7 +63,6 @@ int init_treeroot(struct cell *tree, struct universe *world){
   for(ii=0;ii<n;ii++){
     tree[0].particle_index[ii]=ii;
   }
-  */
 
   /* search for maximum values */
   /* make sure we are dealing with squares */
@@ -91,6 +89,7 @@ int init_treeroot(struct cell *tree, struct universe *world){
     tree[0].space[m*0+0]=tree[0].space[m*0+1];
   }
 
+  /* cut some slack */
   tree[0].space[m*0+0]+=0.5;
 
   /* first corner of root box */
@@ -155,6 +154,42 @@ int init_treeroot(struct cell *tree, struct universe *world){
   tree[0].l=2*tree[0].space[0*m+0];
 
   return 0;
+}
+
+void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
+		      int *neighbour_num, int *neighbour_list){
+  int ii;
+  double dx,dy,dz,d;
+  double l;
+  struct cell *child;
+    
+  /* check thru child cells */
+  for(ii=0;ii<root->numchild;ii++){
+    /* child cell */
+    child=&tree[root->children[ii]];
+
+    /* cell side length */
+    l=child->l;
+
+    /* compute distance from cell center to particle */
+    dx=r[0]-(child->space[0*3+0]-l/2);
+    dy=r[1]-(child->space[0*3+1]+l/2);
+    dz=r[2]-(child->space[0*3+2]-l/2);
+    d=sqrt(dx*dx+dy*dy+dz*dz);
+
+    if(child->num>1){
+      /* if the smoothing length radius intersects with the cells corner */
+      /* radius, recurse deeper into the tree to find more particles */
+      if((sqrt(3)/2)*l+(2*h)>d){
+	neighbourrecurse(tree, child, r, h, neighbour_num, neighbour_list);
+      }
+    }
+    else{
+      /* add particle index into the neighbouring particle list */
+      neighbour_list[*neighbour_num]=child->particle_index[0];
+      *neighbour_num+=1;
+    }
+  }
 }
 
 void forcerecurse(struct cell *tree, struct cell *root, double *r,
@@ -238,7 +273,7 @@ void branchrecurse(struct cell *tree, struct cell *root, int *cellindex){
     treebranch(tree, root, cellindex);
     free(root->r);
     free(root->m);
-    //free(root->particle_index);
+    free(root->particle_index);
     for(ii=0;ii<root->numchild;ii++)
       branchrecurse(tree, &tree[root->children[ii]], cellindex);
   }
@@ -248,7 +283,7 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
     struct cell *newcell;
     double x,y,z;
     double *r,*m;
-    //int *particle_index;
+    int *particle_index;
     double h;
     double cell_r[3*8];
     int ii,jj,nn;
@@ -256,9 +291,9 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
     /* root particle displacement, mass and particle index vectors */
     r=root->r;
     m=root->m;
-    //particle_index=root->particle_index;
+    particle_index=root->particle_index;
     
-    /* root cell side length divided by 2 */
+    /* root cell side length divided by two to get the subcell side length */
     h=(root->space[0*3+2]-root->space[1*3+2])/2.0;
 
     /* subcell corner displacement vectors */
@@ -354,7 +389,7 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
       /* allocate memory for particle displacement, mass and index vectors */
       newcell->r=(double*)malloc(3*root->num*sizeof(double));
       newcell->m=(double*)malloc(root->num*sizeof(double));
-      //newcell->particle_index=(int*)malloc(root->num*sizeof(int));
+      newcell->particle_index=(int*)malloc(root->num*sizeof(int));
 
       /* calculate new subcell particle displacement and mass vectors */
       nn=0;
@@ -367,7 +402,7 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
 	  newcell->r[nn*3+1]=r[ii*3+1];
 	  newcell->r[nn*3+2]=r[ii*3+2];
 	  newcell->m[nn]=m[ii];
-	  //newcell->particle_index[nn]=particle_index[ii];
+	  newcell->particle_index[nn]=particle_index[ii];
 	  newcell->center[0]+=m[ii]*r[ii*3+0];
 	  newcell->center[1]+=m[ii]*r[ii*3+1];
 	  newcell->center[2]+=m[ii]*r[ii*3+2];
@@ -388,8 +423,8 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
         root->children[root->numchild++]=newcell->index;
 
 	/* write particle cell index if we reached the end of a branch */
-	//if(newcell->num==1)
-	//  cellindex[newcell->particle_index[0]]=newcell->index;
+	if(newcell->num==1)
+	  cellindex[newcell->particle_index[0]]=newcell->index;
       }
 
       /* if subcell has only 1 or no particles, free useless vectors */
