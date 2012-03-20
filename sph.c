@@ -215,7 +215,7 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
 	}
       }
       h_new=h*0.5*(1+pow((double)(N_target)/(double)(N),1.0/3.0));
-      if(h_new>0.01&&h_new<6.0)
+      if(h_new>0.01&&h_new<1.0)
 	h=h_new;
       else
 	break;

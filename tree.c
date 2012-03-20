@@ -180,7 +180,7 @@ void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
     if(child->num>1){
       /* if the smoothing length radius intersects with the cells corner */
       /* radius, recurse deeper into the tree to find more particles */
-      if((sqrt(3)/2)*l+(2*h)>d){
+      if((sqrt(3)/2)*l+2*h>d){
 	neighbourrecurse(tree, child, r, h, neighbour_num, neighbour_list);
       }
     }
@@ -190,7 +190,7 @@ void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
       dy=r[1]-child->center[1];
       dz=r[2]-child->center[2];
       d=sqrt(dx*dx+dy*dy+dz*dz);
-      if(d<2*h&&d>1E-15){
+      if(d/h<2.0){
 	/* add particle index into the neighbouring particle list */
 	neighbour_list[*neighbour_num]=child->particle_index;
 	*neighbour_num+=1;

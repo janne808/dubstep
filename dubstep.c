@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
   double epsilon=0.005;
 
   /* initial smoothing length */
-  double h=2.0;
+  double h=1.0;
 
   /* artificial viscosity parameters */
   double alpha=1.0;
@@ -529,9 +529,9 @@ int main(int argc, char *argv[])
 
       /* create threads for smoothing length interation and
 	 interacting particle list generation */
-      //createSmoothingThreads(world, 1, 25);
+      createSmoothingThreads(world, 1, 25);
 
-      compute_smoothing_length_tree(world, h, 1, 25, tree, &tree[0]);
+      //compute_smoothing_length_tree(world, h, 1, 25, tree, &tree[0]);
 
       /* create threads for density computation */
       createDensityThreads(world);
