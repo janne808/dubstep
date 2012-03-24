@@ -29,7 +29,7 @@
 #include "dubstep.h"
 #include "tree.h"
 
-int init_treeroot(struct cell *tree, struct universe *world){
+int init_treeroot(struct cell *tree, struct universe *world, double *r){
   int ii;
   int n,m;
   
@@ -44,7 +44,7 @@ int init_treeroot(struct cell *tree, struct universe *world){
     printf("Out of memory: root displacement vector not allocated.\n");
     return -1;
   }
-  memcpy(tree[0].r, world->r , m*n*sizeof(double));
+  memcpy(tree[0].r, r, m*n*sizeof(double));
 
   /* init particle mass vector */
   tree[0].m=malloc(n*sizeof(double));        
@@ -157,7 +157,7 @@ int init_treeroot(struct cell *tree, struct universe *world){
 }
 
 void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
-		      int *neighbour_num, int *neighbour_list){
+		      double *h_in, int *neighbour_num, int *neighbour_list){
   int ii;
   double dx,dy,dz,d;
   double l;
@@ -168,20 +168,21 @@ void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
     /* child cell */
     child=&tree[root->children[ii]];
 
-    /* cell side length */
+    /* cell side lengths */
     l=child->l;
 
-    /* compute distance from cell center to particle */
-    dx=r[0]-(child->space[0*3+0]-l/2);
-    dy=r[1]-(child->space[0*3+1]+l/2);
-    dz=r[2]-(child->space[0*3+2]-l/2);
-    d=sqrt(dx*dx+dy*dy+dz*dz);
-
     if(child->num>1){
+      /* compute distance from cell centers to particles */
+      //dx=r[0]-(child->space[0*3+0]-l/2.0);
+      //dy=r[1]-(child->space[0*3+1]+l/2.0);
+      //dz=r[2]-(child->space[0*3+2]-l/2.0);
+      //d=sqrt(dx*dx+dy*dy+dz*dz);
+
       /* if the smoothing length radius intersects with the cells corner */
       /* radius, recurse deeper into the tree to find more particles */
-      if((sqrt(3)/2)*l+2*h>d){
-	neighbourrecurse(tree, child, r, h, neighbour_num, neighbour_list);
+      if(1){
+	//if((sqrt(3.0)/2.0)*l+1.0+2.0*h>d){
+	neighbourrecurse(tree, child, r, h, h_in, neighbour_num, neighbour_list);
       }
     }
     else{
@@ -190,7 +191,7 @@ void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
       dy=r[1]-child->center[1];
       dz=r[2]-child->center[2];
       d=sqrt(dx*dx+dy*dy+dz*dz);
-      if(d/h<2.0){
+      if(d/h<2.0||d/h_in[child->particle_index]<2.0){
 	/* add particle index into the neighbouring particle list */
 	neighbour_list[*neighbour_num]=child->particle_index;
 	*neighbour_num+=1;
@@ -434,10 +435,13 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
 	  newcell->particle_index=newcell->particle_index_list[0];
 	  cellindex[newcell->particle_index]=newcell->index;
 	}
+	else{
+	  newcell->particle_index=-1;
+	}
       }
 
       /* if subcell has only 1 or no particles, free useless vectors */
-      /* useless as subcell wont have child cells*/
+      /* useless as subcell wont have child cells */
       if(newcell->num<2){
         free(newcell->r);
         free(newcell->m);

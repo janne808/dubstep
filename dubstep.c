@@ -439,7 +439,7 @@ int main(int argc, char *argv[])
   createAccelerationThreads(world);
       
   /* initialize tree root parameters */
-  init_treeroot(tree, world);
+  init_treeroot(tree, world, world->r);
     
   /* form tree */
   branchrecurse(tree, &tree[0], world->cellindex);
@@ -531,7 +531,19 @@ int main(int argc, char *argv[])
 	 interacting particle list generation */
       createSmoothingThreads(world, 1, 25);
 
-      //compute_smoothing_length_tree(world, h, 1, 25, tree, &tree[0]);
+      t1=SDL_GetTicks();
+
+      /* initialize tree root parameters */
+      init_treeroot(tree, world, world->r2);
+    
+      /* form tree */
+      branchrecurse(tree, &tree[0], world->cellindex);
+
+      /* serial tree smoothing length iterator */
+      //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0]);
+
+      t2=SDL_GetTicks();
+      treetime=t2-t1;
 
       /* create threads for density computation */
       createDensityThreads(world);
@@ -561,17 +573,6 @@ int main(int argc, char *argv[])
       
       t2=SDL_GetTicks();
       sph_time=t2-t1;
-
-      t1=SDL_GetTicks();
-
-      /* initialize tree root parameters */
-      init_treeroot(tree, world);
-    
-      /* form tree */
-      branchrecurse(tree, &tree[0], world->cellindex);
-      
-      t2=SDL_GetTicks();
-      treetime=t2-t1;
 
       t1=SDL_GetTicks();
 

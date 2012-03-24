@@ -49,11 +49,11 @@ struct cell{
 };
 
 /* function prototypes */
-int init_treeroot(struct cell *tree, struct universe *world);
+int init_treeroot(struct cell *tree, struct universe *world, double *r);
 void treebranch(struct cell *tree, struct cell *root, int *cellindex);
 void treerecurse(struct cell *tree, struct cell *root);
 void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
-		      int *neighbour_num, int *neighbour_list);
+		      double *h_in, int *neighbour_num, int *neighbour_list);
 void forcerecurse(struct cell *tree, struct cell *root,
 		  double *r, double *f, double G, double theta,
 		  double epsilon);

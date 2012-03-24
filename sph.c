@@ -5,7 +5,7 @@
  *
  *  All rights reserved.
  *
- *  This file is part of Dubstep ANSI C Self-gravitating Smoothed Particle Hydrodynamics Simulator.
+ *  This file is part of Dubstep ANSI C/CUDA Self-gravitating Smoothed Particle Hydrodynamics Simulator.
  *
  *  Dubstep is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ double artificial_viscosity(double *dv_ij, double h_ij, double rho_ij,
 }
 
 void compute_smoothing_length_tree(struct universe *world, double max_h, int iterations, int N_target,
-				   struct cell *tree, struct cell *root){
+				   double *r, struct cell *tree, struct cell *root){
   /* loop variables */
   int ii,jj;
 
@@ -89,8 +89,6 @@ void compute_smoothing_length_tree(struct universe *world, double max_h, int ite
   /* pointers to state vectors */
   double *r_in;
   double *h_in;
-
-  double *dt_CFL_in;
 
   int *num_neighbours_in;
 
@@ -105,13 +103,12 @@ void compute_smoothing_length_tree(struct universe *world, double max_h, int ite
   m=world->dim;  
   n=world->num;
 
-  r_in=world->r2;
+  r_in=r;
   h_in=world->h;
-  dt_CFL_in=world->dt_CFL;
 
   num_neighbours_in=world->num_neighbours;
 
-  buffer=(int*)malloc(2*n*sizeof(int));
+  buffer=(int*)malloc(n*sizeof(int));
   if(!buffer){
     printf("Out of memory: smoothing length iteration buffer not allocated.\n");
     exit(1);
@@ -128,9 +125,10 @@ void compute_smoothing_length_tree(struct universe *world, double max_h, int ite
 
     for(jj=0;jj<iterations;jj++){
       N=0;
-      neighbourrecurse(tree, root, &r_in[3*ii], h, &N, buffer);
-      h_new=h*0.5*(1+pow((double)(N_target)/(double)(N),1.0/3.0));
-      if(h_new>1E-10&&h_new<max_h)
+      neighbourrecurse(tree, root, &r_in[3*ii], h, h_in, &N, buffer);
+
+      h_new=h*0.5*(1.0+pow((double)(N_target)/(double)(N),1.0/3.0));
+      if(h_new>0.01&&h_new<max_h)
 	h=h_new;
       else
 	break;
@@ -165,8 +163,6 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
   double *r_in;
   double *h_in;
 
-  double *dt_CFL_in;
-
   int *num_neighbours_in;
 
   double h,h_new;
@@ -182,7 +178,6 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
 
   r_in=world->r2;
   h_in=world->h;
-  dt_CFL_in=world->dt_CFL;
 
   num_neighbours_in=world->num_neighbours;
 
@@ -466,6 +461,7 @@ void compute_cfl(struct universe *world, double C_0, int lo, int hi){
 
   for(ii=lo;ii<hi;ii++){
     div_v_ij=0;
+    max_mu=0;
     n=world->neighbour_list[ii].num;
 
     for(jj=0;jj<n;jj++){
