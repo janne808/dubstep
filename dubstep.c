@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
   double dt=0.0;
 
   /* plummer gravitational softening factor*/
-  double epsilon=0.08;
+  double epsilon=0.01;
 
   /* initial smoothing length */
   double h=1.0;
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
   int mouse_x,mouse_y;
   int mouse_dx,mouse_dy;
   int buttonstate;
-  double zoom=1.0;
+  double zoom=1/12.0;
   double zoom2;
 
   double density;
@@ -368,7 +368,7 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=0.01;
+    world->u[ii]=4.0;
     world->u2[ii]=world->u[ii];
   }
 
@@ -386,21 +386,21 @@ int main(int argc, char *argv[])
       z=2*((double)(rand())/RAND_MAX)-1;
     }
 
-    world->r[ii*m+0]=8.0*x;
-    world->r[ii*m+1]=8.0*y;
-    world->r[ii*m+2]=8.0*z;
+    world->r[ii*m+0]=24.0*x;
+    world->r[ii*m+1]=24.0*y;
+    world->r[ii*m+2]=24.0*z;
     world->r2[ii*m+0]=world->r[ii*m+0];
     world->r2[ii*m+1]=world->r[ii*m+1];
     world->r2[ii*m+2]=world->r[ii*m+2];
 
     rr=sqrt(x*x+y*y+z*z);
 
-    //world->v[ii*m+0]=-3.0*y/rr;
-    //world->v[ii*m+1]=3.0*x/rr;
-    //world->v[ii*m+2]=0;    
-    world->v[ii*m+0]=0;
-    world->v[ii*m+1]=0;
+    world->v[ii*m+0]=-1.0*y/rr;
+    world->v[ii*m+1]=1.0*x/rr;
     world->v[ii*m+2]=0;    
+    //world->v[ii*m+0]=0;
+    //world->v[ii*m+1]=0;
+    //world->v[ii*m+2]=0;    
     world->v2[ii*m+0]=world->v[ii*m+0];
     world->v2[ii*m+1]=world->v[ii*m+1];
     world->v2[ii*m+2]=world->v[ii*m+2];    
