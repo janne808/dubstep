@@ -180,8 +180,7 @@ void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
 
       /* if the smoothing length radius intersects with the cells corner */
       /* radius, recurse deeper into the tree to find more particles */
-      if(1){
-	//if((sqrt(3.0)/2.0)*l+1.0+2.0*h>d){
+      if((sqrt(3.0)/2.0)*l+1.0+2.0*h>d){
 	neighbourrecurse(tree, child, r, h, h_in, neighbour_num, neighbour_list);
       }
     }

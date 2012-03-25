@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
   double dt=0.0;
 
   /* plummer gravitational softening factor*/
-  double epsilon=0.005;
+  double epsilon=0.08;
 
   /* initial smoothing length */
   double h=1.0;
@@ -368,7 +368,7 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=10.0;
+    world->u[ii]=0.01;
     world->u2[ii]=world->u[ii];
   }
 
@@ -386,9 +386,9 @@ int main(int argc, char *argv[])
       z=2*((double)(rand())/RAND_MAX)-1;
     }
 
-    world->r[ii*m+0]=4.0*x;
-    world->r[ii*m+1]=4.0*y;
-    world->r[ii*m+2]=4.0*z;
+    world->r[ii*m+0]=8.0*x;
+    world->r[ii*m+1]=8.0*y;
+    world->r[ii*m+2]=8.0*z;
     world->r2[ii*m+0]=world->r[ii*m+0];
     world->r2[ii*m+1]=world->r[ii*m+1];
     world->r2[ii*m+2]=world->r[ii*m+2];
