@@ -52,7 +52,7 @@ struct cell{
 int init_treeroot(struct cell *tree, struct universe *world, double *r);
 void treebranch(struct cell *tree, struct cell *root, int *cellindex);
 void treerecurse(struct cell *tree, struct cell *root);
-void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
+void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h, double max_h,
 		      double *h_in, int *neighbour_num, int *neighbour_list);
 void forcerecurse(struct cell *tree, struct cell *root,
 		  double *r, double *f, double G, double theta,

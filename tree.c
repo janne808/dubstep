@@ -156,7 +156,7 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
   return 0;
 }
 
-void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
+void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h, double max_h,
 		      double *h_in, int *neighbour_num, int *neighbour_list){
   int ii;
   double dx,dy,dz,d;
@@ -173,15 +173,15 @@ void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
 
     if(child->num>1){
       /* compute distance from cell centers to particles */
-      //dx=r[0]-(child->space[0*3+0]-l/2.0);
-      //dy=r[1]-(child->space[0*3+1]+l/2.0);
-      //dz=r[2]-(child->space[0*3+2]-l/2.0);
-      //d=sqrt(dx*dx+dy*dy+dz*dz);
+      dx=r[0]-(child->space[0*3+0]-l/2.0);
+      dy=r[1]-(child->space[0*3+1]+l/2.0);
+      dz=r[2]-(child->space[0*3+2]-l/2.0);
+      d=sqrt(dx*dx+dy*dy+dz*dz);
 
       /* if the smoothing length radius intersects with the cells corner */
       /* radius, recurse deeper into the tree to find more particles */
-      if((sqrt(3.0)/2.0)*l+1.0+2.0*h>d){
-	neighbourrecurse(tree, child, r, h, h_in, neighbour_num, neighbour_list);
+      if((sqrt(3.0)/2.0)*l+max_h+2.0*h>d){
+	neighbourrecurse(tree, child, r, h, max_h, h_in, neighbour_num, neighbour_list);
       }
     }
     else{

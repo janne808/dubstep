@@ -125,7 +125,7 @@ void compute_smoothing_length_tree(struct universe *world, double max_h, int ite
 
     for(jj=0;jj<iterations;jj++){
       N=0;
-      neighbourrecurse(tree, root, &r_in[3*ii], h, h_in, &N, buffer);
+      neighbourrecurse(tree, root, &r_in[3*ii], h, max_h, h_in, &N, buffer);
 
       h_new=h*0.5*(1.0+pow((double)(N_target)/(double)(N),1.0/3.0));
       if(h_new>0.01&&h_new<max_h)
@@ -344,16 +344,18 @@ void compute_density(struct universe *world, double h, int lo, int hi){
 
   /* compute density */
   for(ii=lo;ii<hi;ii++){
-    rho_in[ii]=0;
+    rho_in[ii]=m_in[ii]*kernel(0.0,h_in[ii]);
     n=world->neighbour_list[ii].num;
     for(jj=0;jj<n;jj++){
       kk=world->neighbour_list[ii].list[jj];
-      /* particle-particle distance */
-      dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
-      dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
-      dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
-      r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
-      rho_in[ii]+=m_in[kk]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
+      if(ii!=kk){
+	/* particle-particle distance */
+	dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
+	dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
+	dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+	r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
+	rho_in[ii]+=m_in[kk]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
+      }
     }
   }
 }

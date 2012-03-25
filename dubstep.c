@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
   double dt=0.0;
 
   /* plummer gravitational softening factor*/
-  double epsilon=0.01;
+  double epsilon=0.005;
 
   /* initial smoothing length */
   double h=1.0;
@@ -523,13 +523,11 @@ int main(int argc, char *argv[])
       t2=SDL_GetTicks();
       int_time=t2-t1;
 
-      t1=SDL_GetTicks();
-
       /* compute sph variables */
 
       /* create threads for smoothing length interation and
 	 interacting particle list generation */
-      createSmoothingThreads(world, 1, 25);
+      //createSmoothingThreads(world, 1, 25);
 
       t1=SDL_GetTicks();
 
@@ -540,7 +538,7 @@ int main(int argc, char *argv[])
       branchrecurse(tree, &tree[0], world->cellindex);
 
       /* serial tree smoothing length iterator */
-      //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0]);
+      compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0]);
 
       t2=SDL_GetTicks();
       treetime=t2-t1;
