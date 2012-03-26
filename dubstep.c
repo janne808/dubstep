@@ -410,7 +410,16 @@ int main(int argc, char *argv[])
 
   /* create threads for smoothing length interation and
      interacting particle list generation */
-  createSmoothingThreads(world, 10, 25);
+  //createSmoothingThreads(world, 10, 25);
+      
+  /* initialize tree root parameters */
+  init_treeroot(tree, world, world->r2);
+    
+  /* form tree */
+  branchrecurse(tree, &tree[0], world->cellindex);
+      
+  /* serial tree smoothing length iterator */
+  compute_smoothing_length_tree(world, h, 10, 25, world->r2, tree, &tree[0]);
 
   /* create threads for density computation */
   createDensityThreads(world);
@@ -437,13 +446,7 @@ int main(int argc, char *argv[])
 
   /* create threads for hydrodynamic acceleration computation */
   createAccelerationThreads(world);
-      
-  /* initialize tree root parameters */
-  init_treeroot(tree, world, world->r);
-    
-  /* form tree */
-  branchrecurse(tree, &tree[0], world->cellindex);
-      
+
   /* integrate corrector */
   createCorrectorThreads(world);
 

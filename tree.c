@@ -74,6 +74,7 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
   tree[0].space[m*0+0]=-INFINITY;
   tree[0].space[m*0+1]=-INFINITY;
   tree[0].space[m*0+2]=-INFINITY;
+
   for(ii=0;ii<n;ii++){
     if(abs(tree[0].r[ii*m+0])>tree[0].space[m*0+0]){
       tree[0].space[m*0+0]=abs(tree[0].r[ii*m+0]);
@@ -95,7 +96,7 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
   }
 
   /* cut some slack */
-  tree[0].space[m*0+0]+=0.5;
+  tree[0].space[m*0+0]+=1.0;
 
   /* first corner of root box */
   tree[0].space[m*0+1]=-tree[0].space[m*0+0];
