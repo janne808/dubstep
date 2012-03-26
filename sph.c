@@ -1,4 +1,4 @@
- /* smoothed particle hydrodynamics routines */
+/* smoothed particle hydrodynamics routines */
 
 /*
  *  (C) 2012 Janne Heikkarainen <janne.heikkarainen@tut.fi>
@@ -344,18 +344,16 @@ void compute_density(struct universe *world, double h, int lo, int hi){
 
   /* compute density */
   for(ii=lo;ii<hi;ii++){
-    rho_in[ii]=m_in[ii]*kernel(0.0,h_in[ii]);
+    rho_in[ii]=0;
     n=world->neighbour_list[ii].num;
     for(jj=0;jj<n;jj++){
       kk=world->neighbour_list[ii].list[jj];
-      if(ii!=kk){
-	/* particle-particle distance */
-	dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
-	dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
-	dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
-	r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
-	rho_in[ii]+=m_in[kk]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
-      }
+      /* particle-particle distance */
+      dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
+      dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
+      dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+      r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
+      rho_in[ii]+=m_in[kk]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
     }
   }
 }
@@ -566,14 +564,14 @@ void compute_internal_energy(struct universe *world, double *a_sph, int lo, int 
     for(jj=0;jj<n;jj++){
       kk=world->neighbour_list[ii].list[jj];
 
-      /* particle-particle distance */
-      dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
-      dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
-      dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
-      rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
-      
       /* compute gradient of kernel */
       if(ii!=kk){
+	/* particle-particle distance */
+	dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
+	dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
+	dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+	rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+      
 	dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
 	dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
 	dv_ij[2]=v_in[3*ii+2]-v_in[3*kk+2];
@@ -668,14 +666,14 @@ void compute_sph_acceleration(struct universe *world, double *r, double *v, doub
     for(jj=0;jj<n;jj++){
       kk=world->neighbour_list[ii].list[jj];
       
-      /* particle-particle distance */
-      dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
-      dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
-      dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
-      rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
-      
       /* compute gradient of kernel */
       if(ii!=kk){
+	/* particle-particle distance */
+	dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
+	dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
+	dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+	rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+      
 	dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
 	dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
 	dv_ij[2]=v_in[3*ii+2]-v_in[3*kk+2];

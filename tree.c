@@ -64,6 +64,11 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
     tree[0].particle_index_list[ii]=ii;
   }
 
+  /* init particle cell index vector */
+  for(ii=0;ii<n;ii++){
+    world->cellindex[ii]=-1;
+  }
+
   /* search for maximum values */
   /* make sure we are dealing with squares */
   tree[0].space[m*0+0]=-INFINITY;
@@ -71,17 +76,17 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
   tree[0].space[m*0+2]=-INFINITY;
   for(ii=0;ii<n;ii++){
     if(abs(tree[0].r[ii*m+0])>tree[0].space[m*0+0]){
-      tree[0].space[m*0+0]=tree[0].r[ii*m+0];
+      tree[0].space[m*0+0]=abs(tree[0].r[ii*m+0]);
     }
     if(abs(tree[0].r[ii*m+1])>tree[0].space[m*0+1]){
-      tree[0].space[m*0+1]=tree[0].r[ii*m+1];
+      tree[0].space[m*0+1]=abs(tree[0].r[ii*m+1]);
     }
     if(abs(tree[0].r[ii*m+2])>tree[0].space[m*0+2]){
-      tree[0].space[m*0+2]=tree[0].r[ii*m+2];
+      tree[0].space[m*0+2]=abs(tree[0].r[ii*m+2]);
     }
   }
   
-  /* search for largest coordinate */
+  /* search for largest dimension */
   if(tree[0].space[m*0+1]<tree[0].space[m*0+2]){
     tree[0].space[m*0+1]=tree[0].space[m*0+2];
   }
@@ -276,13 +281,19 @@ void treerecurse(struct cell *tree, struct cell *root){
 
 void branchrecurse(struct cell *tree, struct cell *root, int *cellindex){
   int ii;
+  struct cell *child;
+
+  /* branch into subcells if root cell has more than one particle */
   if(root->num>1){
     treebranch(tree, root, cellindex);
     free(root->r);
     free(root->m);
     free(root->particle_index_list);
-    for(ii=0;ii<root->numchild;ii++)
-      branchrecurse(tree, &tree[root->children[ii]], cellindex);
+
+    for(ii=0;ii<root->numchild;ii++){
+      child=&tree[root->children[ii]];
+      branchrecurse(tree, child, cellindex);
+    }
   }
 }
 
@@ -362,24 +373,31 @@ void treebranch(struct cell *tree, struct cell *root, int *cellindex){
       newcell->space[0*3+0]=x;
       newcell->space[0*3+1]=y;
       newcell->space[0*3+2]=z;
+
       newcell->space[1*3+0]=x;
       newcell->space[1*3+1]=y;
       newcell->space[1*3+2]=z-h;
+
       newcell->space[2*3+0]=x-h;
       newcell->space[2*3+1]=y;
       newcell->space[2*3+2]=z-h;
+
       newcell->space[3*3+0]=x-h;
       newcell->space[3*3+1]=y;
       newcell->space[3*3+2]=z;
+
       newcell->space[4*3+0]=x;
       newcell->space[4*3+1]=y+h;
       newcell->space[4*3+2]=z;
+
       newcell->space[5*3+0]=x;
       newcell->space[5*3+1]=y+h;
       newcell->space[5*3+2]=z-h;
+
       newcell->space[6*3+0]=x-h;
       newcell->space[6*3+1]=y+h;
       newcell->space[6*3+2]=z-h;
+
       newcell->space[7*3+0]=x-h;
       newcell->space[7*3+1]=y+h;
       newcell->space[7*3+2]=z;
