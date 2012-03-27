@@ -96,7 +96,7 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
   }
 
   /* cut some slack */
-  tree[0].space[m*0+0]+=1.0;
+  tree[0].space[m*0+0]*=2.0;
 
   /* first corner of root box */
   tree[0].space[m*0+1]=-tree[0].space[m*0+0];

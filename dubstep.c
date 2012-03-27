@@ -178,8 +178,8 @@ int main(int argc, char *argv[])
   double density;
   double max_density;
 
-  double energy;
-  double max_energy;
+  double pressure;
+  double max_pressure;
 
   struct color *col=0;
 #endif
@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
     world->h[ii]=h;
     world->dt_CFL[ii]=world->sub_dt;
     world->last_kick[ii]=0.0;
-    world->m[ii]=1.0/(float)(n);
+    world->m[ii]=2.0/(float)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -386,9 +386,9 @@ int main(int argc, char *argv[])
       z=2*((double)(rand())/RAND_MAX)-1;
     }
 
-    world->r[ii*m+0]=24.0*x;
-    world->r[ii*m+1]=24.0*y;
-    world->r[ii*m+2]=24.0*z;
+    world->r[ii*m+0]=1.8*24.0*x;
+    world->r[ii*m+1]=1.8*24.0*y;
+    world->r[ii*m+2]=1.8*24.0*z;
     world->r2[ii*m+0]=world->r[ii*m+0];
     world->r2[ii*m+1]=world->r[ii*m+1];
     world->r2[ii*m+2]=world->r[ii*m+2];
@@ -630,22 +630,22 @@ int main(int argc, char *argv[])
 
     /* find maximum density and energy for normalization */
     max_density=0.0;
-    max_energy=0.0;
+    max_pressure=0.0;
     for(nn=0;nn<n;nn++){
       density=world->rho[nn];
-      energy=world->u[nn];
+      pressure=world->p[nn];
 
       if(density>max_density)
 	max_density=density;
 
-      if(energy>max_energy)
-	max_energy=energy;
+      if(pressure>max_pressure)
+	max_pressure=pressure;
     }
 
     for(nn=0;nn<n;nn++){
       density=(world->rho[nn]/max_density)*0.8+0.2;
-      energy=(world->u[nn]/max_energy);
-      colormap(energy,col);
+      pressure=(world->p[nn]/max_pressure);
+      colormap(pressure,col);
       glColor4f((float)(col->r),(float)(col->g),(float)(col->b),(float)(density));
       glVertex3f((zoom)*(world->r[nn*m+0]),
 		 (zoom)*(world->r[nn*m+1]),
