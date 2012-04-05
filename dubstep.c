@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
   double G=4.0*PI*PI;
 
   /* tree cell opening length parameter */
-  double theta=0.5;
+  double theta=0.25;
 
   /* initial timestep, determined from CFL before main loop */
   double dt=0.0;
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
   double epsilon=0.005;
 
   /* initial smoothing length */
-  double h=1.0;
+  double h=1.2;
 
   /* artificial viscosity parameters */
   double alpha=1.0;
@@ -180,6 +180,10 @@ int main(int argc, char *argv[])
 
   double pressure;
   double max_pressure;
+
+  double u_grav;
+  double u_kin;
+  double u_int;
 
   struct color *col=0;
 #endif
@@ -393,8 +397,8 @@ int main(int argc, char *argv[])
 
     rr=sqrt(x*x+y*y+z*z);
 
-    world->v[ii*m+0]=-1.0*y/rr;
-    world->v[ii*m+1]=1.0*x/rr;
+    world->v[ii*m+0]=-1.2*y/rr;
+    world->v[ii*m+1]=1.2*x/rr;
     world->v[ii*m+2]=0;    
     //world->v[ii*m+0]=0;
     //world->v[ii*m+1]=0;
@@ -581,15 +585,16 @@ int main(int argc, char *argv[])
       t2=SDL_GetTicks();
       int_time+=t2-t1;
 
-      /* compute average and minimum energy */
+      /* compute total, average and minimum energy */
       avg_u=0.0;
+      u_int=0.0;
       min_u=HUGE_VAL;
       for(nn=0;nn<world->num;nn++){
-	avg_u+=world->u[nn];
+	u_int+=world->u[nn];
 	if(world->u[nn]<min_u)
 	  min_u=world->u[nn];
       }
-      avg_u=avg_u/world->num;
+      avg_u=u_int/world->num;
 
       /* compute maximum and minimum of neighbouring particles */
       min_N=world->num;
@@ -606,8 +611,19 @@ int main(int argc, char *argv[])
       }
       avg_N=avg_N/world->num;
 
-      printf("time: %f dt: %f cells: %d tree t: %d ms sph t: %d ms integration t: %d ms avg_u: %f min_u: %f avg_N: %f\n",
-      	     world->time, world->sub_dt, tree[0].numcells, treetime, sph_time, int_time, avg_u, min_u, avg_N);
+      /* compute total gravitational potential energy */
+      u_grav=compute_total_potential_energy(world);
+
+      /* compute total kinetic energy */
+      u_kin=0;
+      for(ii=0;ii<n;ii++){
+	u_kin+=0.5*world->m[ii]*(world->v[3*ii+0]*world->v[3*ii+0]+world->v[3*ii+1]*world->v[3*ii+1]+
+				 world->v[3*ii+2]*world->v[3*ii+2]);
+      }
+
+      /* display the state of the system */
+      printf("time: %f dt: %f cells: %d avg_N: %f u_int: %f u_grav: %f u_kin: %f\n",
+      	     world->time, world->sub_dt, tree[0].numcells, avg_N, u_int, u_grav, u_kin);
 
       /* next time step */
       tt++;

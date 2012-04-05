@@ -50,10 +50,14 @@ struct cell{
 
 /* function prototypes */
 int init_treeroot(struct cell *tree, struct universe *world, double *r);
+double compute_total_potential_energy(struct universe *world);
 void treebranch(struct cell *tree, struct cell *root, int *cellindex);
 void treerecurse(struct cell *tree, struct cell *root);
 void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h, double max_h,
 		      double *h_in, int *neighbour_num, int *neighbour_list);
+void potentialrecurse(struct cell *tree, struct cell *root, 
+		      double *r, double m, double *U, double G, double theta,
+		      double epsilon);
 void forcerecurse(struct cell *tree, struct cell *root,
 		  double *r, double *f, double G, double theta,
 		  double epsilon);

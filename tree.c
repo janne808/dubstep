@@ -205,15 +205,55 @@ void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
   }
 }
 
-void forcerecurse(struct cell *tree, struct cell *root, double *r,
-		  double *f, double G, double theta, double epsilon){
+double compute_total_potential_energy(struct universe *world){
+  /* loop variables */
+  int ii;
+
+  /* state vector dimensions */
+  int m;
+  int n;
+
+  /* pointers to state vectors */
+  double *r_in;
+  double *m_in;
+
+  /* total gravitational potential energy */
+  double U;
+
+  /* pointer to barnes hut tree */
+  struct cell *tree;
+
+  m=world->dim;  
+  n=world->num;
+
+  r_in=world->r;
+  m_in=world->m;
+
+  tree=world->tree;
+
+  /* reset potential energy and sum total energy from tree */
+  U=0;
+  for(ii=0;ii<n;ii++){
+    potentialrecurse(tree, &tree[0], &r_in[3*ii], m_in[ii], &U, world->G, world->theta, world->epsilon);
+  }
+
+  return U;
+}
+
+void potentialrecurse(struct cell *tree, struct cell *root, double *r, double m,
+		      double *U, double G, double theta, double epsilon){
   int ii;
   double dx,dy,dz,d,d2;
+  double delta;
+  double l;
   struct cell *child;
     
   /* check thru child cells */
   for(ii=0;ii<root->numchild;ii++){
     child=&tree[root->children[ii]];
+
+    /* cell side lengths */
+    l=child->l;
 
     /* compute distance */
     dx=r[0]-child->center[0];
@@ -221,12 +261,63 @@ void forcerecurse(struct cell *tree, struct cell *root, double *r,
     dz=r[2]-child->center[2];
     d=sqrt(dx*dx+dy*dy+dz*dz);
     
+    /* compute distance from cell geometrical center to center of mass */
+    dx=child->center[0]-(child->space[0*3+0]-l/2.0);
+    dy=child->center[1]-(child->space[0*3+1]+l/2.0);
+    dz=child->center[2]-(child->space[0*3+2]-l/2.0);
+    delta=sqrt(dx*dx+dy*dy+dz*dz);
+
     if(child->num>1){
-      if(child->l/d>theta){
-	/* open new cell */
-	forcerecurse(tree, child, r, f, G, theta, epsilon);
+      if(d>child->l/theta+delta){
+	/* approximate as ensemble */
+	/* calculate potential energy with plummer softening */
+	d2=sqrt(d*d+epsilon*epsilon);
+	d2=1/(d2*d2*d2);
+	*U-=G*m*child->mass*d2;
       }
       else{
+	/* recurse deeper into tree */
+	potentialrecurse(tree, child, r, m, U, G, theta, epsilon);
+      }
+    }
+    else{
+      /* calculate force with plummer softening */
+      d2=sqrt(d*d+epsilon*epsilon);
+      d2=1/(d2*d2*d2);
+      *U-=G*m*child->mass*d2;
+    }
+  }
+}
+
+void forcerecurse(struct cell *tree, struct cell *root, double *r,
+		  double *f, double G, double theta, double epsilon){
+  int ii;
+  double dx,dy,dz,d,d2;
+  double delta;
+  double l;
+  struct cell *child;
+    
+  /* check thru child cells */
+  for(ii=0;ii<root->numchild;ii++){
+    child=&tree[root->children[ii]];
+
+    /* cell side lengths */
+    l=child->l;
+
+    /* compute distance */
+    dx=r[0]-child->center[0];
+    dy=r[1]-child->center[1];
+    dz=r[2]-child->center[2];
+    d=sqrt(dx*dx+dy*dy+dz*dz);
+    
+    /* compute distance from cell geometrical center to center of mass */
+    dx=child->center[0]-(child->space[0*3+0]-l/2.0);
+    dy=child->center[1]-(child->space[0*3+1]+l/2.0);
+    dz=child->center[2]-(child->space[0*3+2]-l/2.0);
+    delta=sqrt(dx*dx+dy*dy+dz*dz);
+
+    if(child->num>1){
+      if(d>child->l/theta+delta){
 	/* approximate as ensemble */
 	/* calculate force with plummer softening */
 	d2=sqrt(d*d+epsilon*epsilon);
@@ -234,6 +325,10 @@ void forcerecurse(struct cell *tree, struct cell *root, double *r,
 	f[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
 	f[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
 	f[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);	
+      }
+      else{
+	/* recurse deeper into tree */
+	forcerecurse(tree, child, r, f, G, theta, epsilon);
       }
     }
     else{
