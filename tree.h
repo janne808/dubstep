@@ -50,17 +50,24 @@ struct cell{
 
 /* function prototypes */
 int init_treeroot(struct cell *tree, struct universe *world, double *r);
-double compute_total_potential_energy(struct universe *world);
-void treebranch(struct cell *tree, struct cell *root, int *cellindex);
-void treerecurse(struct cell *tree, struct cell *root);
-void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h, double max_h,
-		      double *h_in, int *neighbour_num, int *neighbour_list);
-void potentialrecurse(struct cell *tree, struct cell *root, 
-		      double *r, double m, double *U, double G, double theta,
-		      double epsilon);
-void forcerecurse(struct cell *tree, struct cell *root,
-		  double *r, double *f, double G, double theta,
-		  double epsilon);
-void branchrecurse(struct cell *tree, struct cell *root, int *cellindex);
+
+void compute_total_energy(struct universe *world, double theta, int lo, int hi);
+
+void tree_branch(struct cell *tree, struct cell *root, int *cellindex);
+
+void tree_recurse(struct cell *tree, struct cell *root);
+
+void neighbour_recurse(struct cell *tree, struct cell *root, double *r, double h, double max_h,
+		       double *h_in, int *neighbour_num, int *neighbour_list);
+
+void potential_recurse(struct cell *tree, struct cell *root, 
+		       double *r, double m, double *U, double G, double theta,
+		       double epsilon);
+
+void force_recurse(struct cell *tree, struct cell *root,
+		   double *r, double *f, double G, double theta,
+		   double epsilon);
+
+void branch_recurse(struct cell *tree, struct cell *root, int *cellindex);
 
 #endif

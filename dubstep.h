@@ -103,6 +103,15 @@ struct universe{
   double sub_dt;
 
   double *last_kick;
+
+  /* total system energy */
+  double u_int;
+  double u_grav;
+  double u_kin;
+
+  double avg_u;
+  double min_u;
+
 };
 
 #endif

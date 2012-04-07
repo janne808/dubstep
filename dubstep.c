@@ -181,15 +181,9 @@ int main(int argc, char *argv[])
   double pressure;
   double max_pressure;
 
-  double u_grav;
-  double u_kin;
-  double u_int;
-
   struct color *col=0;
 #endif
 
-  double avg_u;
-  double min_u;
   double min_dt;
 
 #if ENABLE_GUI
@@ -412,28 +406,28 @@ int main(int argc, char *argv[])
 
   /* create threads for smoothing length interation and
      interacting particle list generation */
-  //createSmoothingThreads(world, 10, 25);
+  //create_smoothing_threads(world, 10, 25);
       
   /* initialize tree root parameters */
   init_treeroot(tree, world, world->r2);
     
   /* form tree */
-  branchrecurse(tree, &tree[0], world->cellindex);
+  branch_recurse(tree, &tree[0], world->cellindex);
       
   /* serial tree smoothing length iterator */
   compute_smoothing_length_tree(world, h, 10, 25, world->r2, tree, &tree[0]);
 
   /* create threads for density computation */
-  createDensityThreads(world);
+  create_density_threads(world);
 
   /* create threads for pressure computation */
-  createPressureThreads(world);
+  create_pressure_threads(world);
 
   /* create threads for sound speed computation */
-  createSoundspeedThreads(world);
+  create_soundspeed_threads(world);
 
   /* create threads for CFL computation */
-  createCFLThreads(world);
+  create_CFL_threads(world);
 
   /* determine minimum timestep to take from CFL */
   min_dt=HUGE_VAL;
@@ -444,13 +438,13 @@ int main(int argc, char *argv[])
   world->sub_dt=min_dt;
   
   /* create threads for sph energy computation */
-  createEnergyThreads(world);
+  create_energy_threads(world);
 
   /* create threads for hydrodynamic acceleration computation */
-  createAccelerationThreads(world);
+  create_acceleration_threads(world);
 
   /* integrate corrector */
-  createCorrectorThreads(world);
+  create_corrector_threads(world);
 
   /* initialize run flag and run the main loop */
   tt=0;
@@ -523,7 +517,7 @@ int main(int argc, char *argv[])
       t1=SDL_GetTicks();
 
       /* integrate predictor */
-      createPredictorThreads(world);
+      create_predictor_threads(world);
 
       t2=SDL_GetTicks();
       int_time=t2-t1;
@@ -532,7 +526,7 @@ int main(int argc, char *argv[])
 
       /* create threads for smoothing length interation and
 	 interacting particle list generation */
-      //createSmoothingThreads(world, 1, 25);
+      //create_smoothing_threads(world, 1, 25);
 
       t1=SDL_GetTicks();
 
@@ -540,7 +534,7 @@ int main(int argc, char *argv[])
       init_treeroot(tree, world, world->r2);
     
       /* form tree */
-      branchrecurse(tree, &tree[0], world->cellindex);
+      branch_recurse(tree, &tree[0], world->cellindex);
 
       /* serial tree smoothing length iterator */
       compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0]);
@@ -549,16 +543,16 @@ int main(int argc, char *argv[])
       treetime=t2-t1;
 
       /* create threads for density computation */
-      createDensityThreads(world);
+      create_density_threads(world);
 
       /* create threads for pressure computation */
-      createPressureThreads(world);
+      create_pressure_threads(world);
 
       /* create threads for sound speed computation */
-      createSoundspeedThreads(world);
+      create_soundspeed_threads(world);
 
       /* create threads for CFL computation */
-      createCFLThreads(world);
+      create_CFL_threads(world);
 
       /* determine minimum timestep to take from CFL */
       min_dt=HUGE_VAL;
@@ -569,10 +563,10 @@ int main(int argc, char *argv[])
       world->sub_dt=min_dt;
 
       /* create threads for sph energy computation */
-      createEnergyThreads(world);
+      create_energy_threads(world);
 
       /* create threads for hydrodynamic acceleration computation */
-      createAccelerationThreads(world);
+      create_acceleration_threads(world);
       
       t2=SDL_GetTicks();
       sph_time=t2-t1;
@@ -580,21 +574,21 @@ int main(int argc, char *argv[])
       t1=SDL_GetTicks();
 
       /* integrate corrector */
-      createCorrectorThreads(world);
+      create_corrector_threads(world);
 
       t2=SDL_GetTicks();
       int_time+=t2-t1;
 
       /* compute total, average and minimum energy */
-      avg_u=0.0;
-      u_int=0.0;
-      min_u=HUGE_VAL;
+      world->avg_u=0.0;
+      world->u_int=0.0;
+      world->min_u=HUGE_VAL;
       for(nn=0;nn<world->num;nn++){
-	u_int+=world->u[nn];
-	if(world->u[nn]<min_u)
-	  min_u=world->u[nn];
+	world->u_int+=world->u[nn];
+	if(world->u[nn]<world->min_u)
+	  world->min_u=world->u[nn];
       }
-      avg_u=u_int/world->num;
+      world->avg_u=world->u_int/world->num;
 
       /* compute maximum and minimum of neighbouring particles */
       min_N=world->num;
@@ -611,19 +605,12 @@ int main(int argc, char *argv[])
       }
       avg_N=avg_N/world->num;
 
-      /* compute total gravitational potential energy */
-      u_grav=compute_total_potential_energy(world);
-
-      /* compute total kinetic energy */
-      u_kin=0;
-      for(ii=0;ii<n;ii++){
-	u_kin+=0.5*world->m[ii]*(world->v[3*ii+0]*world->v[3*ii+0]+world->v[3*ii+1]*world->v[3*ii+1]+
-				 world->v[3*ii+2]*world->v[3*ii+2]);
-      }
+      /* compute total gravitational potential and kinetic energy */
+      create_total_energy_threads(world, 0.1);
 
       /* display the state of the system */
       printf("time: %f dt: %f cells: %d avg_N: %f u_int: %f u_grav: %f u_kin: %f\n",
-      	     world->time, world->sub_dt, tree[0].numcells, avg_N, u_int, u_grav, u_kin);
+      	     world->time, world->sub_dt, tree[0].numcells, avg_N, world->u_int, world->u_grav, world->u_kin);
 
       /* next time step */
       tt++;

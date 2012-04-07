@@ -162,8 +162,8 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
   return 0;
 }
 
-void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h, double max_h,
-		      double *h_in, int *neighbour_num, int *neighbour_list){
+void neighbour_recurse(struct cell *tree, struct cell *root, double *r, double h, double max_h,
+		       double *h_in, int *neighbour_num, int *neighbour_list){
   int ii;
   double dx,dy,dz,d;
   double l;
@@ -187,7 +187,7 @@ void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
       /* if the smoothing length radius intersects with the cells corner */
       /* radius, recurse deeper into the tree to find more particles */
       if((sqrt(3.0)/2.0)*l+max_h+2.0*h>d){
-	neighbourrecurse(tree, child, r, h, max_h, h_in, neighbour_num, neighbour_list);
+	neighbour_recurse(tree, child, r, h, max_h, h_in, neighbour_num, neighbour_list);
       }
     }
     else{
@@ -205,7 +205,7 @@ void neighbourrecurse(struct cell *tree, struct cell *root, double *r, double h,
   }
 }
 
-double compute_total_potential_energy(struct universe *world){
+void compute_total_energy(struct universe *world, double theta, int lo, int hi){
   /* loop variables */
   int ii;
 
@@ -218,7 +218,10 @@ double compute_total_potential_energy(struct universe *world){
   double *m_in;
 
   /* total gravitational potential energy */
-  double U;
+  double *U;
+
+  /* total kinetic energy */
+  double *K;
 
   /* pointer to barnes hut tree */
   struct cell *tree;
@@ -231,17 +234,21 @@ double compute_total_potential_energy(struct universe *world){
 
   tree=world->tree;
 
-  /* reset potential energy and sum total energy from tree */
-  U=0;
-  for(ii=0;ii<n;ii++){
-    potentialrecurse(tree, &tree[0], &r_in[3*ii], m_in[ii], &U, world->G, world->theta, world->epsilon);
-  }
+  U=&world->u_grav;
+  K=&world->u_kin;
 
-  return U;
+  /* sum total potential and kinetic energy */
+  for(ii=lo;ii<hi;ii++){
+    /* sum in potential energy from tree */
+    potential_recurse(tree, &tree[0], &r_in[3*ii], m_in[ii], U, world->G, theta, world->epsilon);
+    /* sum in kinetic energy */
+    *K+=0.5*world->m[ii]*(world->v[3*ii+0]*world->v[3*ii+0]+world->v[3*ii+1]*world->v[3*ii+1]+
+			  world->v[3*ii+2]*world->v[3*ii+2]);
+  }
 }
 
-void potentialrecurse(struct cell *tree, struct cell *root, double *r, double m,
-		      double *U, double G, double theta, double epsilon){
+void potential_recurse(struct cell *tree, struct cell *root, double *r, double m,
+		       double *U, double G, double theta, double epsilon){
   int ii;
   double dx,dy,dz,d,d2;
   double delta;
@@ -277,11 +284,11 @@ void potentialrecurse(struct cell *tree, struct cell *root, double *r, double m,
       }
       else{
 	/* recurse deeper into tree */
-	potentialrecurse(tree, child, r, m, U, G, theta, epsilon);
+	potential_recurse(tree, child, r, m, U, G, theta, epsilon);
       }
     }
     else{
-      /* calculate force with plummer softening */
+      /* calculate potential energy with plummer softening */
       d2=sqrt(d*d+epsilon*epsilon);
       d2=1/(d2*d2*d2);
       *U-=G*m*child->mass*d2;
@@ -289,8 +296,8 @@ void potentialrecurse(struct cell *tree, struct cell *root, double *r, double m,
   }
 }
 
-void forcerecurse(struct cell *tree, struct cell *root, double *r,
-		  double *f, double G, double theta, double epsilon){
+void force_recurse(struct cell *tree, struct cell *root, double *r,
+		   double *f, double G, double theta, double epsilon){
   int ii;
   double dx,dy,dz,d,d2;
   double delta;
@@ -328,7 +335,7 @@ void forcerecurse(struct cell *tree, struct cell *root, double *r,
       }
       else{
 	/* recurse deeper into tree */
-	forcerecurse(tree, child, r, f, G, theta, epsilon);
+	force_recurse(tree, child, r, f, G, theta, epsilon);
       }
     }
     else{
@@ -342,7 +349,7 @@ void forcerecurse(struct cell *tree, struct cell *root, double *r,
   }
 }
 
-void treerecurse(struct cell *tree, struct cell *root){
+void tree_recurse(struct cell *tree, struct cell *root){
     int ii;
 
     printf("\nroot->index: %d\n", root->index);
@@ -370,30 +377,30 @@ void treerecurse(struct cell *tree, struct cell *root){
 
     if(root->num>1){
         for(ii=0;ii<root->numchild;ii++){
-            treerecurse(tree, &tree[root->children[ii]]);
+            tree_recurse(tree, &tree[root->children[ii]]);
         }
     }
 }
 
-void branchrecurse(struct cell *tree, struct cell *root, int *cellindex){
+void branch_recurse(struct cell *tree, struct cell *root, int *cellindex){
   int ii;
   struct cell *child;
 
   /* branch into subcells if root cell has more than one particle */
   if(root->num>1){
-    treebranch(tree, root, cellindex);
+    tree_branch(tree, root, cellindex);
     free(root->r);
     free(root->m);
     free(root->particle_index_list);
 
     for(ii=0;ii<root->numchild;ii++){
       child=&tree[root->children[ii]];
-      branchrecurse(tree, child, cellindex);
+      branch_recurse(tree, child, cellindex);
     }
   }
 }
 
-void treebranch(struct cell *tree, struct cell *root, int *cellindex){
+void tree_branch(struct cell *tree, struct cell *root, int *cellindex){
     struct cell *newcell;
     double x,y,z;
     double *r,*m;

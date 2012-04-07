@@ -75,26 +75,26 @@ struct thread_data5{
   int hi;
 };
 
-void *smoothingThread(void *threadarg);
-void *densityThread(void *threadarg);
-void *pressureThread(void *threadarg);
-void *soundspeedThread(void *threadarg);
-void *CFLThread(void *threadarg);
-void *energyThread(void *threadarg);
-void *accelerationThread(void *threadarg);
-void *integrationThread(void *threadarg);
-void *predictorThread(void *threadarg);
-void *correctorThread(void *threadarg);
+void *smoothing_thread(void *threadarg);
+void *total_energy_thread(void *threadarg);
+void *density_thread(void *threadarg);
+void *pressure_thread(void *threadarg);
+void *soundspeed_thread(void *threadarg);
+void *CFL_thread(void *threadarg);
+void *energy_thread(void *threadarg);
+void *acceleration_thread(void *threadarg);
+void *predictor_thread(void *threadarg);
+void *corrector_thread(void *threadarg);
 
-void createSmoothingThreads(struct universe *world, int iterations, int neighbours);
-void createDensityThreads(struct universe *world);
-void createPressureThreads(struct universe *world);
-void createSoundspeedThreads(struct universe *world);
-void createCFLThreads(struct universe *world);
-void createEnergyThreads(struct universe *world);
-void createAccelerationThreads(struct universe *world);
-void createIntegrationThreads(struct universe *world);
-void createPredictorThreads(struct universe *world);
-void createCorrectorThreads(struct universe *world);
+void create_smoothing_threads(struct universe *world, int iterations, int neighbours);
+void create_density_threads(struct universe *world);
+void create_pressure_threads(struct universe *world);
+void create_soundspeed_threads(struct universe *world);
+void create_CFL_threads(struct universe *world);
+void create_energy_threads(struct universe *world);
+void create_acceleration_threads(struct universe *world);
+void create_predictor_threads(struct universe *world);
+void create_corrector_threads(struct universe *world);
+void create_total_energy_threads(struct universe *world, double theta);
 
 #endif
