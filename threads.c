@@ -239,7 +239,8 @@ void *corrector_thread(void *threadarg){
     a[1]=0;
     a[2]=0;
 
-    force_recurse(tree, &tree[0], r, a, world->G, theta, epsilon);
+    //force_recurse(tree, &tree[0], r, a, world->G, theta, epsilon);
+    force_walk(tree, &tree[0], r, a, world->G, theta, epsilon);
 
     a_tree[nn*m+0]=a[0];
     a_tree[nn*m+1]=a[1];

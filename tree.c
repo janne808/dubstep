@@ -162,6 +162,154 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
   return 0;
 }
 
+void force_walk(struct cell *tree, struct cell *root, double *r,
+		double *f, double G, double theta, double epsilon){
+  /* loop variables */
+  int ii;
+
+  /* child cell */
+  struct cell *child;
+
+  /* cell node stack */
+  int nodestack[tree->numcells];
+
+  /* walk pointer */
+  int wp;
+
+  /* cell side length variable */
+  double l;
+
+  /* distance calculation variables */
+  double dx,dy,dz,d,d2,delta;
+
+  /* init walk pointer */
+  wp=0;
+
+  /* init stack with root cell siblings */
+  for(ii=0;ii<root->numchild;ii++){
+    nodestack[wp]=root->children[ii];
+    wp++;
+  } 
+
+  while(wp>0){
+    /* pop a cell from the node stack */
+    wp--;
+    child=&tree[nodestack[wp]];
+
+    /* cell side lengths */
+    l=child->l;
+
+    /* compute distance */
+    dx=r[0]-child->center[0];
+    dy=r[1]-child->center[1];
+    dz=r[2]-child->center[2];
+    d=sqrt(dx*dx+dy*dy+dz*dz);
+    
+    /* compute distance from cell geometrical center to center of mass */
+    dx=child->center[0]-(child->space[0*3+0]-l/2.0);
+    dy=child->center[1]-(child->space[0*3+1]+l/2.0);
+    dz=child->center[2]-(child->space[0*3+2]-l/2.0);
+    delta=sqrt(dx*dx+dy*dy+dz*dz);
+
+    if(child->num>1){
+      if(d>child->l/theta+delta){
+	/* approximate as ensemble */
+	/* calculate force with plummer softening */
+	d2=sqrt(d*d+epsilon*epsilon);
+	d2=1/(d2*d2*d2);
+	f[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
+	f[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
+	f[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);	
+      }
+      else{
+	/* push sibling nodes into the stack */
+	for(ii=0;ii<child->numchild;ii++){
+	  nodestack[wp]=child->children[ii];
+	  wp++;
+	}
+      }
+    }
+    else{
+      /* single particle cell */
+      /* calculate force with plummer softening */
+      d2=sqrt(d*d+epsilon*epsilon);
+      d2=1/(d2*d2*d2);
+      f[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
+      f[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
+      f[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);
+    }
+  }
+}
+
+void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, double max_h,
+		    double *h_in, int *neighbour_num, int *neighbour_list){
+  /* loop variables */
+  int ii;
+
+  /* child cell */
+  struct cell *child;
+
+  /* cell node stack */
+  int nodestack[tree->numcells];
+
+  /* walk pointer */
+  int wp;
+
+  /* cell side length variable */
+  double l;
+
+  /* distance calculation variables */
+  double dx,dy,dz,d;
+
+  /* init walk pointer */
+  wp=0;
+
+  /* init stack with root cell siblings */
+  for(ii=0;ii<root->numchild;ii++){
+    nodestack[wp]=root->children[ii];
+    wp++;
+  } 
+
+  while(wp>0){
+    /* pop a cell from the node stack */
+    wp--;
+    child=&tree[nodestack[wp]];
+
+    /* cell side lengths */
+    l=child->l;
+
+    if(child->num>1){
+      /* compute distance from cell centers to particles */
+      dx=r[0]-(child->space[0*3+0]-l/2.0);
+      dy=r[1]-(child->space[0*3+1]+l/2.0);
+      dz=r[2]-(child->space[0*3+2]-l/2.0);
+      d=sqrt(dx*dx+dy*dy+dz*dz);
+
+      /* if the smoothing length radius intersects with the cells corner */
+      /* radius, recurse deeper into the tree to find more particles */
+      if((sqrt(3.0)/2.0)*l+max_h+2.0*h>d){
+	/* push sibling nodes into the stack */
+	for(ii=0;ii<child->numchild;ii++){
+	  nodestack[wp]=child->children[ii];
+	  wp++;
+	}
+      }
+    }
+    else{
+      /* compute distance from cell center of mass to particle */
+      dx=r[0]-child->center[0];
+      dy=r[1]-child->center[1];
+      dz=r[2]-child->center[2];
+      d=sqrt(dx*dx+dy*dy+dz*dz);
+      if(d/h<2.0||d/h_in[child->particle_index]<2.0){
+	/* add particle index into the neighbouring particle list */
+	neighbour_list[*neighbour_num]=child->particle_index;
+	*neighbour_num+=1;
+      }
+    }
+  }
+}
+
 void neighbour_recurse(struct cell *tree, struct cell *root, double *r, double h, double max_h,
 		       double *h_in, int *neighbour_num, int *neighbour_list){
   int ii;
@@ -241,6 +389,7 @@ void compute_total_energy(struct universe *world, double theta, int lo, int hi){
   for(ii=lo;ii<hi;ii++){
     /* sum in potential energy from tree */
     potential_recurse(tree, &tree[0], &r_in[3*ii], m_in[ii], U, world->G, theta, world->epsilon);
+
     /* sum in kinetic energy */
     *K+=0.5*world->m[ii]*(world->v[3*ii+0]*world->v[3*ii+0]+world->v[3*ii+1]*world->v[3*ii+1]+
 			  world->v[3*ii+2]*world->v[3*ii+2]);

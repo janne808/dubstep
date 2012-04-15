@@ -111,7 +111,6 @@ struct universe{
 
   double avg_u;
   double min_u;
-
 };
 
 #endif

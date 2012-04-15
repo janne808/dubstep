@@ -606,7 +606,7 @@ int main(int argc, char *argv[])
       avg_N=avg_N/world->num;
 
       /* compute total gravitational potential and kinetic energy */
-      create_total_energy_threads(world, 0.1);
+      //create_total_energy_threads(world, 0.1);
 
       /* display the state of the system */
       printf("time: %f dt: %f cells: %d avg_N: %f u_int: %f u_grav: %f u_kin: %f\n",
