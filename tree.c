@@ -205,7 +205,7 @@ void force_walk(struct cell *tree, struct cell *root, double *r,
     dz=r[2]-child->center[2];
     d=sqrt(dx*dx+dy*dy+dz*dz);
     
-    /* compute distance from cell geometrical center to center of mass */
+    /* compute distance from cells geometrical center to center of mass */
     dx=child->center[0]-(child->space[0*3+0]-l/2.0);
     dy=child->center[1]-(child->space[0*3+1]+l/2.0);
     dz=child->center[2]-(child->space[0*3+2]-l/2.0);
@@ -279,7 +279,7 @@ void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, d
     l=child->l;
 
     if(child->num>1){
-      /* compute distance from cell centers to particles */
+      /* compute distance from cells geometrical center to particle */
       dx=r[0]-(child->space[0*3+0]-l/2.0);
       dy=r[1]-(child->space[0*3+1]+l/2.0);
       dz=r[2]-(child->space[0*3+2]-l/2.0);
