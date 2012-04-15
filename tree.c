@@ -206,6 +206,7 @@ void force_walk(struct cell *tree, struct cell *root, double *r,
     d=sqrt(dx*dx+dy*dy+dz*dz);
     
     /* compute distance from cells geometrical center to center of mass */
+    /* for cell opening criterion */
     dx=child->center[0]-(child->space[0*3+0]-l/2.0);
     dy=child->center[1]-(child->space[0*3+1]+l/2.0);
     dz=child->center[2]-(child->space[0*3+2]-l/2.0);
