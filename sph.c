@@ -78,7 +78,7 @@ double artificial_viscosity(double *dv_ij, double h_ij, double rho_ij,
 }
 
 void compute_smoothing_length_tree(struct universe *world, double max_h, int iterations, int N_target,
-				   double *r, struct cell *tree, struct cell *root){
+				   double *r, struct cell *tree, struct cell *root, int lo, int hi){
   /* loop variables */
   int ii,jj;
 
@@ -115,14 +115,9 @@ void compute_smoothing_length_tree(struct universe *world, double max_h, int ite
   }
 
   /* iterate towards optimum number of neighbours */
-  for(ii=0;ii<n;ii++){
+  for(ii=lo;ii<hi;ii++){
     h=h_in[ii];
       
-    if(world->neighbour_list[ii].list){
-      world->neighbour_list[ii].num=0;
-      free(world->neighbour_list[ii].list);
-    }
-
     for(jj=0;jj<iterations;jj++){
       N=0;
       neighbour_walk(tree, root, &r_in[3*ii], h, max_h, h_in, &N, buffer);
@@ -137,6 +132,9 @@ void compute_smoothing_length_tree(struct universe *world, double max_h, int ite
     num_neighbours_in[ii]=N;
 
     world->neighbour_list[ii].num=N;
+    if(world->neighbour_list[ii].list)
+      free(world->neighbour_list[ii].list);
+
     world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
     if(!world->neighbour_list[ii].list){
       printf("Out of memory: particle neighbour list not allocated.\n");
