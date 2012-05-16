@@ -123,16 +123,16 @@ int main(int argc, char *argv[])
   double G=4.0*PI*PI;
 
   /* tree cell opening length parameter */
-  double theta=0.25;
+  double theta=0.5;
 
-  /* initial timestep, determined from CFL before main loop */
-  double dt=0.0;
+  /* maximum timestep */
+  double dt=0.01;
 
   /* plummer gravitational softening factor*/
   double epsilon=0.005;
 
   /* initial smoothing length */
-  double h=1.2;
+  double h=1.0;
 
   /* artificial viscosity parameters */
   double alpha=1.0;
@@ -140,6 +140,11 @@ int main(int argc, char *argv[])
 
   /* adiabatic exponent*/
   double gamma=1.4;
+
+  /* time bin handling variables */
+  int max_bin;
+  double ksi;
+  double old_dt;
 
 #if ENABLE_GUI
   /* SDL variables */
@@ -183,8 +188,6 @@ int main(int argc, char *argv[])
 
   struct color *col=0;
 #endif
-
-  double min_dt;
 
 #if ENABLE_GUI
   char filename[128];
@@ -310,7 +313,8 @@ int main(int argc, char *argv[])
   world->h=(double*)malloc(n*sizeof(double));
 
   world->dt_CFL=(double*)malloc(n*sizeof(double));
-  world->last_kick=(double*)malloc(n*sizeof(double));
+  world->kick=(int*)malloc(n*sizeof(int));
+  world->time_bin=(int*)malloc(n*sizeof(int));
 
   world->cellindex=(int*)malloc(n*sizeof(int));
 
@@ -337,7 +341,8 @@ int main(int argc, char *argv[])
     world->cellindex[ii]=0;
     world->h[ii]=h;
     world->dt_CFL[ii]=world->sub_dt;
-    world->last_kick[ii]=0.0;
+    world->kick[ii]=1;
+    world->time_bin[ii]=0;
     world->m[ii]=2.0/(float)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
@@ -364,7 +369,7 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=4.0;
+    world->u[ii]=6.0;
     world->u2[ii]=world->u[ii];
   }
 
@@ -382,9 +387,9 @@ int main(int argc, char *argv[])
       z=2*((double)(rand())/RAND_MAX)-1;
     }
 
-    world->r[ii*m+0]=1.8*24.0*x;
-    world->r[ii*m+1]=1.8*24.0*y;
-    world->r[ii*m+2]=1.8*24.0*z;
+    world->r[ii*m+0]=1.8*22.0*x;
+    world->r[ii*m+1]=1.8*22.0*y;
+    world->r[ii*m+2]=1.8*22.0*z;
     world->r2[ii*m+0]=world->r[ii*m+0];
     world->r2[ii*m+1]=world->r[ii*m+1];
     world->r2[ii*m+2]=world->r[ii*m+2];
@@ -428,20 +433,32 @@ int main(int argc, char *argv[])
 
   /* create threads for CFL computation */
   create_CFL_threads(world);
-
-  /* determine minimum timestep to take from CFL */
-  min_dt=HUGE_VAL;
-  for(nn=0;nn<world->num;nn++){
-    if(world->dt_CFL[nn]<min_dt)
-      min_dt=world->dt_CFL[nn];
-  }
-  world->sub_dt=min_dt;
   
   /* create threads for sph energy computation */
   create_energy_threads(world);
 
   /* create threads for hydrodynamic acceleration computation */
   create_acceleration_threads(world);
+
+  /* init particle time bins */
+  for(nn=0;nn<world->num;nn++){
+    for(ii=0;ii<world->num;ii++){
+      if(world->dt_CFL[nn]>world->dt/pow(2,ii)){
+	world->time_bin[nn]=ii;
+	break;
+      }
+    }
+    //printf("%d\t", world->time_bin[nn]);
+  }
+  //printf("\n");
+
+  /* determine minimum timestep to take from maximum bin */
+  max_bin=0;
+  for(nn=0;nn<world->num;nn++){
+    if(world->time_bin[nn]>max_bin)
+      max_bin=world->time_bin[nn];
+  }
+  world->sub_dt=world->dt/pow(2,max_bin+1);
 
   /* integrate corrector */
   create_corrector_threads(world);
@@ -556,13 +573,64 @@ int main(int argc, char *argv[])
       /* create threads for CFL computation */
       create_CFL_threads(world);
 
-      /* determine minimum timestep to take from CFL */
-      min_dt=HUGE_VAL;
+      /* update particle time bins */
       for(nn=0;nn<world->num;nn++){
-	if(world->dt_CFL[nn]<min_dt)
-	  min_dt=world->dt_CFL[nn];
+	/* preserve current time step */
+	old_dt=world->dt/pow(2,world->time_bin[nn]);
+
+	for(ii=0;ii<world->num;ii++){
+	  if(world->dt_CFL[nn]>world->dt/pow(2,ii)){
+	    /* particle can always move to a larger bin */
+	    if(world->time_bin[nn]<ii){
+	      printf("Particle %d moves from bin %d to %d.\n", nn, world->time_bin[nn], ii);
+	      ksi=(world->dt/pow(2,world->time_bin[nn]))/(world->dt/pow(2,ii));
+	      world->time_bin[nn]=ii;
+	    }
+	    /* move to smaller bin only if the current bin is in sync with it */
+	    else if(world->time_bin[nn]>ii){
+	      if(floor(world->time/(world->dt/pow(2,world->time_bin[nn])))>
+		 floor((world->time-world->sub_dt)/(world->dt/pow(2,world->time_bin[nn])))&&
+		 floor(world->time/(world->dt/pow(2,world->time_bin[nn]+1)))>
+		 floor((world->time-world->sub_dt)/(world->dt/pow(2,world->time_bin[nn]+1)))
+		 ){
+		printf("Particle %d moves from bin %d to %d.\n", nn, world->time_bin[nn], ii);
+		ksi=(world->dt/pow(2,world->time_bin[nn]))/(world->dt/pow(2,ii));
+		world->time_bin[nn]=ii;
+	      }
+	    }
+	    /* if time bin doesnt change, break before position correction */
+	    else
+	      break;
+
+	    /* compute position correction */
+	    world->r2[3*nn+0]-=(1-1/ksi)*(1+1/ksi)*old_dt*old_dt/8.0*world->a2[3*nn+0];
+	    world->r2[3*nn+1]-=(1-1/ksi)*(1+1/ksi)*old_dt*old_dt/8.0*world->a2[3*nn+1];
+	    world->r2[3*nn+2]-=(1-1/ksi)*(1+1/ksi)*old_dt*old_dt/8.0*world->a2[3*nn+2];
+	    break;
+	  }
+	}
+	//printf("%d\t", world->time_bin[nn]);
       }
-      world->sub_dt=min_dt;
+      //printf("\n");
+
+      /* determine which particles need to be kicked with the old sub_dt value */
+      for(nn=0;nn<world->num;nn++){
+	if(floor(world->time/(world->dt/pow(2,world->time_bin[nn])))>
+	   floor((world->time-world->sub_dt)/(world->dt/pow(2,world->time_bin[nn]))))
+	  world->kick[nn]=1;
+	else
+	  world->kick[nn]=0;
+	//printf("%d\t", world->kick[nn]);	
+      }
+      //printf("\n");
+
+      /* determine minimum timestep to take from maximum bin */
+      max_bin=0;
+      for(nn=0;nn<world->num;nn++){
+	if(world->time_bin[nn]>max_bin)
+	  max_bin=world->time_bin[nn];
+      }
+      world->sub_dt=world->dt/pow(2,max_bin+1);
 
       /* create threads for sph energy computation */
       create_energy_threads(world);
@@ -672,7 +740,8 @@ int main(int argc, char *argv[])
   free(a_sph);
   free(r);
   free(world->cellindex);
-  free(world->last_kick);
+  free(world->kick);
+  free(world->time_bin);
   free(world->dt_CFL);
   free(world->h);
   free(world->del_rho);

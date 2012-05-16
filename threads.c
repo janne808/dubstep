@@ -226,7 +226,6 @@ void *corrector_thread(void *threadarg){
 
   theta=my_data->var1;
   epsilon=my_data->var2;
-  dt=world->sub_dt;
   dt_CFL_in=world->dt_CFL;
 
   /* integrate */
@@ -236,25 +235,47 @@ void *corrector_thread(void *threadarg){
     r[1]=world->r2[nn*m+1];
     r[2]=world->r2[nn*m+2];
 
-    /* approximate gravitational acceleration from tree */
-    a[0]=0;
-    a[1]=0;
-    a[2]=0;
+    /* kick particles with individual time steps */
+    if(world->kick[nn]){
+      /* compute individual time step for kick */
+      dt=world->dt/pow(2,world->time_bin[nn]);
 
-    //force_recurse(tree, &tree[0], r, a, world->G, theta, epsilon);
-    force_walk(tree, &tree[0], r, a, world->G, theta, epsilon);
+      /* approximate gravitational acceleration from tree */
+      a[0]=0;
+      a[1]=0;
+      a[2]=0;
 
-    a_tree[nn*m+0]=a[0];
-    a_tree[nn*m+1]=a[1];
-    a_tree[nn*m+2]=a[2];
+      //force_recurse(tree, &tree[0], r, a, world->G, theta, epsilon);
+      force_walk(tree, &tree[0], r, a, world->G, theta, epsilon);
 
-    world->a2[nn*m+0]=a_tree[nn*m+0]+a_sph[nn*m+0];
-    world->a2[nn*m+1]=a_tree[nn*m+1]+a_sph[nn*m+1];
-    world->a2[nn*m+2]=a_tree[nn*m+2]+a_sph[nn*m+2];
+      a_tree[nn*m+0]=a[0];
+      a_tree[nn*m+1]=a[1];
+      a_tree[nn*m+2]=a[2];
 
-    world->v2[nn*m+0]=world->v[nn*m+0]+(world->a2[nn*m+0])*dt*0.5;
-    world->v2[nn*m+1]=world->v[nn*m+1]+(world->a2[nn*m+1])*dt*0.5;
-    world->v2[nn*m+2]=world->v[nn*m+2]+(world->a2[nn*m+2])*dt*0.5;
+      world->a2[nn*m+0]=a_tree[nn*m+0]+a_sph[nn*m+0];
+      world->a2[nn*m+1]=a_tree[nn*m+1]+a_sph[nn*m+1];
+      world->a2[nn*m+2]=a_tree[nn*m+2]+a_sph[nn*m+2];
+
+      world->v2[nn*m+0]=world->v[nn*m+0]+(world->a2[nn*m+0])*dt*0.5;
+      world->v2[nn*m+1]=world->v[nn*m+1]+(world->a2[nn*m+1])*dt*0.5;
+      world->v2[nn*m+2]=world->v[nn*m+2]+(world->a2[nn*m+2])*dt*0.5;
+
+      world->v[nn*m+0]=2*world->v2[nn*m+0]-world->v[nn*m+0];
+      world->v[nn*m+1]=2*world->v2[nn*m+1]-world->v[nn*m+1];
+      world->v[nn*m+2]=2*world->v2[nn*m+2]-world->v[nn*m+2];    
+    }
+    else{
+      world->a2[nn*m+0]=0;
+      world->a2[nn*m+1]=0;
+      world->a2[nn*m+2]=0;
+
+      world->v2[nn*m+0]=world->v[nn*m+0];
+      world->v2[nn*m+1]=world->v[nn*m+1];
+      world->v2[nn*m+2]=world->v[nn*m+2];
+    }
+
+    /* integrate position and internal energy with smallest time step */
+    dt=world->sub_dt;
 
     world->r2[nn*m+0]=world->r[nn*m+0]+world->v2[nn*m+0]*dt*0.5;
     world->r2[nn*m+1]=world->r[nn*m+1]+world->v2[nn*m+1]*dt*0.5;
@@ -264,10 +285,6 @@ void *corrector_thread(void *threadarg){
     if(world->u2[nn]<1E-9)
       world->u2[nn]=1E-9;
 
-    world->v[nn*m+0]=2*world->v2[nn*m+0]-world->v[nn*m+0];
-    world->v[nn*m+1]=2*world->v2[nn*m+1]-world->v[nn*m+1];
-    world->v[nn*m+2]=2*world->v2[nn*m+2]-world->v[nn*m+2];
-    
     world->r[nn*m+0]=2*world->r2[nn*m+0]-world->r[nn*m+0];
     world->r[nn*m+1]=2*world->r2[nn*m+1]-world->r[nn*m+1];
     world->r[nn*m+2]=2*world->r2[nn*m+2]-world->r[nn*m+2];

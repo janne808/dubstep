@@ -28,8 +28,8 @@
 #define ENABLE_GUI 1
 #endif
 
-#define NUM 511
-#define NUM_THREADS 3
+#define NUM 800
+#define NUM_THREADS 2
 
 #ifndef PI
 #define PI 3.14159265358979323846264
@@ -102,7 +102,9 @@ struct universe{
   int timediv;
   double sub_dt;
 
-  double *last_kick;
+  int *kick;
+
+  int *time_bin;
 
   /* total system energy */
   double u_int;

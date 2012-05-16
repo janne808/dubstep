@@ -121,7 +121,7 @@ void compute_smoothing_length_tree(struct universe *world, double max_h, int ite
     for(jj=0;jj<iterations;jj++){
       N=0;
       neighbour_walk(tree, root, &r_in[3*ii], h, max_h, h_in, &N, buffer);
-
+      
       h_new=h*0.5*(1.0+pow((double)(N_target)/(double)(N),1.0/3.0));
       if(h_new>0.01&&h_new<max_h)
 	h=h_new;
@@ -130,11 +130,11 @@ void compute_smoothing_length_tree(struct universe *world, double max_h, int ite
     }
     h_in[ii]=h;
     num_neighbours_in[ii]=N;
-
+    
     world->neighbour_list[ii].num=N;
     if(world->neighbour_list[ii].list)
       free(world->neighbour_list[ii].list);
-
+    
     world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
     if(!world->neighbour_list[ii].list){
       printf("Out of memory: particle neighbour list not allocated.\n");
@@ -461,35 +461,35 @@ void compute_cfl(struct universe *world, double C_0, int lo, int hi){
     div_v_ij=0;
     max_mu=0;
     n=world->neighbour_list[ii].num;
-
+    
     for(jj=0;jj<n;jj++){
       kk=world->neighbour_list[ii].list[jj];
-
+      
       if(ii!=kk){
 	/* particle-particle distance */
 	dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
 	dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
 	dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
 	rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
-	  
+	
 	dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
 	dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
 	dv_ij[2]=v_in[3*ii+2]-v_in[3*kk+2];
-
+	
 	dW=0.5*(kernel_d(rr/h_in[ii],h_in[ii])+kernel_d(rr/h_in[kk],h_in[kk]));
 	
 	dW_ij[0]=dW*dr[0]/rr;
 	dW_ij[1]=dW*dr[1]/rr;
 	dW_ij[2]=dW*dr[2]/rr;
-
+	
 	div_v_ij-=m_in[kk]/rho_in[ii]*(dv_ij[0]*dW_ij[0]+dv_ij[1]*dW_ij[1]+dv_ij[2]*dW_ij[2]);
-
+	
 	h_ij=0.5*(h_in[ii]+h_in[kk]);
 	
 	mu_ij=0;
 	if((dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])<0)
 	  mu_ij=(dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])/(rr*rr/(h_ij)+neta);
-
+	
 	if(abs(mu_ij)>max_mu)
 	  max_mu=abs(mu_ij);
       }
@@ -654,51 +654,53 @@ void compute_sph_acceleration(struct universe *world, double *r, double *v, doub
   beta=world->beta;
 
   for(ii=lo;ii<hi;ii++){
-    /* init acceleration vector */
-    a[3*ii+0]=0;
-    a[3*ii+1]=0;
-    a[3*ii+2]=0;
+    if(world->kick[ii]){
+      /* init acceleration vector */
+      a[3*ii+0]=0;
+      a[3*ii+1]=0;
+      a[3*ii+2]=0;
     
-    n=world->neighbour_list[ii].num;
+      n=world->neighbour_list[ii].num;
     
-    for(jj=0;jj<n;jj++){
-      kk=world->neighbour_list[ii].list[jj];
+      for(jj=0;jj<n;jj++){
+	kk=world->neighbour_list[ii].list[jj];
       
-      /* compute gradient of kernel */
-      if(ii!=kk){
-	/* particle-particle distance */
-	dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
-	dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
-	dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
-	rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
-      
-	dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
-	dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
-	dv_ij[2]=v_in[3*ii+2]-v_in[3*kk+2];
-	
-	/* compute artificial viscosity term */
-	Pi_ij=artificial_viscosity(dv_ij,
-				   0.5*(h_in[ii]+h_in[kk]),
-				   0.5*(rho_in[ii]+rho_in[kk]),
-				   0.5*(c_in[ii]+c_in[kk]),
-				   dr, rr,
-				   alpha, beta, neta);
-	
-	/* geometric mean symmetrization */
-	t=m_in[kk]*(2.0*sqrt(p_in[ii]*p_in[kk])/(rho_in[ii]*rho_in[kk])+Pi_ij);
-	
-	/* arithmetic mean symmetrization */
-	//t=m_in[kk]*(p_in[ii]/(rho_in[ii]*rho_in[ii])+p_in[jj]/(rho_in[jj]*rho_in[jj])+Pi_ij);
-	
-	dW=0.5*(kernel_d(rr/h_in[ii],h_in[ii])+kernel_d(rr/h_in[kk],h_in[kk]));
-	
-	dW_ij[0]=dW*dr[0]/rr;
-	dW_ij[1]=dW*dr[1]/rr;
-	dW_ij[2]=dW*dr[2]/rr;
+	/* compute gradient of kernel */
+	if(ii!=kk){
+	  /* particle-particle distance */
+	  dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
+	  dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
+	  dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+	  rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
 	  
-	a[3*ii+0]-=t*dW_ij[0];
-	a[3*ii+1]-=t*dW_ij[1];
-	a[3*ii+2]-=t*dW_ij[2];
+	  dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
+	  dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
+	  dv_ij[2]=v_in[3*ii+2]-v_in[3*kk+2];
+	
+	  /* compute artificial viscosity term */
+	  Pi_ij=artificial_viscosity(dv_ij,
+				     0.5*(h_in[ii]+h_in[kk]),
+				     0.5*(rho_in[ii]+rho_in[kk]),
+				     0.5*(c_in[ii]+c_in[kk]),
+				     dr, rr,
+				     alpha, beta, neta);
+	
+	  /* geometric mean symmetrization */
+	  t=m_in[kk]*(2.0*sqrt(p_in[ii]*p_in[kk])/(rho_in[ii]*rho_in[kk])+Pi_ij);
+	
+	  /* arithmetic mean symmetrization */
+	  //t=m_in[kk]*(p_in[ii]/(rho_in[ii]*rho_in[ii])+p_in[jj]/(rho_in[jj]*rho_in[jj])+Pi_ij);
+	
+	  dW=0.5*(kernel_d(rr/h_in[ii],h_in[ii])+kernel_d(rr/h_in[kk],h_in[kk]));
+	  
+	  dW_ij[0]=dW*dr[0]/rr;
+	  dW_ij[1]=dW*dr[1]/rr;
+	  dW_ij[2]=dW*dr[2]/rr;
+	  
+	  a[3*ii+0]-=t*dW_ij[0];
+	  a[3*ii+1]-=t*dW_ij[1];
+	  a[3*ii+2]-=t*dW_ij[2];
+	}
       }
     }
   }
