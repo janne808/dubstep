@@ -162,8 +162,8 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
   return 0;
 }
 
-void force_walk(struct cell *tree, struct cell *root, double *r,
-		double *f, double G, double theta, double epsilon){
+void force_walk(struct universe *world, struct cell *tree, struct cell *root, double *r,
+		double *f, double G, double theta){
   /* loop variables */
   int ii;
 
@@ -181,6 +181,9 @@ void force_walk(struct cell *tree, struct cell *root, double *r,
 
   /* distance calculation variables */
   double dx,dy,dz,d,d2,delta;
+
+  /* plummer smoothing length */
+  double epsilon;
 
   /* init walk pointer */
   wp=0;
@@ -216,6 +219,7 @@ void force_walk(struct cell *tree, struct cell *root, double *r,
       if(d>child->l/theta+delta){
 	/* approximate as ensemble */
 	/* calculate force with plummer softening */
+	epsilon=world->epsilon;
 	d2=sqrt(d*d+epsilon*epsilon);
 	d2=1/(d2*d2*d2);
 	f[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
@@ -233,6 +237,7 @@ void force_walk(struct cell *tree, struct cell *root, double *r,
     else{
       /* single particle cell */
       /* calculate force with plummer softening */
+      epsilon=world->h[child->particle_index];
       d2=sqrt(d*d+epsilon*epsilon);
       d2=1/(d2*d2*d2);
       f[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);

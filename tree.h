@@ -52,8 +52,8 @@ struct cell{
 /* function prototypes */
 int init_treeroot(struct cell *tree, struct universe *world, double *r);
 
-void force_walk(struct cell *tree, struct cell *root, double *r,
-		double *f, double G, double theta, double epsilon);
+void force_walk(struct universe *world, struct cell *tree, struct cell *root, double *r,
+		double *f, double G, double theta);
 
 void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, double max_h,
 		    double *h_in, int *neighbour_num, int *neighbour_list);

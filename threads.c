@@ -44,7 +44,7 @@ void *smoothing_thread(void *threadarg){
   my_data=(struct thread_data6 *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
-  compute_smoothing_length_tree(my_data->world, my_data->var1, my_data->var2, my_data->var3,
+  compute_smoothing_length_tree(my_data->world, my_data->var1, my_data->var2, my_data->var3, my_data->var4,
 				my_data->r, my_data->tree, my_data->root, my_data->lo, my_data->hi);
 
   pthread_exit(NULL);
@@ -246,7 +246,7 @@ void *corrector_thread(void *threadarg){
       a[2]=0;
 
       //force_recurse(tree, &tree[0], r, a, world->G, theta, epsilon);
-      force_walk(tree, &tree[0], r, a, world->G, theta, epsilon);
+      force_walk(world, tree, &tree[0], r, a, world->G, theta);
 
       a_tree[nn*m+0]=a[0];
       a_tree[nn*m+1]=a[1];
@@ -265,15 +265,11 @@ void *corrector_thread(void *threadarg){
       world->v[nn*m+2]=2*world->v2[nn*m+2]-world->v[nn*m+2];    
     }
     else{
-      world->a2[nn*m+0]=0;
-      world->a2[nn*m+1]=0;
-      world->a2[nn*m+2]=0;
-
       world->v2[nn*m+0]=world->v[nn*m+0];
       world->v2[nn*m+1]=world->v[nn*m+1];
       world->v2[nn*m+2]=world->v[nn*m+2];
     }
-
+    
     /* integrate position and internal energy with smallest time step */
     dt=world->sub_dt;
 
@@ -297,8 +293,8 @@ void *corrector_thread(void *threadarg){
   pthread_exit(NULL);
 }
 
-void create_smoothing_threads(struct universe *world, int iterations, int neighbours, double h,
-			      double *r, struct cell *tree, struct cell *root){
+void create_smoothing_threads(struct universe *world, int iterations, int neighbours, double min_h,
+			      double max_h, double *r, struct cell *tree, struct cell *root){
   /* posix thread variables */
   int thread_slice_num;
   int num_join_threads;
@@ -320,9 +316,10 @@ void create_smoothing_threads(struct universe *world, int iterations, int neighb
     //                                                nn*thread_slice_num+thread_slice_num);
     thread_data_array6[nn].thread_id=nn;
     thread_data_array6[nn].world=world;
-    thread_data_array6[nn].var1=h;
-    thread_data_array6[nn].var2=iterations;
-    thread_data_array6[nn].var3=neighbours; 
+    thread_data_array6[nn].var1=min_h;
+    thread_data_array6[nn].var2=max_h;
+    thread_data_array6[nn].var3=iterations;
+    thread_data_array6[nn].var4=neighbours; 
     thread_data_array6[nn].r=r;
     thread_data_array6[nn].tree=tree;
     thread_data_array6[nn].root=root;
@@ -343,9 +340,10 @@ void create_smoothing_threads(struct universe *world, int iterations, int neighb
     //                                                world->num);
     thread_data_array6[nn].thread_id=nn;
     thread_data_array6[nn].world=world;
-    thread_data_array6[nn].var1=h;
-    thread_data_array6[nn].var2=iterations;
-    thread_data_array6[nn].var3=neighbours; 
+    thread_data_array6[nn].var1=min_h;
+    thread_data_array6[nn].var2=max_h;
+    thread_data_array6[nn].var3=iterations;
+    thread_data_array6[nn].var4=neighbours; 
     thread_data_array6[nn].r=r;
     thread_data_array6[nn].tree=tree;
     thread_data_array6[nn].root=root;

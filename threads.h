@@ -84,6 +84,7 @@ struct thread_data6{
   double var1;
   double var2;
   double var3;
+  double var4;
   int lo;
   int hi;
 };
@@ -99,8 +100,8 @@ void *acceleration_thread(void *threadarg);
 void *predictor_thread(void *threadarg);
 void *corrector_thread(void *threadarg);
 
-void create_smoothing_threads(struct universe *world, int iterations, int neighbours, double h,
-			      double *r, struct cell *tree, struct cell *root);
+void create_smoothing_threads(struct universe *world, int iterations, int neighbours, double min_h,
+			      double max_h, double *r, struct cell *tree, struct cell *root);
 void create_density_threads(struct universe *world);
 void create_pressure_threads(struct universe *world);
 void create_soundspeed_threads(struct universe *world);

@@ -77,7 +77,133 @@ double artificial_viscosity(double *dv_ij, double h_ij, double rho_ij,
   return (-alpha*mu_ij*c_ij+beta*mu_ij*mu_ij)/rho_ij;
 }
 
-void compute_smoothing_length_tree(struct universe *world, double max_h, int iterations, int N_target,
+void smooth_velocity_field(struct universe *world, int lo, int hi){
+  /* vector norm variables */
+  double r;
+  double dr[3];
+
+  /* loop variables */
+  int ii,jj,kk;
+
+  /* state vector dimensions */
+  int m;
+  int n;
+
+  /* pointers to state vectors */
+  double *r_in;
+  double *rho_in;
+  double *m_in;
+  double *h_in;
+  double *v_in;
+
+  /* smoothed output vector */
+  double *v_out;
+  
+  m=world->dim;  
+  n=world->num;
+
+  r_in=world->r2;
+  rho_in=world->rho;
+  m_in=world->m;
+  h_in=world->h;
+  v_in=world->v;
+
+  v_out=(double*)malloc(m*n*sizeof(double));
+  if(!v_out){
+    printf("Out of memory: velocity field smoothing vector not allocated.\n");
+    exit(1);
+  }
+
+  /* compute filtered velocity field */
+  for(ii=lo;ii<hi;ii++){
+    v_out[3*ii+0]=0;
+    v_out[3*ii+1]=0;
+    v_out[3*ii+2]=0;
+
+    n=world->neighbour_list[ii].num;
+
+    for(jj=0;jj<n;jj++){
+      kk=world->neighbour_list[ii].list[jj];
+
+      /* particle-particle distance */
+      dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
+      dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
+      dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+      r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
+
+      v_out[3*ii+0]+=1/rho_in[ii]*m_in[kk]*v_in[3*kk+0]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
+      v_out[3*ii+1]+=1/rho_in[ii]*m_in[kk]*v_in[3*kk+1]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
+      v_out[3*ii+2]+=1/rho_in[ii]*m_in[kk]*v_in[3*kk+2]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
+    }
+  }
+
+  /* free original velocity vector and replace with filtered */
+  free(world->v);
+  world->v=v_out;
+}
+
+void smooth_energy_field(struct universe *world, int lo, int hi){
+  /* vector norm variables */
+  double r;
+  double dr[3];
+
+  /* loop variables */
+  int ii,jj,kk;
+
+  /* state vector dimensions */
+  int m;
+  int n;
+
+  /* pointers to state vectors */
+  double *r_in;
+  double *rho_in;
+  double *m_in;
+  double *h_in;
+  double *u_in;
+
+  /* smoothed output vector */
+  double *u_out;
+  
+  m=world->dim;  
+  n=world->num;
+
+  r_in=world->r2;
+  rho_in=world->rho;
+  m_in=world->m;
+  h_in=world->h;
+  u_in=world->u;
+
+  u_out=(double*)malloc(n*sizeof(double));
+  if(!u_out){
+    printf("Out of memory: energy smoothing vector not allocated.\n");
+    exit(1);
+  }
+
+  /* compute filtered energy field */
+  for(ii=lo;ii<hi;ii++){
+    u_out[ii]=0;
+
+    n=world->neighbour_list[ii].num;
+
+    for(jj=0;jj<n;jj++){
+      kk=world->neighbour_list[ii].list[jj];
+
+      /* particle-particle distance */
+      dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
+      dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
+      dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+      r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
+
+      u_out[ii]+=1/rho_in[ii]*m_in[kk]*u_in[kk]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
+    }
+  }
+
+  /* free original velocity vector and replace with filtered */
+  free(world->u);
+  world->u=u_out;
+}
+
+void compute_smoothing_length_tree(struct universe *world, double min_h, double max_h, int iterations, int N_target,
 				   double *r, struct cell *tree, struct cell *root, int lo, int hi){
   /* loop variables */
   int ii,jj;
@@ -123,7 +249,7 @@ void compute_smoothing_length_tree(struct universe *world, double max_h, int ite
       neighbour_walk(tree, root, &r_in[3*ii], h, max_h, h_in, &N, buffer);
       
       h_new=h*0.5*(1.0+pow((double)(N_target)/(double)(N),1.0/3.0));
-      if(h_new>0.01&&h_new<max_h)
+      if(h_new>min_h&&h_new<max_h)
 	h=h_new;
       else
 	break;

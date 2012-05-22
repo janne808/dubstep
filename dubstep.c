@@ -49,6 +49,10 @@ void colormap(double val, struct color *col){
   double g_map[6]={0.0, 0.0, 1.0, 1.0, 0.0, 0.0};
   double b_map[6]={0.65, 1.0, 1.0, 0.0, 0.0, 0.0};
 
+  /* crop value to fit the map */
+  if(val>0.99)
+    val=0.99;
+
   /* linearly interpolate the value from the colormap */
   for(nn=0;nn<(6-1);nn++){
     if(val>x_map[nn]&&val<x_map[nn+1]){
@@ -77,7 +81,7 @@ void writeframe(char* path){
     TIFFSetField(file, TIFFTAG_IMAGEWIDTH, (uint32) width);
     TIFFSetField(file, TIFFTAG_IMAGELENGTH, (uint32) height);
     TIFFSetField(file, TIFFTAG_BITSPERSAMPLE, 8);
-    TIFFSetField(file, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
+    TIFFSetField(file, TIFFTAG_COMPRESSION, COMPRESSION_PACKBITS);
     TIFFSetField(file, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
     TIFFSetField(file, TIFFTAG_SAMPLESPERPIXEL, 3);
     TIFFSetField(file, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
@@ -126,10 +130,10 @@ int main(int argc, char *argv[])
   double theta=0.5;
 
   /* maximum timestep */
-  double dt=0.01;
+  double dt=0.1;
 
   /* plummer gravitational softening factor*/
-  double epsilon=0.005;
+  double epsilon=1.0;
 
   /* initial smoothing length */
   double h=1.0;
@@ -343,7 +347,7 @@ int main(int argc, char *argv[])
     world->dt_CFL[ii]=world->sub_dt;
     world->kick[ii]=1;
     world->time_bin[ii]=0;
-    world->m[ii]=2.0/(float)(n);
+    world->m[ii]=5.0/(float)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -369,35 +373,33 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=6.0;
+    world->u[ii]=1.0;
     world->u2[ii]=world->u[ii];
   }
 
   /* initial displacement */
   for(ii=0;ii<n;ii++){
     double x,y,z,rr;
+    double vv;
 
-    x=2*((double)(rand())/RAND_MAX)-1;
-    y=2*((double)(rand())/RAND_MAX)-1;
-    z=2*((double)(rand())/RAND_MAX)-1;
+    /* box-muller transform for normally distributed samples */
+    x=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+    y=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+    z=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
 
-    while(sqrt(x*x+y*y+z*z)>1.0){
-      x=2*((double)(rand())/RAND_MAX)-1;
-      y=2*((double)(rand())/RAND_MAX)-1;
-      z=2*((double)(rand())/RAND_MAX)-1;
-    }
-
-    world->r[ii*m+0]=1.8*22.0*x;
-    world->r[ii*m+1]=1.8*22.0*y;
-    world->r[ii*m+2]=1.8*22.0*z;
+    world->r[ii*m+0]=10.0*x;
+    world->r[ii*m+1]=10.0*y;
+    world->r[ii*m+2]=2.0*z;
     world->r2[ii*m+0]=world->r[ii*m+0];
     world->r2[ii*m+1]=world->r[ii*m+1];
     world->r2[ii*m+2]=world->r[ii*m+2];
 
     rr=sqrt(x*x+y*y+z*z);
 
-    world->v[ii*m+0]=-1.2*y/rr;
-    world->v[ii*m+1]=1.2*x/rr;
+    vv=sqrt(2.0*G*0.1*2.0/rr/2.0);
+
+    world->v[ii*m+0]=-vv*y/rr;
+    world->v[ii*m+1]=vv*x/rr;
     world->v[ii*m+2]=0;    
     //world->v[ii*m+0]=0;
     //world->v[ii*m+1]=0;
@@ -420,7 +422,7 @@ int main(int argc, char *argv[])
   branch_recurse(tree, &tree[0], world->cellindex);
       
   /* serial tree smoothing length iterator */
-  compute_smoothing_length_tree(world, h, 10, 25, world->r2, tree, &tree[0], 0, world->num);
+  compute_smoothing_length_tree(world, 1.0, 2.0, 10, 25, world->r2, tree, &tree[0], 0, world->num);
 
   /* create threads for density computation */
   create_density_threads(world);
@@ -431,11 +433,17 @@ int main(int argc, char *argv[])
   /* create threads for sound speed computation */
   create_soundspeed_threads(world);
 
+  /* filter initial velocity field */
+  smooth_velocity_field(world, 0, world->num);
+
   /* create threads for CFL computation */
   create_CFL_threads(world);
   
   /* create threads for sph energy computation */
   create_energy_threads(world);
+
+  /* filter initial energy field */
+  smooth_energy_field(world, 0, world->num);
 
   /* create threads for hydrodynamic acceleration computation */
   create_acceleration_threads(world);
@@ -556,7 +564,7 @@ int main(int argc, char *argv[])
       //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
 
       /* create threads for parallel tree smoothing length iterators */
-      create_smoothing_threads(world, 1, 25, h, world->r2, tree, &tree[0]);
+      create_smoothing_threads(world, 1, 10, 1.0, 2.0, world->r2, tree, &tree[0]);
 
       t2=SDL_GetTicks();
       treetime=t2-t1;
@@ -582,7 +590,7 @@ int main(int argc, char *argv[])
 	  if(world->dt_CFL[nn]>world->dt/pow(2,ii)){
 	    /* particle can always move to a larger bin */
 	    if(world->time_bin[nn]<ii){
-	      printf("Particle %d moves from bin %d to %d.\n", nn, world->time_bin[nn], ii);
+	      //printf("Particle %d moves from bin %d to %d.\n", nn, world->time_bin[nn], ii);
 	      ksi=(world->dt/pow(2,world->time_bin[nn]))/(world->dt/pow(2,ii));
 	      world->time_bin[nn]=ii;
 	    }
@@ -593,7 +601,7 @@ int main(int argc, char *argv[])
 		 floor(world->time/(world->dt/pow(2,world->time_bin[nn]+1)))>
 		 floor((world->time-world->sub_dt)/(world->dt/pow(2,world->time_bin[nn]+1)))
 		 ){
-		printf("Particle %d moves from bin %d to %d.\n", nn, world->time_bin[nn], ii);
+		//printf("Particle %d moves from bin %d to %d.\n", nn, world->time_bin[nn], ii);
 		ksi=(world->dt/pow(2,world->time_bin[nn]))/(world->dt/pow(2,ii));
 		world->time_bin[nn]=ii;
 	      }
@@ -716,8 +724,9 @@ int main(int argc, char *argv[])
     for(nn=0;nn<n;nn++){
       density=(world->rho[nn]/max_density)*0.8+0.2;
       pressure=(world->p[nn]/max_pressure);
+      pressure=pow(pressure,1.0/3.0);
       colormap(pressure,col);
-      glColor4f((float)(col->r),(float)(col->g),(float)(col->b),(float)(density));
+      glColor4f((float)(col->r),(float)(col->g),(float)(col->b),(float)(1.0));
       glVertex3f((zoom)*(world->r[nn*m+0]),
 		 (zoom)*(world->r[nn*m+1]),
 		 (zoom)*(world->r[nn*m+2]));
