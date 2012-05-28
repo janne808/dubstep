@@ -127,10 +127,10 @@ int main(int argc, char *argv[])
   double G=4.0*PI*PI;
 
   /* tree cell opening length parameter */
-  double theta=0.5;
+  double theta=0.85;
 
   /* maximum timestep */
-  double dt=0.1;
+  double dt=0.05;
 
   /* plummer gravitational softening factor*/
   double epsilon=1.0;
@@ -347,7 +347,7 @@ int main(int argc, char *argv[])
     world->dt_CFL[ii]=world->sub_dt;
     world->kick[ii]=1;
     world->time_bin[ii]=0;
-    world->m[ii]=5.0/(float)(n);
+    world->m[ii]=3.0/(float)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -422,7 +422,7 @@ int main(int argc, char *argv[])
   branch_recurse(tree, &tree[0], world->cellindex);
       
   /* serial tree smoothing length iterator */
-  compute_smoothing_length_tree(world, 1.0, 2.0, 10, 25, world->r2, tree, &tree[0], 0, world->num);
+  compute_smoothing_length_tree(world, 1.0, 1.0, 10, 25, world->r2, tree, &tree[0], 0, world->num);
 
   /* create threads for density computation */
   create_density_threads(world);
@@ -564,7 +564,7 @@ int main(int argc, char *argv[])
       //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
 
       /* create threads for parallel tree smoothing length iterators */
-      create_smoothing_threads(world, 1, 10, 1.0, 2.0, world->r2, tree, &tree[0]);
+      create_smoothing_threads(world, 1, 10, 0.85, 2.0, world->r2, tree, &tree[0]);
 
       t2=SDL_GetTicks();
       treetime=t2-t1;

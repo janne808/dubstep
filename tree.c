@@ -163,7 +163,7 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
 }
 
 void force_walk(struct universe *world, struct cell *tree, struct cell *root, double *r,
-		double *f, double G, double theta){
+		double *a, double G, double theta){
   /* loop variables */
   int ii;
 
@@ -218,13 +218,13 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
     if(child->num>1){
       if(d>child->l/theta+delta){
 	/* approximate as ensemble */
-	/* calculate force with plummer softening */
-	epsilon=world->epsilon;
+	/* calculate acceleration with plummer softening */
+	epsilon=world->epsilon;	  
 	d2=sqrt(d*d+epsilon*epsilon);
 	d2=1/(d2*d2*d2);
-	f[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
-	f[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
-	f[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);	
+	a[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
+	a[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
+	a[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);	
       }
       else{
 	/* push sibling nodes into the stack */
@@ -236,13 +236,13 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
     }
     else{
       /* single particle cell */
-      /* calculate force with plummer softening */
+      /* calculate acceleration with plummer softening */
       epsilon=world->h[child->particle_index];
       d2=sqrt(d*d+epsilon*epsilon);
       d2=1/(d2*d2*d2);
-      f[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
-      f[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
-      f[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);
+      a[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
+      a[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
+      a[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);
     }
   }
 }

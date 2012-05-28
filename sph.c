@@ -1,3 +1,4 @@
+
 /* smoothed particle hydrodynamics routines */
 
 /*
@@ -216,8 +217,10 @@ void compute_smoothing_length_tree(struct universe *world, double min_h, double 
   double *r_in;
   double *h_in;
 
+  /* pointer to particle neighbour number vector */
   int *num_neighbours_in;
 
+  /* pointer to smoothing length iteration variables */
   double h,h_new;
 
   /* number of interacting particles */
@@ -255,6 +258,63 @@ void compute_smoothing_length_tree(struct universe *world, double min_h, double 
 	break;
     }
     h_in[ii]=h;
+    num_neighbours_in[ii]=N;
+    
+    world->neighbour_list[ii].num=N;
+    if(world->neighbour_list[ii].list)
+      free(world->neighbour_list[ii].list);
+    
+    world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
+    if(!world->neighbour_list[ii].list){
+      printf("Out of memory: particle neighbour list not allocated.\n");
+      exit(1);
+    }
+    memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
+  }
+  free(buffer);
+}
+
+void compute_constant_smoothing_length_tree(struct universe *world, double min_h, double max_h, int iterations, int N_target,
+					    double *r, struct cell *tree, struct cell *root, int lo, int hi){
+  /* loop variables */
+  int ii;
+
+  /* state vector dimensions */
+  int m;
+  int n;
+
+  /* pointers to state vectors */
+  double *r_in;
+  double *h_in;
+
+  /* pointer to particle neighbour number vector */
+  int *num_neighbours_in;
+
+  /* number of interacting particles */
+  int N;
+
+  /* particle list buffer */
+  int *buffer;
+
+  m=world->dim;  
+  n=world->num;
+
+  r_in=r;
+  h_in=world->h;
+
+  num_neighbours_in=world->num_neighbours;
+
+  buffer=(int*)malloc(n*sizeof(int));
+  if(!buffer){
+    printf("Out of memory: smoothing length iteration buffer not allocated.\n");
+    exit(1);
+  }
+
+  /* iterate towards optimum number of neighbours */
+  for(ii=lo;ii<hi;ii++){
+    N=0;
+    neighbour_walk(tree, root, &r_in[3*ii], h_in[ii], max_h, h_in, &N, buffer);
+      
     num_neighbours_in[ii]=N;
     
     world->neighbour_list[ii].num=N;
@@ -477,7 +537,7 @@ void compute_density(struct universe *world, double h, int lo, int hi){
       dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
       dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
       r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
-      rho_in[ii]+=m_in[kk]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
+      rho_in[ii]+=m_in[kk]*kernel(r,h_in[ii]);
     }
   }
 }

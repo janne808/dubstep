@@ -35,6 +35,8 @@ void smooth_energy_field(struct universe *world, int lo, int hi);
 
 void compute_smoothing_length_tree(struct universe *world, double min_h, double max_h, int iterations,
 				   int N_target, double *r, struct cell *tree, struct cell *root, int lo, int hi);
+void compute_constant_smoothing_length_tree(struct universe *world, double min_h, double max_h, int iterations,
+					    int N_target, double *r, struct cell *tree, struct cell *root, int lo, int hi);
 void compute_smoothing_length_neighbours(struct universe *world, int iterations, int N_target, int lo, int hi);
 void compute_smoothing_length_mass(struct universe *world, int iterations, double m_target, int lo, int hi);
 void compute_density(struct universe *world, double h, int lo, int hi);
