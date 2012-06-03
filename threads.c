@@ -44,11 +44,11 @@ void *smoothing_thread(void *threadarg){
   my_data=(struct thread_data6 *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
-  //compute_smoothing_length_tree(my_data->world, my_data->var1, my_data->var2, my_data->var3, my_data->var4,
-  //my_data->r, my_data->tree, my_data->root, my_data->lo, my_data->hi);
+  compute_smoothing_length_tree(my_data->world, my_data->var1, my_data->var2, my_data->var3, my_data->var4,
+  				my_data->r, my_data->tree, my_data->root, my_data->lo, my_data->hi);
 
-  compute_constant_smoothing_length_tree(my_data->world, my_data->var1, my_data->var2, my_data->var3, my_data->var4,
-					 my_data->r, my_data->tree, my_data->root, my_data->lo, my_data->hi);
+  //compute_constant_smoothing_length_tree(my_data->world, my_data->var1, my_data->var2, my_data->var3, my_data->var4,
+  //					 my_data->r, my_data->tree, my_data->root, my_data->lo, my_data->hi);
 
   pthread_exit(NULL);
 }
@@ -201,6 +201,8 @@ void *corrector_thread(void *threadarg){
   double *a_tree;
 
   double *m_in;
+  double *h_in;
+
   double *dt_CFL_in;
 
   double theta;
@@ -224,6 +226,7 @@ void *corrector_thread(void *threadarg){
   a_tree=world->a_tree;
 
   m_in=world->m;
+  h_in=world->h;
 
   tree=world->tree;
 
@@ -249,7 +252,7 @@ void *corrector_thread(void *threadarg){
       a[2]=0;
 
       //force_recurse(tree, &tree[0], r, a, world->G, theta, epsilon);
-      force_walk(world, tree, &tree[0], r, a, world->G, theta);
+      force_walk(world, tree, &tree[0], r, a, world->G, theta, h_in[nn]);
 
       a_tree[nn*m+0]=a[0];
       a_tree[nn*m+1]=a[1];

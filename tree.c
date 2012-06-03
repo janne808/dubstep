@@ -163,7 +163,7 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
 }
 
 void force_walk(struct universe *world, struct cell *tree, struct cell *root, double *r,
-		double *a, double G, double theta){
+		double *a, double G, double theta, double h){
   /* loop variables */
   int ii;
 
@@ -219,7 +219,7 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
       if(d>child->l/theta+delta){
 	/* approximate as ensemble */
 	/* calculate acceleration with plummer softening */
-	epsilon=world->epsilon;	  
+	epsilon=h;	  
 	d2=sqrt(d*d+epsilon*epsilon);
 	d2=1/(d2*d2*d2);
 	a[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
@@ -237,7 +237,8 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
     else{
       /* single particle cell */
       /* calculate acceleration with plummer softening */
-      epsilon=world->h[child->particle_index];
+      //epsilon=world->h[child->particle_index];
+      epsilon=h;
       d2=sqrt(d*d+epsilon*epsilon);
       d2=1/(d2*d2*d2);
       a[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);

@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=1.0;
+    world->u[ii]=0.25;
     world->u2[ii]=world->u[ii];
   }
 
@@ -564,7 +564,7 @@ int main(int argc, char *argv[])
       //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
 
       /* create threads for parallel tree smoothing length iterators */
-      create_smoothing_threads(world, 1, 10, 0.85, 2.0, world->r2, tree, &tree[0]);
+      create_smoothing_threads(world, 1, 10, 0.75, 1.0, world->r2, tree, &tree[0]);
 
       t2=SDL_GetTicks();
       treetime=t2-t1;
@@ -621,7 +621,7 @@ int main(int argc, char *argv[])
       }
       //printf("\n");
 
-      /* determine which particles need to be kicked with the old sub_dt value */
+      /* determine which particles need to be kicked from the old sub_dt value */
       for(nn=0;nn<world->num;nn++){
 	if(floor(world->time/(world->dt/pow(2,world->time_bin[nn])))>
 	   floor((world->time-world->sub_dt)/(world->dt/pow(2,world->time_bin[nn]))))
