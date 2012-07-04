@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
   double theta=0.85;
 
   /* maximum timestep */
-  double dt=0.05;
+  double dt=0.085;
 
   /* plummer gravitational softening factor*/
   double epsilon=1.0;
@@ -347,7 +347,7 @@ int main(int argc, char *argv[])
     world->dt_CFL[ii]=world->sub_dt;
     world->kick[ii]=1;
     world->time_bin[ii]=0;
-    world->m[ii]=3.0/(float)(n);
+    world->m[ii]=1.4/(float)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
 
     rr=sqrt(x*x+y*y+z*z);
 
-    vv=sqrt(2.0*G*0.1*2.0/rr/2.0);
+    vv=sqrt(2.0*G*0.05*2.0/rr/2.0);
 
     world->v[ii*m+0]=-vv*y/rr;
     world->v[ii*m+1]=vv*x/rr;
@@ -564,7 +564,7 @@ int main(int argc, char *argv[])
       //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
 
       /* create threads for parallel tree smoothing length iterators */
-      create_smoothing_threads(world, 1, 10, 0.75, 1.0, world->r2, tree, &tree[0]);
+      create_smoothing_threads(world, 1, 25, 1.0, 1.0, world->r2, tree, &tree[0]);
 
       t2=SDL_GetTicks();
       treetime=t2-t1;
@@ -736,8 +736,13 @@ int main(int argc, char *argv[])
     SDL_GL_SwapBuffers();
 
     // write the opengl view as tiff on disk
-    //sprintf(filename, "/usr/crap/testrun/%08d.tif",tt);
-    //writeframe(filename);
+    /*
+    if(fmod(world->time,0.5)<fmod(world->time-world->sub_dt,0.5)){
+      sprintf(filename, "testrun/%08d.tif",tiff_frame);
+      writeframe(filename);
+      tiff_frame++;
+    }
+    */
 #endif
   }
     

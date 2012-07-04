@@ -872,10 +872,10 @@ void compute_sph_acceleration(struct universe *world, double *r, double *v, doub
 				     alpha, beta, neta);
 	
 	  /* geometric mean symmetrization */
-	  t=m_in[kk]*(2.0*sqrt(p_in[ii]*p_in[kk])/(rho_in[ii]*rho_in[kk])+Pi_ij);
+	  //t=m_in[kk]*(2.0*sqrt(p_in[ii]*p_in[kk])/(rho_in[ii]*rho_in[kk])+Pi_ij);
 	
 	  /* arithmetic mean symmetrization */
-	  //t=m_in[kk]*(p_in[ii]/(rho_in[ii]*rho_in[ii])+p_in[jj]/(rho_in[jj]*rho_in[jj])+Pi_ij);
+	  t=m_in[kk]*(p_in[ii]/(rho_in[ii]*rho_in[ii])+p_in[kk]/(rho_in[kk]*rho_in[kk])+Pi_ij);
 	
 	  dW=0.5*(kernel_d(rr/h_in[ii],h_in[ii])+kernel_d(rr/h_in[kk],h_in[kk]));
 	  
