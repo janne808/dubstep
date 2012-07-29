@@ -310,7 +310,7 @@ void compute_constant_smoothing_length_tree(struct universe *world, double min_h
     exit(1);
   }
 
-  /* iterate towards optimum number of neighbours */
+  /* tree walk for particle neigbours */
   for(ii=lo;ii<hi;ii++){
     N=0;
     neighbour_walk(tree, root, &r_in[3*ii], h_in[ii], max_h, h_in, &N, buffer);
@@ -684,7 +684,7 @@ void compute_cfl(struct universe *world, double C_0, int lo, int hi){
   }
 }
 
-void compute_internal_energy(struct universe *world, double *a_sph, int lo, int hi){
+void compute_internal_energy_and_acceleration(struct universe *world, double *r, double *v, double *a, int lo, int hi){
   /* vector norm variables */
   double rr;
   double dr[3];
@@ -695,112 +695,12 @@ void compute_internal_energy(struct universe *world, double *a_sph, int lo, int 
 
   double dv_ij[3];
 
-  double t;
-
   /* artificial viscosity variables */
   double Pi_ij;
   double alpha=1.0;
   double beta=1.0;
   double neta=0.01;
-
-  /* loop variables */
-  int ii;
-  int jj;
-  int kk;
-
-  /* state vector dimensions */
-  int m;
-  int n;
-
-  /* pointers to state vectors */
-  double *r_in;
-  double *v_in;
-  double *rho_in;
-  double *c_in;
-  double *du_in;
-  double *m_in;
-  double *p_in;
-  double *h_in;
-  double *dt_CFL_in;
-
-  m=world->dim;  
-  n=world->num;
-
-  r_in=world->r2;
-  v_in=world->v2;
-  rho_in=world->rho;
-  c_in=world->c;
-  du_in=world->du;
-  m_in=world->m;
-  p_in=world->p;
-  h_in=world->h;
-  dt_CFL_in=world->dt_CFL;
-
-  alpha=world->alpha;
-  beta=world->beta;
-
-  for(ii=lo;ii<hi;ii++){
-    /* init dot energy*/
-    du_in[ii]=0;
-
-    n=world->neighbour_list[ii].num;
-
-    for(jj=0;jj<n;jj++){
-      kk=world->neighbour_list[ii].list[jj];
-
-      /* compute gradient of kernel */
-      if(ii!=kk){
-	/* particle-particle distance */
-	dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
-	dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
-	dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
-	rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
-      
-	dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
-	dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
-	dv_ij[2]=v_in[3*ii+2]-v_in[3*kk+2];
-	
-	/* compute artificial viscosity term */
-	Pi_ij=artificial_viscosity(dv_ij,
-				   0.5*(h_in[ii]+h_in[kk]),
-				   0.5*(rho_in[ii]+rho_in[kk]),
-				   0.5*(c_in[ii]+c_in[kk]),
-				   dr, rr,
-				   alpha, beta, neta);
-	
-	/* asymmetric */
-	t=m_in[kk]*(p_in[ii]/(rho_in[ii]*rho_in[ii])+0.5*Pi_ij);
-	
-	dW=0.5*(kernel_d(rr/h_in[ii],h_in[ii])+kernel_d(rr/h_in[kk],h_in[kk]));
-	
-	dW_ij[0]=dW*dr[0]/rr;
-	dW_ij[1]=dW*dr[1]/rr;
-	dW_ij[2]=dW*dr[2]/rr;
-	
-	du_in[ii]+=t*(dv_ij[0]*dW_ij[0]+dv_ij[1]*dW_ij[1]+dv_ij[2]*dW_ij[2]);
-      }
-    }
-  }
-}
-
-void compute_sph_acceleration(struct universe *world, double *r, double *v, double *a, int lo, int hi){
-  /* vector norm variables */
-  double rr;
-  double dr[3];
-
-  /* smoothing kernel variable */
-  double dW;
-  double dW_ij[3];
-
-  double dv_ij[3];
-
-  double t;
-
-  /* artificial viscosity variables */
-  double Pi_ij;
-  double alpha=1.0;
-  double beta=1.0;
-  double neta=0.01;
+  double av;
 
   /* loop variables */
   int ii;
@@ -827,7 +727,6 @@ void compute_sph_acceleration(struct universe *world, double *r, double *v, doub
 
   r_in=r;
   v_in=v;
-
   rho_in=world->rho;
   c_in=world->c;
   du_in=world->du;
@@ -840,29 +739,39 @@ void compute_sph_acceleration(struct universe *world, double *r, double *v, doub
   beta=world->beta;
 
   for(ii=lo;ii<hi;ii++){
+    /* if particle needs to be kicked, include acceleration in the inner loop */
     if(world->kick[ii]){
+      /* init dot energy*/
+      du_in[ii]=0;
+
       /* init acceleration vector */
       a[3*ii+0]=0;
       a[3*ii+1]=0;
       a[3*ii+2]=0;
-    
+
       n=world->neighbour_list[ii].num;
-    
+
       for(jj=0;jj<n;jj++){
 	kk=world->neighbour_list[ii].list[jj];
       
-	/* compute gradient of kernel */
 	if(ii!=kk){
 	  /* particle-particle distance */
 	  dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
 	  dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
 	  dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
 	  rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
-	  
+      
 	  dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
 	  dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
 	  dv_ij[2]=v_in[3*ii+2]-v_in[3*kk+2];
-	
+	  
+	  /* compute gradient of kernel */
+	  dW=0.5*(kernel_d(rr/h_in[ii],h_in[ii])+kernel_d(rr/h_in[kk],h_in[kk]));
+
+	  dW_ij[0]=dW*dr[0]/rr;
+	  dW_ij[1]=dW*dr[1]/rr;
+	  dW_ij[2]=dW*dr[2]/rr;
+
 	  /* compute artificial viscosity term */
 	  Pi_ij=artificial_viscosity(dv_ij,
 				     0.5*(h_in[ii]+h_in[kk]),
@@ -871,21 +780,70 @@ void compute_sph_acceleration(struct universe *world, double *r, double *v, doub
 				     dr, rr,
 				     alpha, beta, neta);
 	
-	  /* geometric mean symmetrization */
-	  //t=m_in[kk]*(2.0*sqrt(p_in[ii]*p_in[kk])/(rho_in[ii]*rho_in[kk])+Pi_ij);
-	
-	  /* arithmetic mean symmetrization */
-	  t=m_in[kk]*(p_in[ii]/(rho_in[ii]*rho_in[ii])+p_in[kk]/(rho_in[kk]*rho_in[kk])+Pi_ij);
-	
-	  dW=0.5*(kernel_d(rr/h_in[ii],h_in[ii])+kernel_d(rr/h_in[kk],h_in[kk]));
+	  /* asymmetric form */	
+	  du_in[ii]+=(m_in[kk]*(p_in[ii]/(rho_in[ii]*rho_in[ii])+0.5*Pi_ij))*
+	                  (dv_ij[0]*dW_ij[0]+dv_ij[1]*dW_ij[1]+dv_ij[2]*dW_ij[2]);
+
+#if !(defined GEOMETRIC_MEAN_SYMMETRIZATION || defined ARITHMETIC_MEAN_SYMMETRIZATION)
+	  // arithmetic mean symmetrization
+	  av=m_in[kk]*(p_in[ii]/(rho_in[ii]*rho_in[ii])+p_in[kk]/(rho_in[kk]*rho_in[kk])+Pi_ij);
+#elif GEOMETRIC_MEAN_SYMMETRIZATION && !ARITHMETIC_MEAN_SYMMETRIZATION
+	  // geometric mean symmetrization
+	  av=m_in[kk]*(2.0*sqrt(p_in[ii]*p_in[kk])/(rho_in[ii]*rho_in[kk])+Pi_ij);
+#elif !GEOMETRIC_MEAN_SYMMETRIZATION && ARITHMETIC_MEAN_SYMMETRIZATION
+	  // arithmetic mean symmetrization
+	  av=m_in[kk]*(p_in[ii]/(rho_in[ii]*rho_in[ii])+p_in[kk]/(rho_in[kk]*rho_in[kk])+Pi_ij);
+#else
+	  // arithmetic mean symmetrization
+	  av=m_in[kk]*(p_in[ii]/(rho_in[ii]*rho_in[ii])+p_in[kk]/(rho_in[kk]*rho_in[kk])+Pi_ij);
+#endif
+
+	  /* hydrodynamic acceleration */
+	  a[3*ii+0]-=av*dW_ij[0];
+	  a[3*ii+1]-=av*dW_ij[1];
+	  a[3*ii+2]-=av*dW_ij[2];
+	}
+      }
+    }
+    else{
+      /* init dot energy*/
+      du_in[ii]=0;
+
+      n=world->neighbour_list[ii].num;
+
+      for(jj=0;jj<n;jj++){
+	kk=world->neighbour_list[ii].list[jj];
+      
+	if(ii!=kk){
+	  /* particle-particle distance */
+	  dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
+	  dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
+	  dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+	  rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+      
+	  dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
+	  dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
+	  dv_ij[2]=v_in[3*ii+2]-v_in[3*kk+2];
 	  
+	  /* compute gradient of kernel */
+	  dW=0.5*(kernel_d(rr/h_in[ii],h_in[ii])+kernel_d(rr/h_in[kk],h_in[kk]));
+
 	  dW_ij[0]=dW*dr[0]/rr;
 	  dW_ij[1]=dW*dr[1]/rr;
 	  dW_ij[2]=dW*dr[2]/rr;
-	  
-	  a[3*ii+0]-=t*dW_ij[0];
-	  a[3*ii+1]-=t*dW_ij[1];
-	  a[3*ii+2]-=t*dW_ij[2];
+
+	  /* compute artificial viscosity term */
+	  Pi_ij=artificial_viscosity(dv_ij,
+				     0.5*(h_in[ii]+h_in[kk]),
+				     0.5*(rho_in[ii]+rho_in[kk]),
+				     0.5*(c_in[ii]+c_in[kk]),
+				     dr, rr,
+				     alpha, beta, neta);
+	
+	  /* asymmetric form */	
+	  du_in[ii]+=(m_in[kk]*(p_in[ii]/(rho_in[ii]*rho_in[ii])+0.5*Pi_ij))*
+	                  (dv_ij[0]*dW_ij[0]+dv_ij[1]*dW_ij[1]+dv_ij[2]*dW_ij[2]);
+
 	}
       }
     }

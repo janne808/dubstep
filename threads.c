@@ -44,11 +44,13 @@ void *smoothing_thread(void *threadarg){
   my_data=(struct thread_data6 *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
+#if (defined ADAPTIVE_SMOOTHING)&&ADAPTIVE_SMOOTHING
   compute_smoothing_length_tree(my_data->world, my_data->var1, my_data->var2, my_data->var3, my_data->var4,
   				my_data->r, my_data->tree, my_data->root, my_data->lo, my_data->hi);
-
-  //compute_constant_smoothing_length_tree(my_data->world, my_data->var1, my_data->var2, my_data->var3, my_data->var4,
-  //					 my_data->r, my_data->tree, my_data->root, my_data->lo, my_data->hi);
+#else
+  compute_constant_smoothing_length_tree(my_data->world, my_data->var1, my_data->var2, my_data->var3, my_data->var4,
+  					 my_data->r, my_data->tree, my_data->root, my_data->lo, my_data->hi);
+#endif
 
   pthread_exit(NULL);
 }
@@ -114,18 +116,7 @@ void *acceleration_thread(void *threadarg){
   my_data=(struct thread_data2 *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
-  compute_sph_acceleration(my_data->world, my_data->r, my_data->v, my_data->a, my_data->lo, my_data->hi);
-
-  pthread_exit(NULL);
-}
-
-void *energy_thread(void *threadarg){
-  struct thread_data2 *my_data;
-
-  my_data=(struct thread_data2 *) threadarg;
-  //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
-
-  compute_internal_energy(my_data->world, my_data->a, my_data->lo, my_data->hi);
+  compute_internal_energy_and_acceleration(my_data->world, my_data->r, my_data->v, my_data->a, my_data->lo, my_data->hi);
 
   pthread_exit(NULL);
 }
@@ -251,8 +242,12 @@ void *corrector_thread(void *threadarg){
       a[1]=0;
       a[2]=0;
 
-      //force_recurse(tree, &tree[0], r, a, world->G, theta, epsilon);
+#if (defined ADAPTIVE_SOFTENING)&&ADAPTIVE_SOFTENING
       force_walk(world, tree, &tree[0], r, a, world->G, theta, h_in[nn]);
+#else
+      //force_walk(world, tree, &tree[0], r, a, world->G, theta, world->epsilon);
+      direct_summation(world, r, a, world->G);
+#endif
 
       a_tree[nn*m+0]=a[0];
       a_tree[nn*m+1]=a[1];
@@ -616,71 +611,6 @@ void create_CFL_threads(struct universe *world){
     thread_data_array[nn].lo=thread_data_array[nn-1].hi;
     thread_data_array[nn].hi=world->num;
     thread_rc=pthread_create(&threads[nn], &attr, CFL_thread, (void *) &thread_data_array[nn]);
-    
-    if(thread_rc){
-      printf("ERROR: pthread_create() returned %d.\n", thread_rc);
-      exit(-1);
-    }
-    
-    num_join_threads++;
-  }
-  
-  /* join threads */
-  pthread_attr_destroy(&attr);
-  for(nn=0;nn<num_join_threads;nn++){
-    thread_rc=pthread_join(threads[nn], &thread_status);
-    
-    if(thread_rc){
-      printf("ERROR: pthread_join() returned %d.\n", thread_rc);
-      exit(-1);
-    }
-  }
-}
-
-void create_energy_threads(struct universe *world){
-  /* posix thread variables */
-  int thread_slice_num;
-  int num_join_threads;
-  int thread_rc;
-  pthread_t threads[NUM_THREADS+1];
-  pthread_attr_t attr;
-  void *thread_status;
-  
-  /* loop variables */
-  int nn;
-
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  thread_slice_num=world->num/NUM_THREADS;
-  num_join_threads=0;
-  for(nn=0;nn<NUM_THREADS-1;nn++){
-    //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
-    //                                                nn*thread_slice_num+thread_slice_num);
-    thread_data_array2[nn].thread_id=nn;
-    thread_data_array2[nn].world=world;
-    thread_data_array2[nn].a=world->a_sph;
-    thread_data_array2[nn].lo=nn*thread_slice_num;
-    thread_data_array2[nn].hi=nn*thread_slice_num+thread_slice_num;
-    thread_rc=pthread_create(&threads[nn], &attr, energy_thread, (void *) &thread_data_array2[nn]);
-    
-    if(thread_rc){
-      printf("ERROR: pthread_create() returned %d.\n", thread_rc);
-      exit(-1);
-    }
-    
-    num_join_threads++;
-  }
-  
-  if(thread_data_array2[nn-1].hi<world->num){
-    //printf("Creating thread %d, slice %d to %d.\n", nn, thread_data_array2[nn-1].hi,
-    //                                                world->num);
-    thread_data_array2[nn].thread_id=nn;
-    thread_data_array2[nn].world=world;
-    thread_data_array2[nn].a=world->a_sph;
-    thread_data_array2[nn].lo=thread_data_array2[nn-1].hi;
-    thread_data_array2[nn].hi=world->num;
-    thread_rc=pthread_create(&threads[nn], &attr, energy_thread, (void *) &thread_data_array2[nn]);
     
     if(thread_rc){
       printf("ERROR: pthread_create() returned %d.\n", thread_rc);

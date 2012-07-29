@@ -43,7 +43,6 @@ void compute_density(struct universe *world, double h, int lo, int hi);
 void compute_pressure(struct universe *world, double gamma, int lo, int hi);
 void compute_soundspeed(struct universe *world, double gamma, int lo, int hi);
 void compute_cfl(struct universe *world, double C_0, int lo, int hi);
-void compute_internal_energy(struct universe *world, double *a_sph, int lo, int hi);
-void compute_sph_acceleration(struct universe *world, double *r, double *v, double *a, int lo, int hi);
+void compute_internal_energy_and_acceleration(struct universe *world, double *r, double *v, double *a, int lo, int hi);
 
 #endif

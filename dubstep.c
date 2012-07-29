@@ -133,13 +133,13 @@ int main(int argc, char *argv[])
   double dt=0.085;
 
   /* plummer gravitational softening factor*/
-  double epsilon=1.0;
+  double epsilon=SOFTENING_FACTOR;
 
   /* initial smoothing length */
-  double h=1.0;
+  double h=MAX_SMOOTH_LEN;
 
   /* artificial viscosity parameters */
-  double alpha=1.0;
+  double alpha=0.25;
   double beta=1.0;
 
   /* adiabatic exponent*/
@@ -347,7 +347,7 @@ int main(int argc, char *argv[])
     world->dt_CFL[ii]=world->sub_dt;
     world->kick[ii]=1;
     world->time_bin[ii]=0;
-    world->m[ii]=1.4/(float)(n);
+    world->m[ii]=1.0/(float)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -387,8 +387,8 @@ int main(int argc, char *argv[])
     y=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
     z=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
 
-    world->r[ii*m+0]=10.0*x;
-    world->r[ii*m+1]=10.0*y;
+    world->r[ii*m+0]=15.0*x;
+    world->r[ii*m+1]=15.0*y;
     world->r[ii*m+2]=2.0*z;
     world->r2[ii*m+0]=world->r[ii*m+0];
     world->r2[ii*m+1]=world->r[ii*m+1];
@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
 
     rr=sqrt(x*x+y*y+z*z);
 
-    vv=sqrt(2.0*G*0.05*2.0/rr/2.0);
+    vv=sqrt(2.0*G*0.01*2.0/rr/2.0);
 
     world->v[ii*m+0]=-vv*y/rr;
     world->v[ii*m+1]=vv*x/rr;
@@ -419,10 +419,10 @@ int main(int argc, char *argv[])
   init_treeroot(tree, world, world->r2);
     
   /* form tree */
-  branch_recurse(tree, &tree[0], world->cellindex);
+  branch_recurse(world, tree, &tree[0], world->cellindex);
       
   /* serial tree smoothing length iterator */
-  compute_smoothing_length_tree(world, 1.0, 1.0, 10, 25, world->r2, tree, &tree[0], 0, world->num);
+  compute_smoothing_length_tree(world, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, 10, 25, world->r2, tree, &tree[0], 0, world->num);
 
   /* create threads for density computation */
   create_density_threads(world);
@@ -438,15 +438,12 @@ int main(int argc, char *argv[])
 
   /* create threads for CFL computation */
   create_CFL_threads(world);
-  
-  /* create threads for sph energy computation */
-  create_energy_threads(world);
+
+  /* create threads for hydrodynamic acceleration and internal energy computation */
+  create_acceleration_threads(world);
 
   /* filter initial energy field */
   smooth_energy_field(world, 0, world->num);
-
-  /* create threads for hydrodynamic acceleration computation */
-  create_acceleration_threads(world);
 
   /* init particle time bins */
   for(nn=0;nn<world->num;nn++){
@@ -558,13 +555,13 @@ int main(int argc, char *argv[])
       init_treeroot(tree, world, world->r2);
     
       /* form tree */
-      branch_recurse(tree, &tree[0], world->cellindex);
+      branch_recurse(world, tree, &tree[0], world->cellindex);
 
       /* serial tree smoothing length iterator */
       //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
 
       /* create threads for parallel tree smoothing length iterators */
-      create_smoothing_threads(world, 1, 25, 1.0, 1.0, world->r2, tree, &tree[0]);
+      create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
 
       t2=SDL_GetTicks();
       treetime=t2-t1;
@@ -640,10 +637,7 @@ int main(int argc, char *argv[])
       }
       world->sub_dt=world->dt/pow(2,max_bin+1);
 
-      /* create threads for sph energy computation */
-      create_energy_threads(world);
-
-      /* create threads for hydrodynamic acceleration computation */
+      /* create threads for hydrodynamic acceleration and internal energy computation */
       create_acceleration_threads(world);
       
       t2=SDL_GetTicks();

@@ -25,11 +25,44 @@
 #define __DUBSTEPH__
 
 #ifndef ENABLE_GUI
-#define ENABLE_GUI 1
+#define ENABLE_GUI 0
 #endif
 
+#ifndef ADAPTIVE_SMOOTHING
+#define ADAPTIVE_SMOOTHING 0
+#endif
+
+#ifndef MIN_SMOOTH_LEN
+#define MIN_SMOOTH_LEN 0.25
+#endif
+
+#ifndef MAX_SMOOTH_LEN
+#define MAX_SMOOTH_LEN 2.0
+#endif
+
+#ifndef ADAPTIVE_SOFTENING
+#define ADAPTIVE_SOFTENING 1
+#endif
+
+#ifndef SOFTENING_FACTOR
+#define SOFTENING_FACTOR 1.0
+#endif
+
+#ifndef GEOMETRIC_MEAN_SYMMETRIZATION
+#define GEOMETRIC_MEAN_SYMMETRIZATION 0
+#endif
+
+#ifndef ARITHMETIC_MEAN_SYMMETRIZATION
+#define ARITHMETIC_MEAN_SYMMETRIZATION 1
+#endif
+
+#ifndef NUM
 #define NUM 2000
+#endif
+
+#ifndef NUM_THREADS
 #define NUM_THREADS 2
+#endif
 
 #ifndef PI
 #define PI 3.14159265358979323846264

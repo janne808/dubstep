@@ -162,6 +162,35 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
   return 0;
 }
 
+void direct_summation(struct universe *world, double *r, double *a, double G){
+  /* loop variables */
+  int ii;
+
+  /* distance calculation variables */
+  double dx,dy,dz,d,d2;
+
+  /* plummer softening factor */
+  double epsilon;
+
+  /* calculate gravitational acceleration by direct summation */
+  for(ii=0;ii<world->num;ii++){
+    /* compute distance */
+    dx=r[0]-world->r[ii*3+0];
+    dy=r[1]-world->r[ii*3+1];
+    dz=r[2]-world->r[ii*3+2];
+    d=sqrt(dx*dx+dy*dy+dz*dz);
+
+    if(d>1E-8){
+      epsilon=world->h[ii];
+      d2=sqrt(d*d+epsilon*epsilon);
+      d2=1/(d2*d2*d2);
+      a[0]-=(G*world->m[ii])*d2*(r[0]-world->r[ii*3+0]);
+      a[1]-=(G*world->m[ii])*d2*(r[1]-world->r[ii*3+1]);
+      a[2]-=(G*world->m[ii])*d2*(r[2]-world->r[ii*3+2]);
+    }
+  }
+}
+
 void force_walk(struct universe *world, struct cell *tree, struct cell *root, double *r,
 		double *a, double G, double theta, double h){
   /* loop variables */
@@ -217,9 +246,9 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
 
     if(child->num>1){
       if(d>child->l/theta+delta){
-	/* approximate as ensemble */
+	/* approximate cell as ensemble */
 	/* calculate acceleration with plummer softening */
-	epsilon=h;	  
+	epsilon=child->distr_len;	  
 	d2=sqrt(d*d+epsilon*epsilon);
 	d2=1/(d2*d2*d2);
 	a[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
@@ -238,7 +267,7 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
       /* single particle cell */
       /* calculate acceleration with plummer softening */
       //epsilon=world->h[child->particle_index];
-      epsilon=h;
+      epsilon=world->h[child->particle_index];
       d2=sqrt(d*d+epsilon*epsilon);
       d2=1/(d2*d2*d2);
       a[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
@@ -538,25 +567,25 @@ void tree_recurse(struct cell *tree, struct cell *root){
     }
 }
 
-void branch_recurse(struct cell *tree, struct cell *root, int *cellindex){
+void branch_recurse(struct universe *world, struct cell *tree, struct cell *root, int *cellindex){
   int ii;
   struct cell *child;
 
   /* branch into subcells if root cell has more than one particle */
   if(root->num>1){
-    tree_branch(tree, root, cellindex);
+    tree_branch(world, tree, root, cellindex);
     free(root->r);
     free(root->m);
     free(root->particle_index_list);
 
     for(ii=0;ii<root->numchild;ii++){
       child=&tree[root->children[ii]];
-      branch_recurse(tree, child, cellindex);
+      branch_recurse(world, tree, child, cellindex);
     }
   }
 }
 
-void tree_branch(struct cell *tree, struct cell *root, int *cellindex){
+void tree_branch(struct universe *world, struct cell *tree, struct cell *root, int *cellindex){
     struct cell *newcell;
     double x,y,z;
     double *r,*m;
@@ -564,6 +593,7 @@ void tree_branch(struct cell *tree, struct cell *root, int *cellindex){
     double h;
     double cell_r[3*8];
     int ii,jj,nn;
+    double hh;
 
     /* root particle displacement, mass and particle index vectors */
     r=root->r;
@@ -705,6 +735,15 @@ void tree_branch(struct cell *tree, struct cell *root, int *cellindex){
         newcell->center[2]/=newcell->mass;
         tree[0].numcells++;
         root->children[root->numchild++]=newcell->index;
+
+	/* approximate mass distribution */
+	/* by averaging gravitational softening lengths */
+	hh=0;
+	for(ii=0;ii<newcell->num;ii++){
+	  hh+=world->h[newcell->particle_index_list[ii]];
+	}
+	hh/=newcell->num;
+	newcell->distr_len=hh;
 
 	/* write particle cell indeces if we reached the end of a branch */
 	if(newcell->num==1){
