@@ -44,5 +44,6 @@ void compute_pressure(struct universe *world, double gamma, int lo, int hi);
 void compute_soundspeed(struct universe *world, double gamma, int lo, int hi);
 void compute_cfl(struct universe *world, double C_0, int lo, int hi);
 void compute_internal_energy_and_acceleration(struct universe *world, double *r, double *v, double *a, int lo, int hi);
+void update_time_bins(struct universe *world, int lo, int hi);
 
 #endif

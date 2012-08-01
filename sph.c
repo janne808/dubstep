@@ -850,3 +850,63 @@ void compute_internal_energy_and_acceleration(struct universe *world, double *r,
   }
 }
 
+void update_time_bins(struct universe *world, int lo, int hi){
+  /* loop variables */
+  int ii,nn;
+
+  /* correction term variable */
+  double ksi;
+
+  double old_dt;
+
+  /* update particle time bins */
+  for(nn=lo;nn<hi;nn++){
+    /* preserve current time step */
+    old_dt=world->dt/pow(2,world->time_bin[nn]);
+
+    /* default to no correction term */
+    ksi=0;
+
+    for(ii=0;ii<world->num;ii++){
+      /* check for CFL condition */
+      if(world->dt_CFL[nn]>world->dt/pow(2,ii)){
+	/* particle can always move to a larger bin */
+	if(world->time_bin[nn]<ii){
+	  ksi=(world->dt/pow(2,world->time_bin[nn]))/(world->dt/pow(2,ii));
+	  world->time_bin[nn]=ii;
+	}
+	/* move to smaller bin only if the current bin is in sync with it */
+	else if(world->time_bin[nn]>ii){
+	  if(floor(world->time/(world->dt/pow(2,world->time_bin[nn])))>
+	     floor((world->time-world->sub_dt)/(world->dt/pow(2,world->time_bin[nn])))&&
+	     floor(world->time/(world->dt/pow(2,world->time_bin[nn]+1)))>
+	     floor((world->time-world->sub_dt)/(world->dt/pow(2,world->time_bin[nn]+1)))
+	     ){
+	    ksi=(world->dt/pow(2,world->time_bin[nn]))/(world->dt/pow(2,ii));
+	    world->time_bin[nn]=ii;
+	  }
+	}
+	/* if time bin doesnt change, break before position correction */
+	else
+	  break;
+
+	/* compute position correction */
+	if(ksi){
+	  world->r2[3*nn+0]-=(1-1/ksi)*(1+1/ksi)*old_dt*old_dt/8.0*world->a2[3*nn+0];
+	  world->r2[3*nn+1]-=(1-1/ksi)*(1+1/ksi)*old_dt*old_dt/8.0*world->a2[3*nn+1];
+	  world->r2[3*nn+2]-=(1-1/ksi)*(1+1/ksi)*old_dt*old_dt/8.0*world->a2[3*nn+2];
+	}
+	break;
+      }
+    }
+  }
+
+  /* determine which particles need to be kicked from the old sub_dt value */
+  for(nn=lo;nn<hi;nn++){
+    if(floor(world->time/(world->dt/pow(2,world->time_bin[nn])))>
+       floor((world->time-world->sub_dt)/(world->dt/pow(2,world->time_bin[nn]))))
+      world->kick[nn]=1;
+    else
+      world->kick[nn]=0;
+  }
+}

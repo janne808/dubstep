@@ -169,7 +169,7 @@ void direct_summation(struct universe *world, double *r, double *a, double G){
   /* distance calculation variables */
   double dx,dy,dz,d,d2;
 
-  /* plummer softening factor */
+  /* plummer softening length */
   double epsilon;
 
   /* calculate gravitational acceleration by direct summation */
@@ -211,7 +211,7 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
   /* distance calculation variables */
   double dx,dy,dz,d,d2,delta;
 
-  /* plummer smoothing length */
+  /* plummer softening factor */
   double epsilon;
 
   /* init walk pointer */
@@ -256,7 +256,7 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
 	a[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);	
       }
       else{
-	/* push sibling nodes into the stack */
+	/* push sibling nodes on the stack */
 	for(ii=0;ii<child->numchild;ii++){
 	  nodestack[wp]=child->children[ii];
 	  wp++;
@@ -266,7 +266,6 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
     else{
       /* single particle cell */
       /* calculate acceleration with plummer softening */
-      //epsilon=world->h[child->particle_index];
       epsilon=world->h[child->particle_index];
       d2=sqrt(d*d+epsilon*epsilon);
       d2=1/(d2*d2*d2);

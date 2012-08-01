@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
   double h=MAX_SMOOTH_LEN;
 
   /* artificial viscosity parameters */
-  double alpha=0.25;
+  double alpha=1.0;
   double beta=1.0;
 
   /* adiabatic exponent*/
@@ -147,8 +147,6 @@ int main(int argc, char *argv[])
 
   /* time bin handling variables */
   int max_bin;
-  double ksi;
-  double old_dt;
 
 #if ENABLE_GUI
   /* SDL variables */
@@ -396,7 +394,7 @@ int main(int argc, char *argv[])
 
     rr=sqrt(x*x+y*y+z*z);
 
-    vv=sqrt(2.0*G*0.01*2.0/rr/2.0);
+    vv=sqrt(2.0*G*0.022*2.0/rr/2.0);
 
     world->v[ii*m+0]=-vv*y/rr;
     world->v[ii*m+1]=vv*x/rr;
@@ -578,56 +576,8 @@ int main(int argc, char *argv[])
       /* create threads for CFL computation */
       create_CFL_threads(world);
 
-      /* update particle time bins */
-      for(nn=0;nn<world->num;nn++){
-	/* preserve current time step */
-	old_dt=world->dt/pow(2,world->time_bin[nn]);
-
-	for(ii=0;ii<world->num;ii++){
-	  if(world->dt_CFL[nn]>world->dt/pow(2,ii)){
-	    /* particle can always move to a larger bin */
-	    if(world->time_bin[nn]<ii){
-	      //printf("Particle %d moves from bin %d to %d.\n", nn, world->time_bin[nn], ii);
-	      ksi=(world->dt/pow(2,world->time_bin[nn]))/(world->dt/pow(2,ii));
-	      world->time_bin[nn]=ii;
-	    }
-	    /* move to smaller bin only if the current bin is in sync with it */
-	    else if(world->time_bin[nn]>ii){
-	      if(floor(world->time/(world->dt/pow(2,world->time_bin[nn])))>
-		 floor((world->time-world->sub_dt)/(world->dt/pow(2,world->time_bin[nn])))&&
-		 floor(world->time/(world->dt/pow(2,world->time_bin[nn]+1)))>
-		 floor((world->time-world->sub_dt)/(world->dt/pow(2,world->time_bin[nn]+1)))
-		 ){
-		//printf("Particle %d moves from bin %d to %d.\n", nn, world->time_bin[nn], ii);
-		ksi=(world->dt/pow(2,world->time_bin[nn]))/(world->dt/pow(2,ii));
-		world->time_bin[nn]=ii;
-	      }
-	    }
-	    /* if time bin doesnt change, break before position correction */
-	    else
-	      break;
-
-	    /* compute position correction */
-	    world->r2[3*nn+0]-=(1-1/ksi)*(1+1/ksi)*old_dt*old_dt/8.0*world->a2[3*nn+0];
-	    world->r2[3*nn+1]-=(1-1/ksi)*(1+1/ksi)*old_dt*old_dt/8.0*world->a2[3*nn+1];
-	    world->r2[3*nn+2]-=(1-1/ksi)*(1+1/ksi)*old_dt*old_dt/8.0*world->a2[3*nn+2];
-	    break;
-	  }
-	}
-	//printf("%d\t", world->time_bin[nn]);
-      }
-      //printf("\n");
-
-      /* determine which particles need to be kicked from the old sub_dt value */
-      for(nn=0;nn<world->num;nn++){
-	if(floor(world->time/(world->dt/pow(2,world->time_bin[nn])))>
-	   floor((world->time-world->sub_dt)/(world->dt/pow(2,world->time_bin[nn]))))
-	  world->kick[nn]=1;
-	else
-	  world->kick[nn]=0;
-	//printf("%d\t", world->kick[nn]);	
-      }
-      //printf("\n");
+      /* create threads  for particle time bin update */
+      create_timebin_threads(world);
 
       /* determine minimum timestep to take from maximum bin */
       max_bin=0;

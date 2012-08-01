@@ -110,6 +110,17 @@ void *CFL_thread(void *threadarg){
   pthread_exit(NULL);
 }
 
+void *timebin_thread(void *threadarg){
+  struct thread_data *my_data;
+
+  my_data=(struct thread_data *) threadarg;
+  //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
+
+  update_time_bins(my_data->world, my_data->lo, my_data->hi);
+
+  pthread_exit(NULL);
+}
+
 void *acceleration_thread(void *threadarg){
   struct thread_data2 *my_data;
 
@@ -611,6 +622,71 @@ void create_CFL_threads(struct universe *world){
     thread_data_array[nn].lo=thread_data_array[nn-1].hi;
     thread_data_array[nn].hi=world->num;
     thread_rc=pthread_create(&threads[nn], &attr, CFL_thread, (void *) &thread_data_array[nn]);
+    
+    if(thread_rc){
+      printf("ERROR: pthread_create() returned %d.\n", thread_rc);
+      exit(-1);
+    }
+    
+    num_join_threads++;
+  }
+  
+  /* join threads */
+  pthread_attr_destroy(&attr);
+  for(nn=0;nn<num_join_threads;nn++){
+    thread_rc=pthread_join(threads[nn], &thread_status);
+    
+    if(thread_rc){
+      printf("ERROR: pthread_join() returned %d.\n", thread_rc);
+      exit(-1);
+    }
+  }
+}
+
+void create_timebin_threads(struct universe *world){
+  /* posix thread variables */
+  int thread_slice_num;
+  int num_join_threads;
+  int thread_rc;
+  pthread_t threads[NUM_THREADS+1];
+  pthread_attr_t attr;
+  void *thread_status;
+  
+  /* loop variables */
+  int nn;
+
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+  thread_slice_num=world->num/NUM_THREADS;
+  num_join_threads=0;
+  for(nn=0;nn<NUM_THREADS-1;nn++){
+    //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
+    //                                                nn*thread_slice_num+thread_slice_num);
+    thread_data_array[nn].thread_id=nn;
+    thread_data_array[nn].world=world;
+    thread_data_array[nn].var=0.3;
+    thread_data_array[nn].lo=nn*thread_slice_num;
+    thread_data_array[nn].hi=nn*thread_slice_num+thread_slice_num;
+    thread_rc=pthread_create(&threads[nn], &attr, timebin_thread, (void *) &thread_data_array[nn]);
+    
+    if(thread_rc){
+      printf("ERROR: pthread_create() returned %d.\n", thread_rc);
+      exit(-1);
+    }
+    
+    num_join_threads++;
+  }
+  
+  if(thread_data_array[nn-1].hi<world->num){
+    //printf("Creating thread %d, slice %d to %d.\n", nn, thread_data_array[nn-1].hi,
+    //                                                world->num);
+    thread_data_array[nn].thread_id=nn;
+    thread_data_array[nn].world=world;
+    thread_data_array[nn].var=0.3;
+    thread_data_array[nn].lo=thread_data_array[nn-1].hi;
+    thread_data_array[nn].hi=world->num;
+    thread_rc=pthread_create(&threads[nn], &attr, timebin_thread, (void *) &thread_data_array[nn]);
     
     if(thread_rc){
       printf("ERROR: pthread_create() returned %d.\n", thread_rc);
