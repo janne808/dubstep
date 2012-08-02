@@ -35,7 +35,25 @@
 #define PI 3.14159265358979323846264
 #endif
 
-double kernel(double q, double h){
+/* 32-bit square root quake hack */
+static inline float Q_rsqrt( float number )
+{
+  long i;
+  float x2, y;
+  const float threehalfs = 1.5F;
+ 
+  x2 = number * 0.5F;
+  y  = number;
+  i  = * ( long * ) &y;                       // evil floating point bit level hacking
+  i  = 0x5f3759df - ( i >> 1 );               // what the fuck?
+  y  = * ( float * ) &i;
+  y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
+  //      y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
+ 
+  return y;
+}
+
+static inline double kernel(double q, double h){
   double val=q;
 
   if(q<1.0){
@@ -51,7 +69,7 @@ double kernel(double q, double h){
   return val/(PI*h*h*h);
 }
 
-double kernel_d(double q, double h){
+static inline double kernel_d(double q, double h){
   double val=q;
 
   if(q<1.0){
@@ -67,8 +85,8 @@ double kernel_d(double q, double h){
   return val/(PI*h*h*h);
 }
 
-double artificial_viscosity(double *dv_ij, double h_ij, double rho_ij,
-			    double c_ij, double *dr, double rr, double alpha, double beta, double neta){
+static inline double artificial_viscosity(double *dv_ij, double h_ij, double rho_ij,
+					  double c_ij, double *dr, double rr, double alpha, double beta, double neta){
   double mu_ij;
 
   mu_ij=0;
@@ -130,7 +148,13 @@ void smooth_velocity_field(struct universe *world, int lo, int hi){
       dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
       dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
       dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+      r=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
+      r=r*(double)(Q_rsqrt((float)(r)))/h_in[ii];
+#else
       r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
+#endif
 
       v_out[3*ii+0]+=1/rho_in[ii]*m_in[kk]*v_in[3*kk+0]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
       v_out[3*ii+1]+=1/rho_in[ii]*m_in[kk]*v_in[3*kk+1]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
@@ -193,7 +217,13 @@ void smooth_energy_field(struct universe *world, int lo, int hi){
       dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
       dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
       dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+      r=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
+      r=r*(double)(Q_rsqrt((float)(r)))/h_in[ii];
+#else
       r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
+#endif
 
       u_out[ii]+=1/rho_in[ii]*m_in[kk]*u_in[kk]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
     }
@@ -387,7 +417,14 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
 	dr[0]=r_in[3*ii+0]-r_in[3*jj+0];
 	dr[1]=r_in[3*ii+1]-r_in[3*jj+1];
 	dr[2]=r_in[3*ii+2]-r_in[3*jj+2];
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+	r=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
+	r=r*(double)(Q_rsqrt((float)(r)));
+#else
 	r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+#endif
+
 	if(r/h<2.0||r/h_in[jj]<2.0){
 	  buffer[N]=jj;
 	  N++;
@@ -536,7 +573,14 @@ void compute_density(struct universe *world, double h, int lo, int hi){
       dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
       dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
       dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+      r=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
+      r=r*(double)(Q_rsqrt((float)(r)))/h_in[ii];
+#else
       r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
+#endif
+
       rho_in[ii]+=m_in[kk]*kernel(r,h_in[ii]);
     }
   }
@@ -656,7 +700,13 @@ void compute_cfl(struct universe *world, double C_0, int lo, int hi){
 	dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
 	dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
 	dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+	rr=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
+	rr=rr*(double)(Q_rsqrt((float)(rr)));
+#else
 	rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+#endif
 	
 	dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
 	dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
@@ -759,7 +809,13 @@ void compute_internal_energy_and_acceleration(struct universe *world, double *r,
 	  dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
 	  dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
 	  dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+	  rr=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
+	  rr=rr*(double)(Q_rsqrt((float)(rr)));
+#else
 	  rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+#endif
       
 	  dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
 	  dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
@@ -819,7 +875,13 @@ void compute_internal_energy_and_acceleration(struct universe *world, double *r,
 	  dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
 	  dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
 	  dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+	  rr=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
+	  rr=rr*(double)(Q_rsqrt((float)(rr)));
+#else
 	  rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+#endif
       
 	  dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
 	  dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];

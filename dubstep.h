@@ -68,6 +68,10 @@
 #define PI 3.14159265358979323846264
 #endif
 
+#ifndef RSQRT_QUAKE_HACK
+#define RSQRT_QUAKE_HACK 1
+#endif
+
 /* structure for RGB color */
 struct color{
   double r;

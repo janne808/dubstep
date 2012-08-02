@@ -29,6 +29,24 @@
 #include "dubstep.h"
 #include "tree.h"
 
+/* 32-bit square root quake hack */
+static inline float Q_rsqrt( float number )
+{
+  long i;
+  float x2, y;
+  const float threehalfs = 1.5F;
+ 
+  x2 = number * 0.5F;
+  y  = number;
+  i  = * ( long * ) &y;                       // evil floating point bit level hacking
+  i  = 0x5f3759df - ( i >> 1 );               // what the fuck?
+  y  = * ( float * ) &i;
+  y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
+  //      y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
+ 
+  return y;
+}
+
 int init_treeroot(struct cell *tree, struct universe *world, double *r){
   int ii;
   int n,m;
@@ -235,14 +253,26 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
     dx=r[0]-child->center[0];
     dy=r[1]-child->center[1];
     dz=r[2]-child->center[2];
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+    d=dx*dx+dy*dy+dz*dz;
+    d=d*(double)(Q_rsqrt((float)(d)));
+#else
     d=sqrt(dx*dx+dy*dy+dz*dz);
+#endif
     
     /* compute distance from cells geometrical center to center of mass */
     /* for cell opening criterion */
     dx=child->center[0]-(child->space[0*3+0]-l/2.0);
     dy=child->center[1]-(child->space[0*3+1]+l/2.0);
     dz=child->center[2]-(child->space[0*3+2]-l/2.0);
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+    delta=dx*dx+dy*dy+dz*dz;
+    delta=delta*(double)(Q_rsqrt((float)(delta)));
+#else
     delta=sqrt(dx*dx+dy*dy+dz*dz);
+#endif
 
     if(child->num>1){
       if(d>child->l/theta+delta){
@@ -268,6 +298,14 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
       /* calculate acceleration with plummer softening */
       epsilon=world->h[child->particle_index];
       d2=sqrt(d*d+epsilon*epsilon);
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+      d2=d*d+epsilon*epsilon;
+      d2=d2*(double)(Q_rsqrt((float)(d2)));
+#else
+      d2=sqrt(d*d+epsilon*epsilon);
+#endif
+
       d2=1/(d2*d2*d2);
       a[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
       a[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
@@ -318,7 +356,13 @@ void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, d
       dx=r[0]-(child->space[0*3+0]-l/2.0);
       dy=r[1]-(child->space[0*3+1]+l/2.0);
       dz=r[2]-(child->space[0*3+2]-l/2.0);
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+      d=dx*dx+dy*dy+dz*dz;
+      d=d*(double)(Q_rsqrt((float)(d)));
+#else
       d=sqrt(dx*dx+dy*dy+dz*dz);
+#endif
 
       /* if the smoothing length radius intersects with the cells corner */
       /* radius, recurse deeper into the tree to find more particles */
@@ -335,7 +379,14 @@ void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, d
       dx=r[0]-child->center[0];
       dy=r[1]-child->center[1];
       dz=r[2]-child->center[2];
+
+#if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
+      d=dx*dx+dy*dy+dz*dz;
+      d=d*(double)(Q_rsqrt((float)(d)));
+#else
       d=sqrt(dx*dx+dy*dy+dz*dz);
+#endif
+
       if(d/h<2.0||d/h_in[child->particle_index]<2.0){
 	/* add particle index into the neighbouring particle list */
 	neighbour_list[*neighbour_num]=child->particle_index;

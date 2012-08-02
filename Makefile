@@ -3,9 +3,9 @@
 OBJ=dubstep.o tree.o sph.o threads.o
 CC=gcc
 NVCC=nvcc
-OPTS=-Wall -g -pthread `sdl-config --cflags`
+OPTS=-Wall -pthread `sdl-config --cflags`
 #CFLAGS=-DINFINITY=HUGE_VAL -DENABLE_GUI=0 -finline-functions -lm -lGL -ltiff `sdl-config --libs` -L/opt/cuda/lib -lcudart -L/opt/cuda/sdk/lib -lcutil
-CFLAGS=-DINFINITY=HUGE_VAL -DENABLE_GUI=1 -finline-functions -lm -lGL -ltiff `sdl-config --libs`
+CFLAGS=-DINFINITY=HUGE_VAL -DENABLE_GUI=1 -O3 -lm -lGL -ltiff `sdl-config --libs`
 
 dubstep: $(OBJ)
 	$(CC) -o $@ $(OPTS) $(CFLAGS) $(OBJ) 

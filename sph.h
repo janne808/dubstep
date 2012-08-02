@@ -24,12 +24,6 @@
 #ifndef __SPHH__
 #define __SPHH__
 
-double kernel(double q, double h);
-double kernel_d(double q, double h);
-
-double artificial_viscosity(double *dv_ij, double h_ij, double rho_ij,
-			    double c_ij, double *dr, double rr, double alpha, double beta, double neta);
-
 void smooth_velocity_field(struct universe *world, int lo, int hi);
 void smooth_energy_field(struct universe *world, int lo, int hi);
 
