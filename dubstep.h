@@ -69,7 +69,7 @@
 #endif
 
 #ifndef RSQRT_QUAKE_HACK
-#define RSQRT_QUAKE_HACK 1
+#define RSQRT_QUAKE_HACK 0
 #endif
 
 /* structure for RGB color */
