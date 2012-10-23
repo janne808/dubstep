@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 #include "dubstep.h"
 #include "tree.h"
@@ -124,10 +125,38 @@ void *timebin_thread(void *threadarg){
 void *acceleration_thread(void *threadarg){
   struct thread_data2 *my_data;
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timespec structs for thread profiling */
+  struct timespec time1, time2;
+
+  /* second and nanosecond variables for thread profiling */
+  long long nsec;
+#endif
+
   my_data=(struct thread_data2 *) threadarg;
-  //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer start */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+#endif
 
   compute_internal_energy_and_acceleration(my_data->world, my_data->r, my_data->v, my_data->a, my_data->lo, my_data->hi);
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer stop */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+
+  /* compute time differences */
+  if((time2.tv_nsec-time1.tv_nsec)<0){
+    nsec=1000000000+time2.tv_nsec-time1.tv_nsec;
+  }
+  else{
+    nsec=time2.tv_nsec-time1.tv_nsec;
+  }
+
+  /* printf thread profiling */
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+#endif
 
   pthread_exit(NULL);
 }
@@ -725,6 +754,11 @@ void create_acceleration_threads(struct universe *world){
 
   thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  printf("Creating SPH acceleration threads...\n");
+#endif
+
   for(nn=0;nn<NUM_THREADS-1;nn++){
     //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
     //                                                nn*thread_slice_num+thread_slice_num);
@@ -775,6 +809,10 @@ void create_acceleration_threads(struct universe *world){
       exit(-1);
     }
   }
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  printf("\n");
+#endif
 }
 
 void create_predictor_threads(struct universe *world){
