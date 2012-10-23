@@ -1,6 +1,6 @@
 
 #OBJ=dubstep.o tree.o sph.o threads.o sph_cuda.o
-OBJ=dubstep.o tree.o sph.o threads.o
+OBJ=dubstep.o tree.o sph.o threads.o timer.o
 CC=gcc
 NVCC=nvcc
 OPTS=-Wall -pthread `sdl-config --cflags`

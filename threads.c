@@ -31,6 +31,7 @@
 #include "tree.h"
 #include "sph.h"
 #include "threads.h"
+#include "timer.h"
 
 struct thread_data thread_data_array[NUM_THREADS+1];
 struct thread_data2 thread_data_array2[NUM_THREADS+1];
@@ -42,8 +43,21 @@ struct thread_data6 thread_data_array6[NUM_THREADS+1];
 void *smoothing_thread(void *threadarg){
   struct thread_data6 *my_data;
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timespec structs for thread profiling */
+  struct timespec time1, time2;
+
+  /* second and nanosecond variables for thread profiling */
+  long long nsec;
+#endif
+
   my_data=(struct thread_data6 *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer start */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+#endif
 
 #if (defined ADAPTIVE_SMOOTHING)&&ADAPTIVE_SMOOTHING
   compute_smoothing_length_tree(my_data->world, my_data->var1, my_data->var2, my_data->var3, my_data->var4,
@@ -53,16 +67,51 @@ void *smoothing_thread(void *threadarg){
   					 my_data->r, my_data->tree, my_data->root, my_data->lo, my_data->hi);
 #endif
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer stop */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+
+  /* compute time difference */
+  nsec=timediff(time1, time2);
+
+  /* printf thread profiling */
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+#endif
+
   pthread_exit(NULL);
 }
 
 void *total_energy_thread(void *threadarg){
   struct thread_data *my_data;
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timespec structs for thread profiling */
+  struct timespec time1, time2;
+
+  /* second and nanosecond variables for thread profiling */
+  long long nsec;
+#endif
+
   my_data=(struct thread_data *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer start */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+#endif
+
   compute_total_energy(my_data->world, my_data->var, my_data->lo, my_data->hi);
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer stop */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+
+  /* compute time difference */
+  nsec=timediff(time1, time2);
+
+  /* printf thread profiling */
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+#endif
 
   pthread_exit(NULL);
 }
@@ -70,10 +119,34 @@ void *total_energy_thread(void *threadarg){
 void *density_thread(void *threadarg){
   struct thread_data *my_data;
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timespec structs for thread profiling */
+  struct timespec time1, time2;
+
+  /* second and nanosecond variables for thread profiling */
+  long long nsec;
+#endif
+
   my_data=(struct thread_data *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer start */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+#endif
+
   compute_density(my_data->world, my_data->var, my_data->lo, my_data->hi);
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer stop */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+
+  /* compute time difference */
+  nsec=timediff(time1, time2);
+
+  /* printf thread profiling */
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+#endif
 
   pthread_exit(NULL);
 }
@@ -81,10 +154,34 @@ void *density_thread(void *threadarg){
 void *pressure_thread(void *threadarg){
   struct thread_data *my_data;
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timespec structs for thread profiling */
+  struct timespec time1, time2;
+
+  /* second and nanosecond variables for thread profiling */
+  long long nsec;
+#endif
+
   my_data=(struct thread_data *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer start */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+#endif
+
   compute_pressure(my_data->world, my_data->var, my_data->lo, my_data->hi);
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer stop */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+
+  /* compute time difference */
+  nsec=timediff(time1, time2);
+
+  /* printf thread profiling */
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+#endif
 
   pthread_exit(NULL);
 }
@@ -92,10 +189,34 @@ void *pressure_thread(void *threadarg){
 void *soundspeed_thread(void *threadarg){
   struct thread_data *my_data;
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timespec structs for thread profiling */
+  struct timespec time1, time2;
+
+  /* second and nanosecond variables for thread profiling */
+  long long nsec;
+#endif
+
   my_data=(struct thread_data *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer start */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+#endif
+
   compute_soundspeed(my_data->world, my_data->var, my_data->lo, my_data->hi);
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer stop */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+
+  /* compute time difference */
+  nsec=timediff(time1, time2);
+
+  /* printf thread profiling */
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+#endif
 
   pthread_exit(NULL);
 }
@@ -103,10 +224,34 @@ void *soundspeed_thread(void *threadarg){
 void *CFL_thread(void *threadarg){
   struct thread_data *my_data;
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timespec structs for thread profiling */
+  struct timespec time1, time2;
+
+  /* second and nanosecond variables for thread profiling */
+  long long nsec;
+#endif
+
   my_data=(struct thread_data *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer start */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+#endif
+
   compute_cfl(my_data->world, my_data->var, my_data->lo, my_data->hi);
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer stop */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+
+  /* compute time difference */
+  nsec=timediff(time1, time2);
+
+  /* printf thread profiling */
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+#endif
 
   pthread_exit(NULL);
 }
@@ -114,10 +259,34 @@ void *CFL_thread(void *threadarg){
 void *timebin_thread(void *threadarg){
   struct thread_data *my_data;
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timespec structs for thread profiling */
+  struct timespec time1, time2;
+
+  /* second and nanosecond variables for thread profiling */
+  long long nsec;
+#endif
+
   my_data=(struct thread_data *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer start */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+#endif
+
   update_time_bins(my_data->world, my_data->lo, my_data->hi);
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer stop */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+
+  /* compute time difference */
+  nsec=timediff(time1, time2);
+
+  /* printf thread profiling */
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+#endif
 
   pthread_exit(NULL);
 }
@@ -146,13 +315,8 @@ void *acceleration_thread(void *threadarg){
   /* timer stop */
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
 
-  /* compute time differences */
-  if((time2.tv_nsec-time1.tv_nsec)<0){
-    nsec=1000000000+time2.tv_nsec-time1.tv_nsec;
-  }
-  else{
-    nsec=time2.tv_nsec-time1.tv_nsec;
-  }
+  /* compute time difference */
+  nsec=timediff(time1, time2);
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
@@ -182,6 +346,14 @@ void *predictor_thread(void *threadarg){
 
   struct thread_data5 *my_data;
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timespec structs for thread profiling */
+  struct timespec time1, time2;
+
+  /* second and nanosecond variables for thread profiling */
+  long long nsec;
+#endif
+
   my_data=(struct thread_data5 *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
@@ -202,6 +374,11 @@ void *predictor_thread(void *threadarg){
   dt=world->sub_dt;
   dt_CFL_in=world->dt_CFL;
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer start */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+#endif
+
   for(nn=my_data->lo;nn<my_data->hi;nn++){
     world->v2[nn*m+0]=world->v[nn*m+0]+world->a2[nn*m+0]*dt*0.5;
     world->v2[nn*m+1]=world->v[nn*m+1]+world->a2[nn*m+1]*dt*0.5;
@@ -215,6 +392,17 @@ void *predictor_thread(void *threadarg){
     if(world->u2[nn]<1E-9)
       world->u2[nn]=1E-9;
   }
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer stop */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+
+  /* compute time difference */
+  nsec=timediff(time1, time2);
+
+  /* printf thread profiling */
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+#endif
 
   pthread_exit(NULL);
 }
@@ -245,6 +433,14 @@ void *corrector_thread(void *threadarg){
 
   struct thread_data5 *my_data;
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timespec structs for thread profiling */
+  struct timespec time1, time2;
+
+  /* second and nanosecond variables for thread profiling */
+  long long nsec;
+#endif
+
   my_data=(struct thread_data5 *) threadarg;
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
@@ -264,6 +460,11 @@ void *corrector_thread(void *threadarg){
   theta=my_data->var1;
   epsilon=my_data->var2;
   dt_CFL_in=world->dt_CFL;
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer start */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+#endif
 
   /* integrate */
   for(nn=my_data->lo;nn<my_data->hi;nn++){
@@ -285,8 +486,8 @@ void *corrector_thread(void *threadarg){
 #if (defined ADAPTIVE_SOFTENING)&&ADAPTIVE_SOFTENING
       force_walk(world, tree, &tree[0], r, a, world->G, theta, h_in[nn]);
 #else
-      //force_walk(world, tree, &tree[0], r, a, world->G, theta, world->epsilon);
-      direct_summation(world, r, a, world->G);
+      force_walk(world, tree, &tree[0], r, a, world->G, theta, world->epsilon);
+      //direct_summation(world, r, a, world->G);
 #endif
 
       a_tree[nn*m+0]=a[0];
@@ -331,6 +532,17 @@ void *corrector_thread(void *threadarg){
       world->u[nn]=1E-9;
   }
 
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  /* timer stop */
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+
+  /* compute time difference */
+  nsec=timediff(time1, time2);
+
+  /* printf thread profiling */
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+#endif
+
   pthread_exit(NULL);
 }
 
@@ -352,6 +564,11 @@ void create_smoothing_threads(struct universe *world, int iterations, int neighb
 
   thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  printf("Creating SPH smoothing threads...\n");
+#endif
+
   for(nn=0;nn<NUM_THREADS-1;nn++){
     //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
     //                                                nn*thread_slice_num+thread_slice_num);
@@ -429,6 +646,11 @@ void create_density_threads(struct universe *world){
 
   thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  printf("Creating SPH density threads...\n");
+#endif
+
   for(nn=0;nn<NUM_THREADS-1;nn++){
     //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
     //                                                nn*thread_slice_num+thread_slice_num);
@@ -494,6 +716,11 @@ void create_pressure_threads(struct universe *world){
 
   thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  printf("Creating SPH pressure threads...\n");
+#endif
+
   for(nn=0;nn<NUM_THREADS-1;nn++){
     //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
     //                                                nn*thread_slice_num+thread_slice_num);
@@ -559,6 +786,11 @@ void create_soundspeed_threads(struct universe *world){
 
   thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  printf("Creating SPH soundspeed threads...\n");
+#endif
+
   for(nn=0;nn<NUM_THREADS-1;nn++){
     //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
     //                                                nn*thread_slice_num+thread_slice_num);
@@ -624,6 +856,11 @@ void create_CFL_threads(struct universe *world){
 
   thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  printf("Creating SPH CFL threads...\n");
+#endif
+
   for(nn=0;nn<NUM_THREADS-1;nn++){
     //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
     //                                                nn*thread_slice_num+thread_slice_num);
@@ -689,6 +926,11 @@ void create_timebin_threads(struct universe *world){
 
   thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  printf("Creating timebinning threads...\n");
+#endif
+
   for(nn=0;nn<NUM_THREADS-1;nn++){
     //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
     //                                                nn*thread_slice_num+thread_slice_num);
@@ -809,10 +1051,6 @@ void create_acceleration_threads(struct universe *world){
       exit(-1);
     }
   }
-
-#if (defined THREAD_PROFILING)&&THREAD_PROFILING
-  printf("\n");
-#endif
 }
 
 void create_predictor_threads(struct universe *world){
@@ -832,6 +1070,11 @@ void create_predictor_threads(struct universe *world){
 
   thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  printf("Creating predictor threads...\n");
+#endif
+
   for(nn=0;nn<NUM_THREADS-1;nn++){
     //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
     //                                                nn*thread_slice_num+thread_slice_num);
@@ -903,6 +1146,11 @@ void create_corrector_threads(struct universe *world){
 
   thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  printf("Creating corrector threads...\n");
+#endif
+
   for(nn=0;nn<NUM_THREADS-1;nn++){
     //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
     //                                                nn*thread_slice_num+thread_slice_num);
@@ -978,6 +1226,11 @@ void create_total_energy_threads(struct universe *world, double theta){
 
   thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
+
+#if (defined THREAD_PROFILING)&&THREAD_PROFILING
+  printf("Creating total energy threads...\n");
+#endif
+
   for(nn=0;nn<NUM_THREADS-1;nn++){
     //printf("Creating thread %d, slice %d to %d.\n", nn, nn*thread_slice_num,
     //                                                nn*thread_slice_num+thread_slice_num);
