@@ -30,8 +30,9 @@ long long timediff(struct timespec start, struct timespec end){
   long long nsec;
 
   /* compute time difference */
+  /* handle timer overflow as needed */
   if((end.tv_nsec-start.tv_nsec)<0){
-    nsec=1000000000+end.tv_nsec-start.tv_nsec;
+    nsec=1000000000-start.tv_nsec+end.tv_nsec;
   }
   else{
     nsec=end.tv_nsec-start.tv_nsec;

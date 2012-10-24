@@ -41,7 +41,7 @@
 #endif
 
 #ifndef ADAPTIVE_SOFTENING
-#define ADAPTIVE_SOFTENING 1
+#define ADAPTIVE_SOFTENING 0
 #endif
 
 #ifndef SOFTENING_FACTOR
