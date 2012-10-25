@@ -474,9 +474,12 @@ void compute_total_energy(struct universe *world, double theta, int lo, int hi){
   /* sum total potential and kinetic energy */
   for(ii=lo;ii<hi;ii++){
     /* sum in potential energy from tree */
-    potential_recurse(tree, &tree[0], &r_in[3*ii], m_in[ii], U, world->G, theta, world->epsilon);
+    /* unit is AU^3/(M_solar*yr^2)*M_solar^2/AU */
+    potential_recurse(tree, &tree[0], &r_in[3*ii], m_in[ii], U, world->G, theta, world->h[ii]);
+    //potential_recurse(tree, &tree[0], &r_in[3*ii], m_in[ii], U, world->G, theta, world->epsilon);
 
     /* sum in kinetic energy */
+    /* unit is M_solar*(AU/yr)^2 */
     *K+=0.5*world->m[ii]*(world->v[3*ii+0]*world->v[3*ii+0]+world->v[3*ii+1]*world->v[3*ii+1]+
 			  world->v[3*ii+2]*world->v[3*ii+2]);
   }
@@ -510,11 +513,11 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
     delta=sqrt(dx*dx+dy*dy+dz*dz);
 
     if(child->num>1){
-      if(d>child->l/theta+delta){
+      if(0){
+      //if(d>child->l/theta+delta){
 	/* approximate as ensemble */
 	/* calculate potential energy with plummer softening */
-	d2=sqrt(d*d+epsilon*epsilon);
-	d2=1/(d2*d2*d2);
+	d2=sqrt(d*d+epsilon*epsilon);	
 	*U-=G*m*child->mass*d2;
       }
       else{
@@ -525,7 +528,6 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
     else{
       /* calculate potential energy with plummer softening */
       d2=sqrt(d*d+epsilon*epsilon);
-      d2=1/(d2*d2*d2);
       *U-=G*m*child->mass*d2;
     }
   }

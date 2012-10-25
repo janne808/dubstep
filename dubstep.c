@@ -172,6 +172,12 @@ int main(int argc, char *argv[])
   int min_N;
   double avg_N;
 
+#if (defined ENERGY_PROFILING)&&ENERGY_PROFILING
+  /* variables for energy conservation profiling */
+  double total_u;
+  double total_u2;
+#endif
+
 #if ENABLE_GUI
   /* UI variables */
   double rot[3];
@@ -627,13 +633,21 @@ int main(int argc, char *argv[])
       }
       avg_N=avg_N/world->num;
 
+#if (defined ENERGY_PROFILING)&&ENERGY_PROFILING
       /* compute total gravitational potential and kinetic energy */
-      //create_total_energy_threads(world, 0.1);
+      create_total_energy_threads(world, 0.1);
+
+      total_u=total_u2;
+      total_u2=world->u_int+world->u_grav+world->u_kin;
 
       /* display the state of the system */
-      printf("time: %f dt: %f cells: %d avg_N: %f u_int: %f u_grav: %f u_kin: %f\n",
-      	     world->time, world->sub_dt, tree[0].numcells, avg_N, world->u_int, world->u_grav, world->u_kin);
-
+      printf("time: %f dt: %f cells: %d avg_N: %f u_total: %f u_error: %f%\n",
+      	     world->time, world->sub_dt, tree[0].numcells, avg_N, total_u2, 100.0*fabs(total_u2-total_u)/abs(total_u2));
+#else
+      /* display the state of the system */
+      printf("time: %f dt: %f cells: %d avg_N: %f u_int: %f\n",
+      	     world->time, world->sub_dt, tree[0].numcells, avg_N, world->u_int);
+#endif
       /* next time step */
       tt++;
 
