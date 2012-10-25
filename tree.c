@@ -517,7 +517,7 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
       //if(d>child->l/theta+delta){
 	/* approximate as ensemble */
 	/* calculate potential energy with plummer softening */
-	d2=sqrt(d*d+epsilon*epsilon);	
+	d2=1/sqrt(d*d+epsilon*epsilon);	
 	*U-=G*m*child->mass*d2;
       }
       else{
@@ -527,7 +527,7 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
     }
     else{
       /* calculate potential energy with plummer softening */
-      d2=sqrt(d*d+epsilon*epsilon);
+      d2=1/sqrt(d*d+epsilon*epsilon);
       *U-=G*m*child->mass*d2;
     }
   }
