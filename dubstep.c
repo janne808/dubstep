@@ -662,7 +662,7 @@ int main(int argc, char *argv[])
       total_u2=world->u_int+world->u_grav+world->u_kin;
 
       /* display the state of the system */
-      printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f u_total: %.1f u_error: %f%\n",
+      printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f u_total: %.1f u_error: %f%%\n",
       	     world->time, world->sub_dt, tree[0].numcells, avg_N, total_u2, 100.0*fabs(total_u2-total_u)/abs(total_u2));
 #else
       /* display the state of the system */
