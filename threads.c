@@ -48,7 +48,7 @@ void *smoothing_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  unsigned long long nsec;
+  struct timespec t;
 #endif
 
   my_data=(struct thread_data6 *) threadarg;
@@ -72,10 +72,11 @@ void *smoothing_thread(void *threadarg){
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
 
   /* compute time difference */
-  nsec=timediff(time1, time2);
+  timediff(time1, time2, &t);
 
   /* printf thread profiling */
-  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
+	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -89,7 +90,7 @@ void *total_energy_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  unsigned long long nsec;
+  struct timespec t;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -107,10 +108,11 @@ void *total_energy_thread(void *threadarg){
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
 
   /* compute time difference */
-  nsec=timediff(time1, time2);
+  timediff(time1, time2, &t);
 
   /* printf thread profiling */
-  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
+	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -124,7 +126,7 @@ void *density_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  unsigned long long nsec;
+  struct timespec t;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -142,10 +144,11 @@ void *density_thread(void *threadarg){
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
 
   /* compute time difference */
-  nsec=timediff(time1, time2);
+  timediff(time1, time2, &t);
 
   /* printf thread profiling */
-  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
+	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -159,7 +162,7 @@ void *pressure_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  unsigned long long nsec;
+  struct timespec t;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -177,10 +180,11 @@ void *pressure_thread(void *threadarg){
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
 
   /* compute time difference */
-  nsec=timediff(time1, time2);
+  timediff(time1, time2, &t);
 
   /* printf thread profiling */
-  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
+	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -194,7 +198,7 @@ void *soundspeed_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  unsigned long long nsec;
+  struct timespec t;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -212,10 +216,11 @@ void *soundspeed_thread(void *threadarg){
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
 
   /* compute time difference */
-  nsec=timediff(time1, time2);
+  timediff(time1, time2, &t);
 
   /* printf thread profiling */
-  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
+	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -229,7 +234,7 @@ void *CFL_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  unsigned long long nsec;
+  struct timespec t;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -247,10 +252,11 @@ void *CFL_thread(void *threadarg){
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
 
   /* compute time difference */
-  nsec=timediff(time1, time2);
+  timediff(time1, time2, &t);
 
   /* printf thread profiling */
-  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
+	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec)*1.0E-6);
 #endif
 
   pthread_exit(NULL);
@@ -264,7 +270,7 @@ void *timebin_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  unsigned long long nsec;
+  struct timespec t;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -282,10 +288,11 @@ void *timebin_thread(void *threadarg){
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
 
   /* compute time difference */
-  nsec=timediff(time1, time2);
+  timediff(time1, time2, &t);
 
   /* printf thread profiling */
-  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
+	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec)*1.0E-6);
 #endif
 
   pthread_exit(NULL);
@@ -299,7 +306,7 @@ void *acceleration_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  unsigned long long nsec;
+  struct timespec t;
 #endif
 
   my_data=(struct thread_data2 *) threadarg;
@@ -316,10 +323,11 @@ void *acceleration_thread(void *threadarg){
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
 
   /* compute time difference */
-  nsec=timediff(time1, time2);
+  timediff(time1, time2, &t);
 
   /* printf thread profiling */
-  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
+	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -351,7 +359,7 @@ void *predictor_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  unsigned long long nsec;
+  struct timespec t;
 #endif
 
   my_data=(struct thread_data5 *) threadarg;
@@ -398,10 +406,11 @@ void *predictor_thread(void *threadarg){
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
 
   /* compute time difference */
-  nsec=timediff(time1, time2);
+  timediff(time1, time2, &t);
 
   /* printf thread profiling */
-  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
+	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -438,7 +447,7 @@ void *corrector_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  unsigned long long nsec;
+  struct timespec t;
 #endif
 
   my_data=(struct thread_data5 *) threadarg;
@@ -537,10 +546,11 @@ void *corrector_thread(void *threadarg){
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
 
   /* compute time difference */
-  nsec=timediff(time1, time2);
+  timediff(time1, time2, &t);
 
   /* printf thread profiling */
-  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi, (double)(nsec)*1.0E-6);
+  printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
+	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
