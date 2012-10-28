@@ -26,17 +26,15 @@
 #include "timer.h"
 
 /* compute time difference in nanoseconds */
-unsigned long long timediff(struct timespec start, struct timespec end){
-  unsigned long long nsec;
-
+void timediff(struct timespec start, struct timespec end, struct timespec *out){
   /* compute time difference */
-  /* handle timer overflow as needed */
+  /* handle nsec overflow as needed */
   if((end.tv_nsec-start.tv_nsec)<0){
-    nsec=1000000000-start.tv_nsec+end.tv_nsec;
+    out->tv_nsec=1000000000-start.tv_nsec+end.tv_nsec;
+    out->tv_sec=end.tv_sec-start.tv_sec-1;
   }
   else{
-    nsec=end.tv_nsec-start.tv_nsec;
+    out->tv_nsec=end.tv_nsec-start.tv_nsec;
+    out->tv_sec=end.tv_sec-start.tv_sec;
   }
-
-  return nsec;
 }

@@ -163,9 +163,10 @@ int main(int argc, char *argv[])
   int calc;
 
   /* time measurement variables */
-  unsigned long long treetime;
-  unsigned long long int_time;
-  unsigned long long sph_time;
+  struct timespec treetime;
+  struct timespec int_time;
+  struct timespec int2_time;
+  struct timespec sph_time;
 
   struct timespec time1, time2;
 
@@ -389,27 +390,35 @@ int main(int argc, char *argv[])
     double vv;
 
     /* box-muller transform for normally distributed samples */
+    /*
     x=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
     y=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
     z=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+    */
+    
+    /* generate 3D 13x13x13 grid */
+    x=(double)((ii%13)-6);
+    y=(double)((ii/13)%13-6);
+    z=(double)((ii/(13*13))-6);
 
-    world->r[ii*m+0]=15.0*x;
-    world->r[ii*m+1]=15.0*y;
+    /* scale */
+    world->r[ii*m+0]=2.0*x;
+    world->r[ii*m+1]=2.0*y;
     world->r[ii*m+2]=2.0*z;
     world->r2[ii*m+0]=world->r[ii*m+0];
     world->r2[ii*m+1]=world->r[ii*m+1];
     world->r2[ii*m+2]=world->r[ii*m+2];
 
-    rr=sqrt(x*x+y*y+z*z);
-
-    vv=sqrt(2.0*G*0.022*2.0/rr/2.0);
-
+    rr=sqrt(x*x+y*y+z*z)+1.0E-8;
+    vv=sqrt(2.0*G*0.07*2.0/rr/2.0);
     world->v[ii*m+0]=-vv*y/rr;
     world->v[ii*m+1]=vv*x/rr;
     world->v[ii*m+2]=0;    
+
     //world->v[ii*m+0]=0;
     //world->v[ii*m+1]=0;
-    //world->v[ii*m+2]=0;    
+    //world->v[ii*m+2]=0;
+    
     world->v2[ii*m+0]=world->v[ii*m+0];
     world->v2[ii*m+1]=world->v[ii*m+1];
     world->v2[ii*m+2]=world->v[ii*m+2];    
@@ -440,7 +449,7 @@ int main(int argc, char *argv[])
   create_soundspeed_threads(world);
 
   /* filter initial velocity field */
-  smooth_velocity_field(world, 0, world->num);
+  //smooth_velocity_field(world, 0, world->num);
 
   /* create threads for CFL computation */
   create_CFL_threads(world);
@@ -449,7 +458,7 @@ int main(int argc, char *argv[])
   create_acceleration_threads(world);
 
   /* filter initial energy field */
-  smooth_energy_field(world, 0, world->num);
+  //smooth_energy_field(world, 0, world->num);
 
   /* init particle time bins */
   for(nn=0;nn<world->num;nn++){
@@ -553,7 +562,7 @@ int main(int argc, char *argv[])
       clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
 
       /* compute time */
-      int_time=timediff(time1, time2);
+      timediff(time1, time2, &int_time);
 
       /* compute sph variables */
 
@@ -573,7 +582,7 @@ int main(int argc, char *argv[])
       clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
 
       /* compute time */
-      treetime=timediff(time1, time2);
+      timediff(time1, time2, &treetime);
 
       /* timer start */
       clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
@@ -614,7 +623,7 @@ int main(int argc, char *argv[])
       clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
 
       /* compute time */
-      sph_time=timediff(time1, time2);
+      timediff(time1, time2, &sph_time);
 
       /* timer start */
       clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
@@ -626,7 +635,7 @@ int main(int argc, char *argv[])
       clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
 
       /* compute time */
-      int_time+=timediff(time1, time2);
+      timediff(time1, time2, &int2_time);
 
       /* compute total, average and minimum energy */
       world->avg_u=0.0;
@@ -667,8 +676,10 @@ int main(int argc, char *argv[])
 #else
       /* display the state of the system */
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f tree_t: %fms sph_t: %fms int_t: %fms\n",
-      	     world->time, world->sub_dt, tree[0].numcells, avg_N, (double)(treetime)*1.0E-6, (double)(sph_time)*1.0E-6,
-	     (double)(int_time)*1.0E-6);
+      	     world->time, world->sub_dt, tree[0].numcells, avg_N,
+	     (double)(treetime.tv_sec)*1.0E3+(double)(treetime.tv_nsec)*1.0E-6,
+	     (double)(sph_time.tv_sec)*1.0E3+(double)(sph_time.tv_nsec)*1.0E-6,
+	     (double)(int_time.tv_sec+int2_time.tv_sec)*1.0E3+(double)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-6);
 #endif
       /* next time step */
       tt++;
