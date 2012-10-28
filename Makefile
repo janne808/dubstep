@@ -46,7 +46,7 @@ tree.o: tree.c tree.h
 sph.o: 	sph.c sph.h
 	gcc $(OPTS) $(CFLAGS) -c $<
 
-ifeq (CUDA, 1)
+ifeq ($(CUDA), 1)
 sph_cuda.o: sph_cuda.cu sph_cuda.h
 	nvcc --compiler-options -fno-strict-aliasing -I. -I/opt/cuda/NVIDIA_CUDA_SDK/common/inc -I/opt/cuda/include -c $<
 endif
