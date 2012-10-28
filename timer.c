@@ -1,4 +1,4 @@
-/* thread routines */
+/* timer routines */
 
 /*
  *  (C) 2012 Janne Heikkarainen <janne.heikkarainen@tut.fi>
@@ -26,8 +26,8 @@
 #include "timer.h"
 
 /* compute time difference in nanoseconds */
-long long timediff(struct timespec start, struct timespec end){
-  long long nsec;
+unsigned long long timediff(struct timespec start, struct timespec end){
+  unsigned long long nsec;
 
   /* compute time difference */
   /* handle timer overflow as needed */

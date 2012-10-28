@@ -24,6 +24,6 @@
 #ifndef __TIMERH__
 #define __TIMERH__
 
-long long timediff(struct timespec start, struct timespec end);
+unsigned long long timediff(struct timespec start, struct timespec end);
 
 #endif

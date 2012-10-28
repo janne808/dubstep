@@ -37,7 +37,7 @@
 #endif
 
 #ifndef MAX_SMOOTH_LEN
-#define MAX_SMOOTH_LEN 2.0
+#define MAX_SMOOTH_LEN 1.0
 #endif
 
 #ifndef ADAPTIVE_SOFTENING

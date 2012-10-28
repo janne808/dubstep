@@ -27,10 +27,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
-
-#include <SDL.h>
+#include <time.h>
 
 #if ENABLE_GUI
+#include <SDL.h>
 #include <SDL_opengl.h>
 #include <tiffio.h>
 #endif
@@ -39,6 +39,7 @@
 #include "tree.h"
 #include "sph.h"
 #include "threads.h"
+#include "timer.h"
 
 #if ENABLE_GUI
 void colormap(double val, struct color *col){
@@ -162,10 +163,11 @@ int main(int argc, char *argv[])
   int calc;
 
   /* time measurement variables */
-  unsigned int t1,t2;
-  unsigned int treetime;
-  unsigned int int_time;
-  unsigned int sph_time;
+  unsigned long long treetime;
+  unsigned long long int_time;
+  unsigned long long sph_time;
+
+  struct timespec time1, time2;
 
   /* particle neighbour statistics */
   int max_N;
@@ -540,20 +542,26 @@ int main(int argc, char *argv[])
 #endif
 
     if(calc){
-      t1=SDL_GetTicks();
+      
+      /* timer start */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
 
       /* integrate predictor */
       create_predictor_threads(world);
 
-      t2=SDL_GetTicks();
-      int_time=t2-t1;
+      /* timer stop */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+
+      /* compute time */
+      int_time=timediff(time1, time2);
 
       /* compute sph variables */
 
       /* create threads for smoothing length interation and
 	 interacting particle list generation */
 
-      t1=SDL_GetTicks();
+      /* timer start */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
 
       /* initialize tree root parameters */
       init_treeroot(tree, world, world->r2);
@@ -561,14 +569,20 @@ int main(int argc, char *argv[])
       /* form tree */
       branch_recurse(world, tree, &tree[0], world->cellindex);
 
+      /* timer stop */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+
+      /* compute time */
+      treetime=timediff(time1, time2);
+
+      /* timer start */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+
       /* serial tree smoothing length iterator */
       //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
 
       /* create threads for parallel tree smoothing length iterators */
       create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
-
-      t2=SDL_GetTicks();
-      treetime=t2-t1;
 
       /* create threads for density computation */
       create_density_threads(world);
@@ -596,16 +610,23 @@ int main(int argc, char *argv[])
       /* create threads for hydrodynamic acceleration and internal energy computation */
       create_acceleration_threads(world);
       
-      t2=SDL_GetTicks();
-      sph_time=t2-t1;
+      /* timer stop */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
 
-      t1=SDL_GetTicks();
+      /* compute time */
+      sph_time=timediff(time1, time2);
+
+      /* timer start */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
 
       /* integrate corrector */
       create_corrector_threads(world);
 
-      t2=SDL_GetTicks();
-      int_time+=t2-t1;
+      /* timer stop */
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+
+      /* compute time */
+      int_time+=timediff(time1, time2);
 
       /* compute total, average and minimum energy */
       world->avg_u=0.0;
@@ -641,12 +662,13 @@ int main(int argc, char *argv[])
       total_u2=world->u_int+world->u_grav+world->u_kin;
 
       /* display the state of the system */
-      printf("time: %f dt: %f cells: %d avg_N: %f u_total: %f u_error: %f%\n",
+      printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f u_total: %.1f u_error: %f%\n",
       	     world->time, world->sub_dt, tree[0].numcells, avg_N, total_u2, 100.0*fabs(total_u2-total_u)/abs(total_u2));
 #else
       /* display the state of the system */
-      printf("time: %f dt: %f cells: %d avg_N: %f u_int: %f\n",
-      	     world->time, world->sub_dt, tree[0].numcells, avg_N, world->u_int);
+      printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f tree_t: %fms sph_t: %fms int_t: %fms\n",
+      	     world->time, world->sub_dt, tree[0].numcells, avg_N, (double)(treetime)*1.0E-6, (double)(sph_time)*1.0E-6,
+	     (double)(int_time)*1.0E-6);
 #endif
       /* next time step */
       tt++;
@@ -739,8 +761,10 @@ int main(int argc, char *argv[])
   /* clean up tree */
   free(tree);
 
+#if (defined ENABLE_GUI)&&ENABLE_GUI
   /* clean up SDL */
   SDL_Quit();
+#endif
 
   /* clean up posix threads */
   pthread_exit(NULL);

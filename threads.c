@@ -48,7 +48,7 @@ void *smoothing_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  long long nsec;
+  unsigned long long nsec;
 #endif
 
   my_data=(struct thread_data6 *) threadarg;
@@ -89,7 +89,7 @@ void *total_energy_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  long long nsec;
+  unsigned long long nsec;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -124,7 +124,7 @@ void *density_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  long long nsec;
+  unsigned long long nsec;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -159,7 +159,7 @@ void *pressure_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  long long nsec;
+  unsigned long long nsec;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -194,7 +194,7 @@ void *soundspeed_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  long long nsec;
+  unsigned long long nsec;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -229,7 +229,7 @@ void *CFL_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  long long nsec;
+  unsigned long long nsec;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -264,7 +264,7 @@ void *timebin_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  long long nsec;
+  unsigned long long nsec;
 #endif
 
   my_data=(struct thread_data *) threadarg;
@@ -299,7 +299,7 @@ void *acceleration_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  long long nsec;
+  unsigned long long nsec;
 #endif
 
   my_data=(struct thread_data2 *) threadarg;
@@ -351,7 +351,7 @@ void *predictor_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  long long nsec;
+  unsigned long long nsec;
 #endif
 
   my_data=(struct thread_data5 *) threadarg;
@@ -438,7 +438,7 @@ void *corrector_thread(void *threadarg){
   struct timespec time1, time2;
 
   /* second and nanosecond variables for thread profiling */
-  long long nsec;
+  unsigned long long nsec;
 #endif
 
   my_data=(struct thread_data5 *) threadarg;
