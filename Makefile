@@ -2,11 +2,11 @@
 THREAD_PROFILING=0
 ENERGY_PROFILING=0
 CUDA=0
-SDL=1
-OPTIMIZATION_LEVEL=1
+SDL=0
+OPTIMIZATION_LEVEL=3
 
 # object files
-ifeq (CUDA, 1)
+ifeq ($(CUDA), 1)
 	OBJ=dubstep.o tree.o sph.o threads.o timer.o sph_cuda.o
 else
 	OBJ=dubstep.o tree.o sph.o threads.o timer.o
