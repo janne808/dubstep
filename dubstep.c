@@ -354,7 +354,7 @@ int main(int argc, char *argv[])
     world->dt_CFL[ii]=world->sub_dt;
     world->kick[ii]=1;
     world->time_bin[ii]=0;
-    world->m[ii]=1.0/(float)(n);
+    world->m[ii]=0.25/(double)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=0.25;
+    world->u[ii]=0.01;
     world->u2[ii]=world->u[ii];
   }
 
@@ -390,30 +390,36 @@ int main(int argc, char *argv[])
     double vv;
 
     /* box-muller transform for normally distributed samples */
-    /*
     x=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
     y=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
-    z=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
-    */
+    z=1.0E-1*sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
     
-    /* generate 3D 13x13x13 grid */
-    x=(double)((ii%13)-6);
-    y=(double)((ii/13)%13-6);
-    z=(double)((ii/(13*13))-6);
+    /* generate 2D 30x30 grid */
+    //x=(double)((ii%50)-25);
+    //y=(double)((ii/50)%50-25);
+    //z=1.0E-10;
 
-    /* scale */
-    world->r[ii*m+0]=2.0*x;
-    world->r[ii*m+1]=2.0*y;
-    world->r[ii*m+2]=2.0*z;
+    /* generate 3D 13x13x13 grid */
+    //x=(double)((ii%13)-6);
+    //y=(double)((ii/13)%13-6);
+    //z=(double)((ii/(13*13))-6);
+
+    rr=sqrt(x*x+y*y+z*z)+1.0E-8;
+
+    world->r[ii*m+0]=pow(rr,2.0)*16.0*x;
+    world->r[ii*m+1]=pow(rr,2.0)*16.0*y;
+    world->r[ii*m+2]=pow(rr,2.0)*16.0*z;
     world->r2[ii*m+0]=world->r[ii*m+0];
     world->r2[ii*m+1]=world->r[ii*m+1];
     world->r2[ii*m+2]=world->r[ii*m+2];
 
-    rr=sqrt(x*x+y*y+z*z)+1.0E-8;
-    vv=sqrt(2.0*G*0.07*2.0/rr/2.0);
+    vv=sqrt(2.0*G*0.7*2.0/rr/2.0);
     world->v[ii*m+0]=-vv*y/rr;
     world->v[ii*m+1]=vv*x/rr;
     world->v[ii*m+2]=0;    
+
+    /* scale mass */
+    world->m[ii]=0.4/(8.0*sqrt(2.0*PI))*exp(-0.5*pow(rr/8.0,2.0));
 
     //world->v[ii*m+0]=0;
     //world->v[ii*m+1]=0;
@@ -713,9 +719,9 @@ int main(int argc, char *argv[])
     }
 
     for(nn=0;nn<n;nn++){
-      density=(world->rho[nn]/max_density)*0.8+0.2;
+      //density=(world->rho[nn]/max_density)*0.8+0.2;
       pressure=(world->p[nn]/max_pressure);
-      pressure=pow(pressure,1.0/3.0);
+      pressure=pow(pressure,1.0/6.0);
       colormap(pressure,col);
       glColor4f((float)(col->r),(float)(col->g),(float)(col->b),(float)(1.0));
       glVertex3f((zoom)*(world->r[nn*m+0]),

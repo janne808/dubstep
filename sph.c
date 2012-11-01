@@ -275,31 +275,37 @@ void compute_smoothing_length_tree(struct universe *world, double min_h, double 
 
   /* iterate towards optimum number of neighbours */
   for(ii=lo;ii<hi;ii++){
-    h=h_in[ii];
+#if (defined SPH_SPEEDHACK)&&SPH_SPEEDHACK
+    if(world->kick[ii]){
+#else
+    if(1){
+#endif
+      h=h_in[ii];
       
-    for(jj=0;jj<iterations;jj++){
-      N=0;
-      neighbour_walk(tree, root, &r_in[3*ii], h, max_h, h_in, &N, buffer);
+      for(jj=0;jj<iterations;jj++){
+	N=0;
+	neighbour_walk(tree, root, &r_in[3*ii], h, max_h, h_in, &N, buffer);
       
-      h_new=h*0.5*(1.0+pow((double)(N_target)/(double)(N),1.0/3.0));
-      if(h_new>min_h&&h_new<max_h)
-	h=h_new;
-      else
-	break;
-    }
-    h_in[ii]=h;
-    num_neighbours_in[ii]=N;
+	h_new=h*0.5*(1.0+pow((double)(N_target)/(double)(N),1.0/3.0));
+	if(h_new>min_h&&h_new<max_h)
+	  h=h_new;
+	else
+	  break;
+      }
+      h_in[ii]=h;
+      num_neighbours_in[ii]=N;
     
-    world->neighbour_list[ii].num=N;
-    if(world->neighbour_list[ii].list)
-      free(world->neighbour_list[ii].list);
+      world->neighbour_list[ii].num=N;
+      if(world->neighbour_list[ii].list)
+	free(world->neighbour_list[ii].list);
     
-    world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
-    if(!world->neighbour_list[ii].list){
-      printf("Out of memory: particle neighbour list not allocated.\n");
-      exit(1);
+      world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
+      if(!world->neighbour_list[ii].list){
+	printf("Out of memory: particle neighbour list not allocated.\n");
+	exit(1);
+      }
+      memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
     }
-    memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
   }
   free(buffer);
 }
@@ -342,21 +348,27 @@ void compute_constant_smoothing_length_tree(struct universe *world, double min_h
 
   /* tree walk for particle neigbours */
   for(ii=lo;ii<hi;ii++){
-    N=0;
-    neighbour_walk(tree, root, &r_in[3*ii], h_in[ii], max_h, h_in, &N, buffer);
+#if (defined SPH_SPEEDHACK)&&SPH_SPEEDHACK
+    if(world->kick[ii]){
+#else
+    if(1){
+#endif
+      N=0;
+      neighbour_walk(tree, root, &r_in[3*ii], h_in[ii], max_h, h_in, &N, buffer);
       
-    num_neighbours_in[ii]=N;
+      num_neighbours_in[ii]=N;
     
-    world->neighbour_list[ii].num=N;
-    if(world->neighbour_list[ii].list)
-      free(world->neighbour_list[ii].list);
+      world->neighbour_list[ii].num=N;
+      if(world->neighbour_list[ii].list)
+	free(world->neighbour_list[ii].list);
     
-    world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
-    if(!world->neighbour_list[ii].list){
-      printf("Out of memory: particle neighbour list not allocated.\n");
-      exit(1);
+      world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
+      if(!world->neighbour_list[ii].list){
+	printf("Out of memory: particle neighbour list not allocated.\n");
+	exit(1);
+      }
+      memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
     }
-    memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
   }
   free(buffer);
 }
@@ -403,49 +415,55 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
 
   /* iterate towards optimum number of neighbours */
   for(ii=lo;ii<hi;ii++){
-    h=h_in[ii];
+#if (defined SPH_SPEEDHACK)&&SPH_SPEEDHACK
+    if(world->kick[ii]){
+#else
+    if(1){
+#endif
+      h=h_in[ii];
       
-    if(world->neighbour_list[ii].list){
-      world->neighbour_list[ii].num=0;
-      free(world->neighbour_list[ii].list);
-    }
+      if(world->neighbour_list[ii].list){
+	world->neighbour_list[ii].num=0;
+	free(world->neighbour_list[ii].list);
+      }
 
-    for(kk=0;kk<iterations;kk++){
-      N=0;
-      for(jj=0;jj<n;jj++){
-	/* particle-particle distance */
-	dr[0]=r_in[3*ii+0]-r_in[3*jj+0];
-	dr[1]=r_in[3*ii+1]-r_in[3*jj+1];
-	dr[2]=r_in[3*ii+2]-r_in[3*jj+2];
+      for(kk=0;kk<iterations;kk++){
+	N=0;
+	for(jj=0;jj<n;jj++){
+	  /* particle-particle distance */
+	  dr[0]=r_in[3*ii+0]-r_in[3*jj+0];
+	  dr[1]=r_in[3*ii+1]-r_in[3*jj+1];
+	  dr[2]=r_in[3*ii+2]-r_in[3*jj+2];
 
 #if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
-	r=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
-	r=r*(double)(Q_rsqrt((float)(r)));
+	  r=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
+	  r=r*(double)(Q_rsqrt((float)(r)));
 #else
-	r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+	  r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
 #endif
 
-	if(r/h<2.0||r/h_in[jj]<2.0){
-	  buffer[N]=jj;
-	  N++;
+	  if(r/h<2.0||r/h_in[jj]<2.0){
+	    buffer[N]=jj;
+	    N++;
+	  }
 	}
+	h_new=h*0.5*(1+pow((double)(N_target)/(double)(N),1.0/3.0));
+	if(h_new>0.01&&h_new<1.0)
+	  h=h_new;
+	else
+	  break;
       }
-      h_new=h*0.5*(1+pow((double)(N_target)/(double)(N),1.0/3.0));
-      if(h_new>0.01&&h_new<1.0)
-	h=h_new;
-      else
-	break;
-    }
-    h_in[ii]=h;
-    num_neighbours_in[ii]=N;
+      h_in[ii]=h;
+      num_neighbours_in[ii]=N;
     
-    world->neighbour_list[ii].num=N;
-    world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
-    if(!world->neighbour_list[ii].list){
-      printf("Out of memory: particle neighbour list not allocated.\n");
-      exit(1);
+      world->neighbour_list[ii].num=N;
+      world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
+      if(!world->neighbour_list[ii].list){
+	printf("Out of memory: particle neighbour list not allocated.\n");
+	exit(1);
+      }
+      memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
     }
-    memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
   }
   free(buffer);
 }
@@ -565,23 +583,29 @@ void compute_density(struct universe *world, double h, int lo, int hi){
 
   /* compute density */
   for(ii=lo;ii<hi;ii++){
-    rho_in[ii]=0;
-    n=world->neighbour_list[ii].num;
-    for(jj=0;jj<n;jj++){
-      kk=world->neighbour_list[ii].list[jj];
-      /* particle-particle distance */
-      dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
-      dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
-      dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+#if (defined SPH_SPEEDHACK)&&SPH_SPEEDHACK
+    if(world->kick[ii]){
+#else
+    if(1){
+#endif
+      rho_in[ii]=0;
+      n=world->neighbour_list[ii].num;
+      for(jj=0;jj<n;jj++){
+	kk=world->neighbour_list[ii].list[jj];
+	/* particle-particle distance */
+	dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
+	dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
+	dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
 
 #if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
-      r=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
-      r=r*(double)(Q_rsqrt((float)(r)))/h_in[ii];
+	r=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
+	r=r*(double)(Q_rsqrt((float)(r)))/h_in[ii];
 #else
-      r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
+	r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
 #endif
 
-      rho_in[ii]+=m_in[kk]*kernel(r,h_in[ii]);
+	rho_in[ii]+=m_in[kk]*kernel(r,h_in[ii]);
+      }
     }
   }
 }
@@ -606,7 +630,13 @@ void compute_pressure(struct universe *world, double gamma, int lo, int hi){
 
   /* compute pressure using polytropic equation of state */
   for(ii=lo;ii<hi;ii++){
-    p_in[ii]=(gamma-1)*rho_in[ii]*u_in[ii];
+#if (defined SPH_SPEEDHACK)&&SPH_SPEEDHACK
+    if(world->kick[ii]){
+#else
+    if(1){
+#endif
+      p_in[ii]=(gamma-1)*rho_in[ii]*u_in[ii];
+    }
   }
 }
 
@@ -631,7 +661,13 @@ void compute_soundspeed(struct universe *world, double gamma, int lo, int hi){
   c_in=world->c;
 
   for(ii=lo;ii<hi;ii++){
-    c_in[ii]=sqrt(gamma*p_in[ii]/rho_in[ii]);
+#if (defined SPH_SPEEDHACK)&&SPH_SPEEDHACK
+    if(world->kick[ii]){
+#else
+    if(1){
+#endif
+      c_in[ii]=sqrt(gamma*p_in[ii]/rho_in[ii]);
+    }
   }
 }
 
@@ -688,49 +724,55 @@ void compute_cfl(struct universe *world, double C_0, int lo, int hi){
   beta=world->beta;
 
   for(ii=lo;ii<hi;ii++){
-    div_v_ij=0;
-    max_mu=0;
-    n=world->neighbour_list[ii].num;
+#if (defined SPH_SPEEDHACK)&&SPH_SPEEDHACK
+    if(world->kick[ii]){
+#else
+    if(1){
+#endif
+      div_v_ij=0;
+      max_mu=0;
+      n=world->neighbour_list[ii].num;
     
-    for(jj=0;jj<n;jj++){
-      kk=world->neighbour_list[ii].list[jj];
+      for(jj=0;jj<n;jj++){
+	kk=world->neighbour_list[ii].list[jj];
       
-      if(ii!=kk){
-	/* particle-particle distance */
-	dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
-	dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
-	dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
+	if(ii!=kk){
+	  /* particle-particle distance */
+	  dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
+	  dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
+	  dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
 
 #if (defined RSQRT_QUAKE_HACK)&&RSQRT_QUAKE_HACK
-	rr=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
-	rr=rr*(double)(Q_rsqrt((float)(rr)));
+	  rr=dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2];
+	  rr=rr*(double)(Q_rsqrt((float)(rr)));
 #else
-	rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+	  rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
 #endif
 	
-	dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
-	dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
-	dv_ij[2]=v_in[3*ii+2]-v_in[3*kk+2];
+	  dv_ij[0]=v_in[3*ii+0]-v_in[3*kk+0];
+	  dv_ij[1]=v_in[3*ii+1]-v_in[3*kk+1];
+	  dv_ij[2]=v_in[3*ii+2]-v_in[3*kk+2];
 	
-	dW=0.5*(kernel_d(rr/h_in[ii],h_in[ii])+kernel_d(rr/h_in[kk],h_in[kk]));
+	  dW=0.5*(kernel_d(rr/h_in[ii],h_in[ii])+kernel_d(rr/h_in[kk],h_in[kk]));
 	
-	dW_ij[0]=dW*dr[0]/rr;
-	dW_ij[1]=dW*dr[1]/rr;
-	dW_ij[2]=dW*dr[2]/rr;
+	  dW_ij[0]=dW*dr[0]/rr;
+	  dW_ij[1]=dW*dr[1]/rr;
+	  dW_ij[2]=dW*dr[2]/rr;
 	
-	div_v_ij-=m_in[kk]/rho_in[ii]*(dv_ij[0]*dW_ij[0]+dv_ij[1]*dW_ij[1]+dv_ij[2]*dW_ij[2]);
+	  div_v_ij-=m_in[kk]/rho_in[ii]*(dv_ij[0]*dW_ij[0]+dv_ij[1]*dW_ij[1]+dv_ij[2]*dW_ij[2]);
 	
-	h_ij=0.5*(h_in[ii]+h_in[kk]);
+	  h_ij=0.5*(h_in[ii]+h_in[kk]);
 	
-	mu_ij=0;
-	if((dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])<0)
-	  mu_ij=(dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])/(rr*rr/(h_ij)+neta);
+	  mu_ij=0;
+	  if((dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])<0)
+	    mu_ij=(dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])/(rr*rr/(h_ij)+neta);
 	
-	if(abs(mu_ij)>max_mu)
-	  max_mu=abs(mu_ij);
+	  if(abs(mu_ij)>max_mu)
+	    max_mu=abs(mu_ij);
+	}
       }
+      dt_CFL_in[ii]=(C_0*h_in[ii])/(h_in[ii]*abs(div_v_ij)+c_in[ii]+1.2*(alpha*c_in[ii]+beta*max_mu));
     }
-    dt_CFL_in[ii]=(C_0*h_in[ii])/(h_in[ii]*abs(div_v_ij)+c_in[ii]+1.2*(alpha*c_in[ii]+beta*max_mu));
   }
 }
 
@@ -790,7 +832,11 @@ void compute_internal_energy_and_acceleration(struct universe *world, double *r,
 
   for(ii=lo;ii<hi;ii++){
     /* if particle needs to be kicked, include acceleration in the inner loop */
+#if (defined SPH_SPEEDHACK)&&SPH_SPEEDHACK
     if(world->kick[ii]){
+#else
+    if(1){
+#endif
       /* init dot energy*/
       du_in[ii]=0;
 
@@ -861,6 +907,7 @@ void compute_internal_energy_and_acceleration(struct universe *world, double *r,
 	}
       }
     }
+#if 0
     else{
       /* init dot energy*/
       du_in[ii]=0;
@@ -909,6 +956,7 @@ void compute_internal_energy_and_acceleration(struct universe *world, double *r,
 	}
       }
     }
+#endif
   }
 }
 

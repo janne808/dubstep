@@ -33,11 +33,11 @@
 #endif
 
 #ifndef MIN_SMOOTH_LEN
-#define MIN_SMOOTH_LEN 0.85
+#define MIN_SMOOTH_LEN 0.5
 #endif
 
 #ifndef MAX_SMOOTH_LEN
-#define MAX_SMOOTH_LEN 1.5
+#define MAX_SMOOTH_LEN 1.0
 #endif
 
 #ifndef ADAPTIVE_SOFTENING
@@ -56,8 +56,12 @@
 #define ARITHMETIC_MEAN_SYMMETRIZATION 1
 #endif
 
+#ifndef SPH_SPEEDHACK
+#define SPH_SPEEDHACK 1
+#endif
+
 #ifndef NUM
-#define NUM 2197
+#define NUM 2500
 #endif
 
 #ifndef NUM_THREADS
