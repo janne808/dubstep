@@ -654,7 +654,7 @@ void create_density_threads(struct universe *world){
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-  thread_slice_num=world->num/NUM_THREADS;
+  thread_slice_num=world->kick_num/NUM_THREADS;
   num_join_threads=0;
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
@@ -679,14 +679,14 @@ void create_density_threads(struct universe *world){
     num_join_threads++;
   }
 
-  if(thread_data_array[nn-1].hi<world->num){
+  if(thread_data_array[nn-1].hi<world->kick_num){
     //printf("Creating thread %d, slice %d to %d.\n", nn, thread_data_array[nn-1].hi,
     //                                                world->num);
     thread_data_array[nn].thread_id=nn;
     thread_data_array[nn].world=world;
     thread_data_array[nn].var=1.0;
     thread_data_array[nn].lo=thread_data_array[nn-1].hi;
-    thread_data_array[nn].hi=world->num;
+    thread_data_array[nn].hi=world->kick_num;
     thread_rc=pthread_create(&threads[nn], &attr, density_thread, (void *) &thread_data_array[nn]);
 
     if(thread_rc){
@@ -724,7 +724,7 @@ void create_pressure_threads(struct universe *world){
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-  thread_slice_num=world->num/NUM_THREADS;
+  thread_slice_num=world->kick_num/NUM_THREADS;
   num_join_threads=0;
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
@@ -749,14 +749,14 @@ void create_pressure_threads(struct universe *world){
     num_join_threads++;
   }
 
-  if(thread_data_array[nn-1].hi<world->num){
+  if(thread_data_array[nn-1].hi<world->kick_num){
     //printf("Creating thread %d, slice %d to %d.\n", nn, thread_data_array[nn-1].hi,
     //                                                world->num);
     thread_data_array[nn].thread_id=nn;
     thread_data_array[nn].world=world;
     thread_data_array[nn].var=world->gamma;
     thread_data_array[nn].lo=thread_data_array[nn-1].hi;
-    thread_data_array[nn].hi=world->num;
+    thread_data_array[nn].hi=world->kick_num;
     thread_rc=pthread_create(&threads[nn], &attr, pressure_thread, (void *) &thread_data_array[nn]);
     
     if(thread_rc){
@@ -794,7 +794,7 @@ void create_soundspeed_threads(struct universe *world){
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-  thread_slice_num=world->num/NUM_THREADS;
+  thread_slice_num=world->kick_num/NUM_THREADS;
   num_join_threads=0;
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
@@ -819,14 +819,14 @@ void create_soundspeed_threads(struct universe *world){
     num_join_threads++;
   }
   
-  if(thread_data_array[nn-1].hi<world->num){
+  if(thread_data_array[nn-1].hi<world->kick_num){
     //printf("Creating thread %d, slice %d to %d.\n", nn, thread_data_array[nn-1].hi,
     //                                                world->num);
     thread_data_array[nn].thread_id=nn;
     thread_data_array[nn].world=world;
     thread_data_array[nn].var=world->gamma;
     thread_data_array[nn].lo=thread_data_array[nn-1].hi;
-    thread_data_array[nn].hi=world->num;
+    thread_data_array[nn].hi=world->kick_num;
     thread_rc=pthread_create(&threads[nn], &attr, soundspeed_thread, (void *) &thread_data_array[nn]);
     
     if(thread_rc){
@@ -864,7 +864,7 @@ void create_CFL_threads(struct universe *world){
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-  thread_slice_num=world->num/NUM_THREADS;
+  thread_slice_num=world->kick_num/NUM_THREADS;
   num_join_threads=0;
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
@@ -889,14 +889,14 @@ void create_CFL_threads(struct universe *world){
     num_join_threads++;
   }
   
-  if(thread_data_array[nn-1].hi<world->num){
+  if(thread_data_array[nn-1].hi<world->kick_num){
     //printf("Creating thread %d, slice %d to %d.\n", nn, thread_data_array[nn-1].hi,
     //                                                world->num);
     thread_data_array[nn].thread_id=nn;
     thread_data_array[nn].world=world;
     thread_data_array[nn].var=0.3;
     thread_data_array[nn].lo=thread_data_array[nn-1].hi;
-    thread_data_array[nn].hi=world->num;
+    thread_data_array[nn].hi=world->kick_num;
     thread_rc=pthread_create(&threads[nn], &attr, CFL_thread, (void *) &thread_data_array[nn]);
     
     if(thread_rc){
@@ -1004,7 +1004,7 @@ void create_acceleration_threads(struct universe *world){
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-  thread_slice_num=world->num/NUM_THREADS;
+  thread_slice_num=world->kick_num/NUM_THREADS;
   num_join_threads=0;
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
@@ -1031,7 +1031,7 @@ void create_acceleration_threads(struct universe *world){
     num_join_threads++;
   }
   
-  if(thread_data_array2[nn-1].hi<world->num){
+  if(thread_data_array2[nn-1].hi<world->kick_num){
     //printf("Creating thread %d, slice %d to %d.\n", nn, thread_data_array2[nn-1].hi,
     //                                                world->num);
     thread_data_array2[nn].thread_id=nn;
@@ -1040,7 +1040,7 @@ void create_acceleration_threads(struct universe *world){
     thread_data_array2[nn].v=world->v2;
     thread_data_array2[nn].a=world->a_sph;
     thread_data_array2[nn].lo=thread_data_array2[nn-1].hi;
-    thread_data_array2[nn].hi=world->num;
+    thread_data_array2[nn].hi=world->kick_num;
     thread_rc=pthread_create(&threads[nn], &attr, acceleration_thread, (void *) &thread_data_array2[nn]);
     
     if(thread_rc){

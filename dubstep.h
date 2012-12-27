@@ -144,6 +144,8 @@ struct universe{
   double sub_dt;
 
   int *kick;
+  int *kick_list;
+  int kick_num;
 
   int *time_bin;
 

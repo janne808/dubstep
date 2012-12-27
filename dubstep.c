@@ -325,6 +325,7 @@ int main(int argc, char *argv[])
 
   world->dt_CFL=(double*)malloc(n*sizeof(double));
   world->kick=(int*)malloc(n*sizeof(int));
+  world->kick_list=(int*)malloc(n*sizeof(int));
   world->time_bin=(int*)malloc(n*sizeof(int));
 
   world->cellindex=(int*)malloc(n*sizeof(int));
@@ -445,6 +446,9 @@ int main(int argc, char *argv[])
   /* serial tree smoothing length iterator */
   compute_smoothing_length_tree(world, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, 10, 25, world->r2, tree, &tree[0], 0, world->num);
 
+  /* update kick list for SPH computation */
+  update_kick_list(world);
+
   /* create threads for density computation */
   create_density_threads(world);
 
@@ -455,7 +459,7 @@ int main(int argc, char *argv[])
   create_soundspeed_threads(world);
 
   /* filter initial velocity field */
-  //smooth_velocity_field(world, 0, world->num);
+  smooth_velocity_field(world, 0, world->num);
 
   /* create threads for CFL computation */
   create_CFL_threads(world);
@@ -464,7 +468,7 @@ int main(int argc, char *argv[])
   create_acceleration_threads(world);
 
   /* filter initial energy field */
-  //smooth_energy_field(world, 0, world->num);
+  smooth_energy_field(world, 0, world->num);
 
   /* init particle time bins */
   for(nn=0;nn<world->num;nn++){
@@ -598,6 +602,9 @@ int main(int argc, char *argv[])
 
       /* create threads for parallel tree smoothing length iterators */
       create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
+
+      /* update kick list for SPH computation */
+      update_kick_list(world);
 
       /* create threads for density computation */
       create_density_threads(world);
@@ -751,8 +758,6 @@ int main(int argc, char *argv[])
   free(a_sph);
   free(r);
   free(world->cellindex);
-  free(world->kick);
-  free(world->time_bin);
   free(world->dt_CFL);
   free(world->h);
   free(world->del_rho);
@@ -771,6 +776,9 @@ int main(int argc, char *argv[])
   free(world->r);
   free(world->m);
   free(world->neighbour_list);
+  free(world->kick_list);
+  free(world->kick);
+  free(world->time_bin);
 
   /* free universe structure */
   free(world);
