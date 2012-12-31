@@ -106,7 +106,7 @@ void writeframe(char* path){
 
 #endif
 
-void generate_ice(struct universe *world, double radius, double U_threshold, double epsilon, double G){
+void generate_glass(struct universe *world, double radius, double U_threshold, double epsilon, double G){
   /* loop variables */
   int ii;
   int jj;
@@ -437,12 +437,12 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=1.0;
+    world->u[ii]=0.3;
     world->u2[ii]=world->u[ii];
   }
 
   /* initial displacement */
-  generate_ice(world, 32.0, -0.01*G, epsilon, G);
+  generate_glass(world, 32.0, -0.01*G, epsilon, G);
 
   for(ii=0;ii<n;ii++){
     double x,y,z,rr;
