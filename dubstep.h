@@ -33,7 +33,7 @@
 #endif
 
 #ifndef MIN_SMOOTH_LEN
-#define MIN_SMOOTH_LEN 0.5
+#define MIN_SMOOTH_LEN 0.25
 #endif
 
 #ifndef MAX_SMOOTH_LEN
@@ -70,10 +70,6 @@
 
 #ifndef PI
 #define PI 3.14159265358979323846264
-#endif
-
-#ifndef RSQRT_QUAKE_HACK
-#define RSQRT_QUAKE_HACK 0
 #endif
 
 /* structure for RGB color */

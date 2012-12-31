@@ -106,6 +106,62 @@ void writeframe(char* path){
 
 #endif
 
+void generate_ice(struct universe *world, double radius, double U_threshold, double epsilon, double G){
+  /* loop variables */
+  int ii;
+  int jj;
+
+  /* distance computation variables */
+  double dx;
+  double dy;
+  double dz;
+  double d;
+
+  /* pointers to state vectors */
+  double *r_in;
+  double *m_in;
+
+  /* total gravitational potential energy */
+  double U;
+
+  r_in=world->r;
+  m_in=world->m;
+
+  /* initial displacement */
+  r_in[3*0+0]=0.0;
+  r_in[3*0+1]=0.0;
+  r_in[3*0+2]=0.0;
+
+  for(ii=1;ii<world->num;ii++){
+    printf("Generating random displacement for particle %d...\n", ii);
+    do{
+      /* generate random displacement */
+      //r_in[3*ii+0]=radius*sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+      //r_in[3*ii+1]=radius*sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+      //r_in[3*ii+2]=radius*sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+      do{
+      r_in[3*ii+0]=radius*(2.0*((double)rand()/RAND_MAX)-1.0);
+      r_in[3*ii+1]=radius*(2.0*((double)rand()/RAND_MAX)-1.0);
+      r_in[3*ii+2]=0.001*radius*(2.0*((double)rand()/RAND_MAX)-1.0);
+      }while(sqrt(r_in[3*ii+0]*r_in[3*ii+0]+
+		  r_in[3*ii+1]*r_in[3*ii+1]+
+		  r_in[3*ii+2]*r_in[3*ii+2])>radius);
+
+      /* calculate total gravitational energy for new displacement */
+      /* unit is AU^3/(M_solar*yr^2)*M_solar^2/AU */
+      U=0.0;
+      for(jj=0;jj<ii;jj++){
+	dx=r_in[ii*3+0]-r_in[jj*3+0];
+	dy=r_in[ii*3+1]-r_in[jj*3+1];
+	dz=r_in[ii*3+2]-r_in[jj*3+2];
+	d=sqrt(dx*dx+dy*dy+dz*dz);
+	d=sqrt(d*d+epsilon*epsilon);
+	U-=G*m_in[ii]*m_in[jj]*d;
+      }
+    }while(U<U_threshold);
+  }
+}
+
 int main(int argc, char *argv[])
 {
   /* loop indices */
@@ -355,7 +411,7 @@ int main(int argc, char *argv[])
     world->dt_CFL[ii]=world->sub_dt;
     world->kick[ii]=1;
     world->time_bin[ii]=0;
-    world->m[ii]=0.25/(double)(n);
+    world->m[ii]=1.0/(double)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -381,19 +437,21 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=0.01;
+    world->u[ii]=1.0;
     world->u2[ii]=world->u[ii];
   }
 
   /* initial displacement */
+  generate_ice(world, 32.0, -0.01*G, epsilon, G);
+
   for(ii=0;ii<n;ii++){
     double x,y,z,rr;
     double vv;
 
     /* box-muller transform for normally distributed samples */
-    x=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
-    y=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
-    z=1.0E-1*sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+    //x=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+    //y=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+    //z=1.0E-1*sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
     
     /* generate 2D 30x30 grid */
     //x=(double)((ii%50)-25);
@@ -405,27 +463,21 @@ int main(int argc, char *argv[])
     //y=(double)((ii/13)%13-6);
     //z=(double)((ii/(13*13))-6);
 
-    rr=sqrt(x*x+y*y+z*z)+1.0E-8;
+    x=world->r[ii*m+0];
+    y=world->r[ii*m+1];
+    z=world->r[ii*m+2];
 
-    world->r[ii*m+0]=pow(rr,2.0)*16.0*x;
-    world->r[ii*m+1]=pow(rr,2.0)*16.0*y;
-    world->r[ii*m+2]=pow(rr,2.0)*16.0*z;
     world->r2[ii*m+0]=world->r[ii*m+0];
     world->r2[ii*m+1]=world->r[ii*m+1];
     world->r2[ii*m+2]=world->r[ii*m+2];
 
-    vv=sqrt(2.0*G*0.7*2.0/rr/2.0);
+    rr=sqrt(x*x+y*y+z*z)+1.0E-8;
+
+    vv=sqrt(2.0*G*0.026*2.0/rr/2.0);
     world->v[ii*m+0]=-vv*y/rr;
     world->v[ii*m+1]=vv*x/rr;
     world->v[ii*m+2]=0;    
 
-    /* scale mass */
-    world->m[ii]=0.4/(8.0*sqrt(2.0*PI))*exp(-0.5*pow(rr/8.0,2.0));
-
-    //world->v[ii*m+0]=0;
-    //world->v[ii*m+1]=0;
-    //world->v[ii*m+2]=0;
-    
     world->v2[ii*m+0]=world->v[ii*m+0];
     world->v2[ii*m+1]=world->v[ii*m+1];
     world->v2[ii*m+2]=world->v[ii*m+2];    
@@ -685,7 +737,7 @@ int main(int argc, char *argv[])
 
       /* display the state of the system */
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f u_total: %.1f u_error: %f%%\n",
-      	     world->time, world->sub_dt, tree[0].numcells, avg_N, total_u2, 100.0*fabs(total_u2-total_u)/abs(total_u2));
+      	     world->time, world->sub_dt, tree[0].numcells, avg_N, total_u2, 100.0*fabs(total_u2-total_u)/fabs(total_u2));
 #else
       /* display the state of the system */
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f tree_t: %fms sph_t: %fms int_t: %fms\n",
