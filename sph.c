@@ -231,6 +231,9 @@ void compute_smoothing_length_tree(struct universe *world, double min_h, double 
   /* particle list buffer */
   int *buffer;
 
+  /* particle pointer */
+  int pp;
+  
   m=world->dim;  
   n=world->num;
 
@@ -247,11 +250,12 @@ void compute_smoothing_length_tree(struct universe *world, double min_h, double 
 
   /* iterate towards optimum number of neighbours */
   for(ii=lo;ii<hi;ii++){
-    h=h_in[ii];
+    pp=world->kick_list[ii];
+    h=h_in[pp];
       
     for(jj=0;jj<iterations;jj++){
       N=0;
-      neighbour_walk(tree, root, &r_in[3*ii], h, max_h, h_in, &N, buffer);
+      neighbour_walk(tree, root, &r_in[3*pp], h, max_h, h_in, &N, buffer);
       
       h_new=h*0.5*(1.0+pow((double)(N_target)/(double)(N),1.0/3.0));
       if(h_new>min_h&&h_new<max_h)
@@ -259,19 +263,19 @@ void compute_smoothing_length_tree(struct universe *world, double min_h, double 
       else
 	break;
     }
-    h_in[ii]=h;
-    num_neighbours_in[ii]=N;
+    h_in[pp]=h;
+    num_neighbours_in[pp]=N;
     
-    world->neighbour_list[ii].num=N;
-    if(world->neighbour_list[ii].list)
-      free(world->neighbour_list[ii].list);
+    world->neighbour_list[pp].num=N;
+    if(world->neighbour_list[pp].list)
+      free(world->neighbour_list[pp].list);
     
-    world->neighbour_list[ii].list=(int*)malloc(N*sizeof(int));
-    if(!world->neighbour_list[ii].list){
+    world->neighbour_list[pp].list=(int*)malloc(N*sizeof(int));
+    if(!world->neighbour_list[pp].list){
       printf("Out of memory: particle neighbour list not allocated.\n");
       exit(1);
     }
-    memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
+    memcpy(world->neighbour_list[pp].list, buffer, N*sizeof(int));
   }
   free(buffer);
 }

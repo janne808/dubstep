@@ -437,7 +437,7 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=0.3;
+    world->u[ii]=0.5;
     world->u2[ii]=world->u[ii];
   }
 
@@ -495,11 +495,11 @@ int main(int argc, char *argv[])
   /* form tree */
   branch_recurse(world, tree, &tree[0], world->cellindex);
       
-  /* serial tree smoothing length iterator */
-  compute_smoothing_length_tree(world, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, 10, 25, world->r2, tree, &tree[0], 0, world->num);
-
   /* update kick list for SPH computation */
   update_kick_list(world);
+
+  /* serial tree smoothing length iterator */
+  compute_smoothing_length_tree(world, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, 10, 25, world->r2, tree, &tree[0], 0, world->num);
 
   /* create threads for density computation */
   create_density_threads(world);
@@ -652,11 +652,11 @@ int main(int argc, char *argv[])
       /* serial tree smoothing length iterator */
       //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
 
-      /* create threads for parallel tree smoothing length iterators */
-      create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
-
       /* update kick list for SPH computation */
       update_kick_list(world);
+
+      /* create threads for parallel tree smoothing length iterators */
+      create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
 
       /* create threads for density computation */
       create_density_threads(world);

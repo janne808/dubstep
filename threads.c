@@ -572,7 +572,7 @@ void create_smoothing_threads(struct universe *world, int iterations, int neighb
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-  thread_slice_num=world->num/NUM_THREADS;
+  thread_slice_num=world->kick_num/NUM_THREADS;
   num_join_threads=0;
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
@@ -603,7 +603,7 @@ void create_smoothing_threads(struct universe *world, int iterations, int neighb
     num_join_threads++;
   }
   
-  if(thread_data_array6[nn-1].hi<world->num){
+  if(thread_data_array6[nn-1].hi<world->kick_num){
     //printf("Creating thread %d, slice %d to %d.\n", nn, thread_data_array6[nn-1].hi,
     //                                                world->num);
     thread_data_array6[nn].thread_id=nn;
@@ -616,7 +616,7 @@ void create_smoothing_threads(struct universe *world, int iterations, int neighb
     thread_data_array6[nn].tree=tree;
     thread_data_array6[nn].root=root;
     thread_data_array6[nn].lo=thread_data_array6[nn-1].hi;
-    thread_data_array6[nn].hi=world->num;
+    thread_data_array6[nn].hi=world->kick_num;
     thread_rc=pthread_create(&threads[nn], &attr, smoothing_thread, (void *) &thread_data_array6[nn]);
     
     if(thread_rc){
