@@ -251,6 +251,7 @@ void compute_smoothing_length_tree(struct universe *world, double min_h, double 
   /* iterate towards optimum number of neighbours */
   for(ii=lo;ii<hi;ii++){
     pp=world->kick_list[ii];
+    //pp=ii;
     h=h_in[pp];
       
     for(jj=0;jj<iterations;jj++){

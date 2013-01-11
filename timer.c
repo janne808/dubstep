@@ -25,7 +25,7 @@
 
 #include "timer.h"
 
-/* compute time difference in nanoseconds */
+/* compute time difference in seconds and nanoseconds */
 void timediff(struct timespec start, struct timespec end, struct timespec *out){
   /* compute time difference */
   /* handle nsec overflow as needed */

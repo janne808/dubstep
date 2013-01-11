@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
   double h=MAX_SMOOTH_LEN;
 
   /* artificial viscosity parameters */
-  double alpha=1.0;
+  double alpha=0.25;
   double beta=1.0;
 
   /* adiabatic exponent*/
@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
   int mouse_x,mouse_y;
   int mouse_dx,mouse_dy;
   int buttonstate;
-  double zoom=1/12.0;
+  double zoom=1/3.0;
   double zoom2;
 
   double density;
@@ -254,6 +254,8 @@ int main(int argc, char *argv[])
   double max_pressure;
 
   struct color *col=0;
+
+  int tiff_frame=0;
 #endif
 
 #if ENABLE_GUI
@@ -411,7 +413,7 @@ int main(int argc, char *argv[])
     world->dt_CFL[ii]=world->sub_dt;
     world->kick[ii]=1;
     world->time_bin[ii]=0;
-    world->m[ii]=1.0/(double)(n);
+    world->m[ii]=0.5/(double)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -437,12 +439,12 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=0.5;
+    world->u[ii]=0.25;
     world->u2[ii]=world->u[ii];
   }
 
   /* initial displacement */
-  generate_glass(world, 32.0, -0.01*G, epsilon, G);
+  generate_glass(world, 24.0, -0.01*G, epsilon, G);
 
   for(ii=0;ii<n;ii++){
     double x,y,z,rr;
@@ -473,7 +475,7 @@ int main(int argc, char *argv[])
 
     rr=sqrt(x*x+y*y+z*z)+1.0E-8;
 
-    vv=sqrt(2.0*G*0.026*2.0/rr/2.0);
+    vv=sqrt(2.0*G*0.05*2.0/rr/2.0);
     world->v[ii*m+0]=-vv*y/rr;
     world->v[ii*m+1]=vv*x/rr;
     world->v[ii*m+2]=0;    
@@ -652,9 +654,6 @@ int main(int argc, char *argv[])
       /* serial tree smoothing length iterator */
       //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
 
-      /* update kick list for SPH computation */
-      update_kick_list(world);
-
       /* create threads for parallel tree smoothing length iterators */
       create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
 
@@ -669,6 +668,9 @@ int main(int argc, char *argv[])
 
       /* create threads for CFL computation */
       create_CFL_threads(world);
+
+      /* update kick list for SPH computation */
+      update_kick_list(world);
 
       /* create threads  for particle time bin update */
       create_timebin_threads(world);
@@ -792,13 +794,11 @@ int main(int argc, char *argv[])
     SDL_GL_SwapBuffers();
 
     // write the opengl view as tiff on disk
-    /*
-    if(fmod(world->time,0.5)<fmod(world->time-world->sub_dt,0.5)){
-      sprintf(filename, "testrun/%08d.tif",tiff_frame);
-      writeframe(filename);
-      tiff_frame++;
-    }
-    */
+    //if(fmod(world->time,0.1)<fmod(world->time-world->sub_dt,0.1)){
+    //  sprintf(filename, "/usr/crap/testrun/%08d.tif",tiff_frame);
+    //  writeframe(filename);
+    //  tiff_frame++;
+    //}
 #endif
   }
     

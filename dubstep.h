@@ -33,7 +33,7 @@
 #endif
 
 #ifndef MIN_SMOOTH_LEN
-#define MIN_SMOOTH_LEN 0.005
+#define MIN_SMOOTH_LEN 0.75
 #endif
 
 #ifndef MAX_SMOOTH_LEN
@@ -61,11 +61,11 @@
 #endif
 
 #ifndef NUM
-#define NUM 8000
+#define NUM 2000
 #endif
 
 #ifndef NUM_THREADS
-#define NUM_THREADS 4
+#define NUM_THREADS 2
 #endif
 
 #ifndef PI
