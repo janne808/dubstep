@@ -29,6 +29,48 @@
 #include "dubstep.h"
 #include "tree.h"
 
+static inline double kernel_grav_f(double r, double epsilon){
+  double val;
+  double u;
+  double u2;
+
+  u=r/epsilon;
+
+  if(u<1.0){
+    u2=u*u;
+    val=-2.0/epsilon*(1.0/3.0*u2-3.0/20.0*u2*u2+1.0/20.0*u2*u2*u)+7.0/5.0*epsilon;
+  }
+  else if(u<2.0){
+    u2=u*u;
+    val=-1.0/15.0*r-1/epsilon*(4.0/3.0*u2-u2*u+3.0/10.0*u2*u2-1.0/30.0*u2*u2*u)+8.0/5.0*epsilon;
+  }
+  else
+    val=1/r;
+  
+  return val;
+}
+
+static inline double kernel_grav_g(double r, double epsilon){
+  double val;
+  double u;
+  double u2;
+
+  u=r/epsilon;
+
+  if(u<1.0){
+    u2=u*u;
+    val=1.0/(epsilon*epsilon*epsilon)*(4.0/3.0-6.0/5.0*u2+1.0/2.0*u2*u);
+  }
+  else if(u<2.0){
+    u2=u*u;
+    val=1.0/(r*r*r)*(-1.0/15.0+8.0/3.0*u2*u-3.0*u2*u2+6.0/5.0*u2*u2*u-1.0/6.0*u2*u2*u2);
+  }
+  else
+    val=1/(r*r*r);
+  
+  return val;
+}
+
 int init_treeroot(struct cell *tree, struct universe *world, double *r){
   int ii;
   int n,m;
@@ -182,8 +224,10 @@ void direct_summation(struct universe *world, double *r, double *a, double G){
 
     if(d>1E-8){
       epsilon=world->h[ii];
-      d2=sqrt(d*d+epsilon*epsilon);
-      d2=1/(d2*d2*d2);
+      //d2=sqrt(d*d+epsilon*epsilon);
+      //d2=1/(d2*d2*d2);
+      d2=kernel_grav_g(d, epsilon);
+
       a[0]-=(G*world->m[ii])*d2*(r[0]-world->r[ii*3+0]);
       a[1]-=(G*world->m[ii])*d2*(r[1]-world->r[ii*3+1]);
       a[2]-=(G*world->m[ii])*d2*(r[2]-world->r[ii*3+2]);
@@ -250,9 +294,12 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
       if(d>child->l/theta+delta){
 	/* approximate cell as ensemble */
 	/* calculate acceleration with plummer softening */
+
 	epsilon=child->distr_len;	  
-	d2=sqrt(d*d+epsilon*epsilon);
-	d2=1/(d2*d2*d2);
+	//d2=sqrt(d*d+epsilon*epsilon);
+	//d2=1/(d2*d2*d2);
+	d2=kernel_grav_g(d, epsilon);
+
 	a[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
 	a[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
 	a[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);	
@@ -269,11 +316,11 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
       /* single particle cell */
       /* calculate acceleration with plummer softening */
       epsilon=world->h[child->particle_index];
-      d2=sqrt(d*d+epsilon*epsilon);
 
-      d2=sqrt(d*d+epsilon*epsilon);
+      //d2=sqrt(d*d+epsilon*epsilon);
+      //d2=1/(d2*d2*d2);
+      d2=kernel_grav_g(d, epsilon);
 
-      d2=1/(d2*d2*d2);
       a[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
       a[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
       a[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);
@@ -475,7 +522,8 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
 	/* approximate as ensemble */
 	/* calculate potential energy with plummer softening */
 	epsilon=child->distr_len;	  
-	d2=1/sqrt(d*d+epsilon*epsilon);	
+	//d2=1/sqrt(d*d+epsilon*epsilon);	
+	d2=kernel_grav_f(d, epsilon);
 	*U-=G*m*child->mass*d2;
       }
       else{
@@ -486,7 +534,8 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
     else{
       /* calculate potential energy with plummer softening */
       epsilon=child->distr_len;	  
-      d2=1/sqrt(d*d+epsilon*epsilon);
+      //d2=1/sqrt(d*d+epsilon*epsilon);
+      d2=kernel_grav_f(d, epsilon);
       *U-=G*m*child->mass*d2;
     }
   }

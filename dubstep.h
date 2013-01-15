@@ -33,7 +33,7 @@
 #endif
 
 #ifndef MIN_SMOOTH_LEN
-#define MIN_SMOOTH_LEN 0.75
+#define MIN_SMOOTH_LEN 0.85
 #endif
 
 #ifndef MAX_SMOOTH_LEN

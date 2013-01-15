@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
   double h=MAX_SMOOTH_LEN;
 
   /* artificial viscosity parameters */
-  double alpha=0.25;
+  double alpha=1.0;
   double beta=1.0;
 
   /* adiabatic exponent*/
@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
   int mouse_x,mouse_y;
   int mouse_dx,mouse_dy;
   int buttonstate;
-  double zoom=1/3.0;
+  double zoom=1/5.0;
   double zoom2;
 
   double density;
@@ -439,7 +439,7 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=0.25;
+    world->u[ii]=0.1;
     world->u2[ii]=world->u[ii];
   }
 
@@ -497,8 +497,8 @@ int main(int argc, char *argv[])
   /* form tree */
   branch_recurse(world, tree, &tree[0], world->cellindex);
       
-  /* update kick list for SPH computation */
-  update_kick_list(world);
+  /* init kick list for SPH computation */
+  init_kick_list(world);
 
   /* serial tree smoothing length iterator */
   compute_smoothing_length_tree(world, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, 10, 25, world->r2, tree, &tree[0], 0, world->num);
@@ -651,6 +651,9 @@ int main(int argc, char *argv[])
       /* timer start */
       clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
 
+      /* update kick list for SPH computation */
+      update_kick_list(world);
+
       /* serial tree smoothing length iterator */
       //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
 
@@ -668,9 +671,6 @@ int main(int argc, char *argv[])
 
       /* create threads for CFL computation */
       create_CFL_threads(world);
-
-      /* update kick list for SPH computation */
-      update_kick_list(world);
 
       /* create threads  for particle time bin update */
       create_timebin_threads(world);

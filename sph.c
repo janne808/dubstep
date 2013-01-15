@@ -912,3 +912,14 @@ void update_kick_list(struct universe *world){
     }
   }
 }
+
+void init_kick_list(struct universe *world){
+  /* loop variables */
+  int nn;
+
+  /* construct new kick list */
+  world->kick_num=0;
+  for(nn=0;nn<world->num;nn++){
+    world->kick_list[world->kick_num++]=nn;
+  }
+}
