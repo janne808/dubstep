@@ -1,7 +1,7 @@
 /* smoothed particle hydrodynamics header */
 
 /*
- *  (C) 2012 Janne Heikkarainen <janne.heikkarainen@tut.fi>
+ *  (C) 2013 Janne Heikkarainen <janne.heikkarainen@tut.fi>
  *
  *  All rights reserved.
  *

@@ -1,7 +1,7 @@
 /* dubstep routines */
 
 /*
- *  (C) 2012 Janne Heikkarainen <janne.heikkarainen@tut.fi>
+ *  (C) 2013 Janne Heikkarainen <janne.heikkarainen@tut.fi>
  *
  *  All rights reserved.
  *
@@ -40,6 +40,7 @@
 #include "sph.h"
 #include "threads.h"
 #include "timer.h"
+#include "random.h"
 
 #if ENABLE_GUI
 void colormap(double val, struct color *col){
@@ -136,16 +137,16 @@ void generate_glass(struct universe *world, double radius, double U_threshold, d
     printf("Generating random displacement for particle %d...\n", ii);
     do{
       /* generate random displacement */
-      //r_in[3*ii+0]=radius*sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
-      //r_in[3*ii+1]=radius*sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
-      //r_in[3*ii+2]=radius*sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
-      do{
-      r_in[3*ii+0]=radius*(2.0*((double)rand()/RAND_MAX)-1.0);
-      r_in[3*ii+1]=radius*(2.0*((double)rand()/RAND_MAX)-1.0);
-      r_in[3*ii+2]=0.001*radius*(2.0*((double)rand()/RAND_MAX)-1.0);
-      }while(sqrt(r_in[3*ii+0]*r_in[3*ii+0]+
-		  r_in[3*ii+1]*r_in[3*ii+1]+
-		  r_in[3*ii+2]*r_in[3*ii+2])>radius);
+      r_in[3*ii+0]=radius*boxmuller();
+      r_in[3*ii+1]=radius*boxmuller();
+      r_in[3*ii+2]=0.001*radius*boxmuller();
+      //do{
+      //r_in[3*ii+0]=radius*(2.0*((double)rand()/RAND_MAX)-1.0);
+      //r_in[3*ii+1]=radius*(2.0*((double)rand()/RAND_MAX)-1.0);
+      //r_in[3*ii+2]=0.000001*radius*(2.0*((double)rand()/RAND_MAX)-1.0);
+      //}while(sqrt(r_in[3*ii+0]*r_in[3*ii+0]+
+      //	  r_in[3*ii+1]*r_in[3*ii+1]+
+      //	  r_in[3*ii+2]*r_in[3*ii+2])>radius);
 
       /* calculate total gravitational energy for new displacement */
       /* unit is AU^3/(M_solar*yr^2)*M_solar^2/AU */
@@ -413,7 +414,7 @@ int main(int argc, char *argv[])
     world->dt_CFL[ii]=world->sub_dt;
     world->kick[ii]=1;
     world->time_bin[ii]=0;
-    world->m[ii]=0.5/(double)(n);
+    world->m[ii]=0.25/(double)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -444,7 +445,7 @@ int main(int argc, char *argv[])
   }
 
   /* initial displacement */
-  generate_glass(world, 24.0, -0.01*G, epsilon, G);
+  generate_glass(world, 8.0, -0.01*G, epsilon, G);
 
   for(ii=0;ii<n;ii++){
     double x,y,z,rr;
@@ -475,7 +476,7 @@ int main(int argc, char *argv[])
 
     rr=sqrt(x*x+y*y+z*z)+1.0E-8;
 
-    vv=sqrt(2.0*G*0.05*2.0/rr/2.0);
+    vv=sqrt(2.0*G*0.008*2.0/rr/2.0);
     world->v[ii*m+0]=-vv*y/rr;
     world->v[ii*m+1]=vv*x/rr;
     world->v[ii*m+2]=0;    

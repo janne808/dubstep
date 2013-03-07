@@ -7,9 +7,9 @@ OPTIMIZATION_LEVEL=3
 
 # object files
 ifeq ($(CUDA), 1)
-	OBJ=dubstep.o tree.o sph.o threads.o timer.o sph_cuda.o
+	OBJ=dubstep.o tree.o sph.o threads.o timer.o random.o sph_cuda.o
 else
-	OBJ=dubstep.o tree.o sph.o threads.o timer.o
+	OBJ=dubstep.o tree.o sph.o threads.o timer.o random.o
 endif
 
 # compilers
@@ -52,6 +52,12 @@ sph_cuda.o: sph_cuda.cu sph_cuda.h
 endif
 
 threads.o: threads.c threads.h
+	gcc $(OPTS) $(CFLAGS) -c $<
+
+timer.o: timer.c timer.h
+	gcc $(OPTS) $(CFLAGS) -c $<
+
+random.o: random.c random.h
 	gcc $(OPTS) $(CFLAGS) -c $<
 
 .PHONY: clean

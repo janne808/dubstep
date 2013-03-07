@@ -1,4 +1,4 @@
-/* timer headers */
+/* pseudo-random number generation routines */
 
 /*
  *  (C) 2013 Janne Heikkarainen <janne.heikkarainen@tut.fi>
@@ -21,9 +21,14 @@
  *  along with Dubstep.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TIMERH__
-#define __TIMERH__
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
-void timediff(struct timespec start, struct timespec end, struct timespec *out);
+#include "dubstep.h"
+#include "random.h"
 
-#endif
+double boxmuller(){
+  return sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+}

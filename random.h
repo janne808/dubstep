@@ -1,4 +1,4 @@
-/* timer headers */
+/* pseudo-random number generation headers */
 
 /*
  *  (C) 2013 Janne Heikkarainen <janne.heikkarainen@tut.fi>
@@ -21,9 +21,9 @@
  *  along with Dubstep.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TIMERH__
-#define __TIMERH__
+#ifndef __RANDOMH__
+#define __RANDOMH__
 
-void timediff(struct timespec start, struct timespec end, struct timespec *out);
+double boxmuller();
 
 #endif

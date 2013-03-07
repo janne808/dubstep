@@ -1,7 +1,7 @@
 /* barnes-hut tree routines */
 
 /*
- *  (C) 2012 Janne Heikkarainen <janne.heikkarainen@tut.fi>
+ *  (C) 2013 Janne Heikkarainen <janne.heikkarainen@tut.fi>
  *
  *  All rights reserved.
  *
@@ -293,7 +293,7 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
     if(child->num>1){
       if(d>child->l/theta+delta){
 	/* approximate cell as ensemble */
-	/* calculate acceleration with plummer softening */
+	/* calculate acceleration with softened potential */
 
 	epsilon=child->distr_len;	  
 	//d2=sqrt(d*d+epsilon*epsilon);
@@ -314,7 +314,7 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
     }
     else{
       /* single particle cell */
-      /* calculate acceleration with plummer softening */
+      /* calculate acceleration with softened potential */
       epsilon=world->h[child->particle_index];
 
       //d2=sqrt(d*d+epsilon*epsilon);
