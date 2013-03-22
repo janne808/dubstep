@@ -30,58 +30,11 @@
 #include "dubstep.h"
 #include "sph.h"
 #include "tree.h"
-
-#ifndef PI
-#define PI 3.14159265358979323846264
-#endif
-
-static inline double kernel(double q, double h){
-  double val=q;
-
-  if(q<1.0){
-    val=1.0-3.0/2.0*val*val+3.0/4.0*val*val*val;
-  }
-  else if(q<2.0){
-    val=2.0-val;
-    val=1.0/4.0*val*val*val;
-  }
-  else
-    val=0;
-
-  return val/(PI*h*h*h);
-}
-
-static inline double kernel_d(double q, double h){
-  double val=q;
-
-  if(q<1.0){
-    val=-3.0*val+9.0/4.0*val*val;
-  }
-  else if(q<2.0){
-    val=2.0-val;
-    val=-3.0/4.0*val*val;
-  }
-  else
-    val=0;
-
-  return val/(PI*h*h*h);
-}
-
-static inline double artificial_viscosity(double *dv_ij, double h_ij, double rho_ij,
-					  double c_ij, double *dr, double rr, double alpha, double beta, double neta){
-  double mu_ij;
-
-  mu_ij=0;
-  if((dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])<0.0)
-    mu_ij=(dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])/(rr*rr/(h_ij)+neta);
-
-  return (-alpha*mu_ij*c_ij+beta*mu_ij*mu_ij)/rho_ij;
-}
+#include "linear.h"
 
 void smooth_velocity_field(struct universe *world, int lo, int hi){
   /* vector norm variables */
   double r;
-  double dr[3];
 
   /* loop variables */
   int ii,jj,kk;
@@ -127,11 +80,7 @@ void smooth_velocity_field(struct universe *world, int lo, int hi){
       kk=world->neighbour_list[ii].list[jj];
 
       /* particle-particle distance */
-      dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
-      dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
-      dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
-
-      r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
+      r=euclidean_distance(&r_in[3*ii],&r_in[3*kk],3)/h_in[ii];
 
       v_out[3*ii+0]+=1/rho_in[ii]*m_in[kk]*v_in[3*kk+0]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
       v_out[3*ii+1]+=1/rho_in[ii]*m_in[kk]*v_in[3*kk+1]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
@@ -147,7 +96,6 @@ void smooth_velocity_field(struct universe *world, int lo, int hi){
 void smooth_energy_field(struct universe *world, int lo, int hi){
   /* vector norm variables */
   double r;
-  double dr[3];
 
   /* loop variables */
   int ii,jj,kk;
@@ -191,11 +139,7 @@ void smooth_energy_field(struct universe *world, int lo, int hi){
       kk=world->neighbour_list[ii].list[jj];
 
       /* particle-particle distance */
-      dr[0]=r_in[3*ii+0]-r_in[3*kk+0];
-      dr[1]=r_in[3*ii+1]-r_in[3*kk+1];
-      dr[2]=r_in[3*ii+2]-r_in[3*kk+2];
-
-      r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[ii];
+      r=euclidean_distance(&r_in[3*ii],&r_in[3*kk],3)/h_in[ii];
 
       u_out[ii]+=1/rho_in[ii]*m_in[kk]*u_in[kk]*0.5*(kernel(r,h_in[ii])+kernel(r,h_in[kk]));
     }
@@ -341,7 +285,6 @@ void compute_constant_smoothing_length_tree(struct universe *world, double min_h
 void compute_smoothing_length_neighbours(struct universe *world, int iterations, int N_target, int lo, int hi){
   /* vector norm variables */
   double r;
-  double dr[3];
 
   /* loop variables */
   int ii,jj,kk;
@@ -391,11 +334,7 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
       N=0;
       for(jj=0;jj<n;jj++){
 	/* particle-particle distance */
-	dr[0]=r_in[3*ii+0]-r_in[3*jj+0];
-	dr[1]=r_in[3*ii+1]-r_in[3*jj+1];
-	dr[2]=r_in[3*ii+2]-r_in[3*jj+2];
-	
-	r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+	r=euclidean_distance(&r_in[3*ii],&r_in[3*jj],3);
 
 	if(r/h<2.0||r/h_in[jj]<2.0){
 	  buffer[N]=jj;
@@ -425,7 +364,6 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
 void compute_smoothing_length_mass(struct universe *world, int iterations, double m_target, int lo, int hi){
   /* vector norm variables */
   double r;
-  double dr[3];
 
   /* loop variables */
   int ii,jj,kk;
@@ -480,10 +418,7 @@ void compute_smoothing_length_mass(struct universe *world, int iterations, doubl
       nn=0;
       for(jj=0;jj<n;jj++){
 	/* particle-particle distance */
-	dr[0]=r_in[3*ii+0]-r_in[3*jj+0];
-	dr[1]=r_in[3*ii+1]-r_in[3*jj+1];
-	dr[2]=r_in[3*ii+2]-r_in[3*jj+2];
-	r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
+	r=euclidean_distance(&r_in[3*ii],&r_in[3*jj],3);
 
 	if(r/h<2.0||r/h_in[jj]<2.0){
 	  buffer[nn++]=jj;
@@ -513,7 +448,6 @@ void compute_smoothing_length_mass(struct universe *world, int iterations, doubl
 void compute_density(struct universe *world, double h, int lo, int hi){
   /* vector norm variables */
   double r;
-  double dr[3];
 
   /* loop variables */
   int ii,jj,kk;
@@ -547,11 +481,7 @@ void compute_density(struct universe *world, double h, int lo, int hi){
     for(jj=0;jj<n;jj++){
       kk=world->neighbour_list[pp].list[jj];
       /* particle-particle distance */
-      dr[0]=r_in[3*pp+0]-r_in[3*kk+0];
-      dr[1]=r_in[3*pp+1]-r_in[3*kk+1];
-      dr[2]=r_in[3*pp+2]-r_in[3*kk+2];
-
-      r=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2])/h_in[pp];
+      r=euclidean_distance(&r_in[3*pp],&r_in[3*kk],3)/h_in[pp];
 
       rho_in[pp]+=m_in[kk]*kernel(r,h_in[pp]);
     }
@@ -683,7 +613,6 @@ void compute_cfl(struct universe *world, double C_0, int lo, int hi){
 	dr[0]=r_in[3*pp+0]-r_in[3*kk+0];
 	dr[1]=r_in[3*pp+1]-r_in[3*kk+1];
 	dr[2]=r_in[3*pp+2]-r_in[3*kk+2];
-
 	rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
 	
 	dv_ij[0]=v_in[3*pp+0]-v_in[3*kk+0];
@@ -790,7 +719,6 @@ void compute_internal_energy_and_acceleration(struct universe *world, double *r,
 	dr[0]=r_in[3*pp+0]-r_in[3*kk+0];
 	dr[1]=r_in[3*pp+1]-r_in[3*kk+1];
 	dr[2]=r_in[3*pp+2]-r_in[3*kk+2];
-
 	rr=sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
   
 	dv_ij[0]=v_in[3*pp+0]-v_in[3*kk+0];

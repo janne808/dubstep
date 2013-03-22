@@ -1,4 +1,4 @@
-/* pseudo-random number generation routines */
+/* initial condition generator headers */
 
 /*
  *  (C) 2013 Janne Heikkarainen <janne.heikkarainen@tut.fi>
@@ -21,10 +21,9 @@
  *  along with Dubstep.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#ifndef __ICHH__
+#define __ICHH__
 
-#include "random.h"
+void generate_glass(struct universe *world, double radius, double U_threshold, double epsilon, double G);
 
+#endif

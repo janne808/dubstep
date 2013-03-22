@@ -1,4 +1,4 @@
-/* pseudo-random number generation routines */
+/* linear algebra headers */
 
 /*
  *  (C) 2013 Janne Heikkarainen <janne.heikkarainen@tut.fi>
@@ -21,10 +21,37 @@
  *  along with Dubstep.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#ifndef __LINEARH__
+#define __LINEARH__
 
-#include "random.h"
+static inline double euclidean_norm(double *r, int dim){
+  /* loop variable */
+  int ii;
 
+  /* inner product sum variable */
+  double sum;
+
+  sum=0;
+  for(ii=0;ii<dim;ii++){
+    sum+=r[ii]*r[ii];
+  }
+
+  return sqrt(sum);
+}
+
+static inline double euclidean_distance(double *r, double *v, int dim){
+  /* loop variable */
+  int ii;
+
+  /* inner product sum variable */
+  double sum;
+
+  sum=0;
+  for(ii=0;ii<dim;ii++){
+    sum+=(r[ii]-v[ii])*(r[ii]-v[ii]);
+  }
+
+  return sqrt(sum);
+}
+
+#endif

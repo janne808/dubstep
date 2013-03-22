@@ -41,6 +41,8 @@
 #include "threads.h"
 #include "timer.h"
 #include "random.h"
+#include "ic.h"
+#include "linear.h"
 
 #if ENABLE_GUI
 void colormap(double val, struct color *col){
@@ -106,62 +108,6 @@ void writeframe(char* path){
 }
 
 #endif
-
-void generate_glass(struct universe *world, double radius, double U_threshold, double epsilon, double G){
-  /* loop variables */
-  int ii;
-  int jj;
-
-  /* distance computation variables */
-  double dx;
-  double dy;
-  double dz;
-  double d;
-
-  /* pointers to state vectors */
-  double *r_in;
-  double *m_in;
-
-  /* total gravitational potential energy */
-  double U;
-
-  r_in=world->r;
-  m_in=world->m;
-
-  /* initial displacement */
-  r_in[3*0+0]=0.0;
-  r_in[3*0+1]=0.0;
-  r_in[3*0+2]=0.0;
-
-  for(ii=1;ii<world->num;ii++){
-    printf("Generating random displacement for particle %d...\n", ii);
-    do{
-      /* generate random displacement */
-      r_in[3*ii+0]=radius*boxmuller();
-      r_in[3*ii+1]=radius*boxmuller();
-      r_in[3*ii+2]=0.001*radius*boxmuller();
-      //do{
-      //r_in[3*ii+0]=radius*(2.0*((double)rand()/RAND_MAX)-1.0);
-      //r_in[3*ii+1]=radius*(2.0*((double)rand()/RAND_MAX)-1.0);
-      //r_in[3*ii+2]=0.000001*radius*(2.0*((double)rand()/RAND_MAX)-1.0);
-      //}while(sqrt(r_in[3*ii+0]*r_in[3*ii+0]+
-      //	  r_in[3*ii+1]*r_in[3*ii+1]+
-      //	  r_in[3*ii+2]*r_in[3*ii+2])>radius);
-
-      /* calculate total gravitational energy for new displacement */
-      /* unit is AU^3/(M_solar*yr^2)*M_solar^2/AU */
-      U=0.0;
-      for(jj=0;jj<ii;jj++){
-	dx=r_in[ii*3+0]-r_in[jj*3+0];
-	dy=r_in[ii*3+1]-r_in[jj*3+1];
-	dz=r_in[ii*3+2]-r_in[jj*3+2];
-	d=sqrt(dx*dx+dy*dy+dz*dz);
-	d=sqrt(d*d+epsilon*epsilon);
-	U-=G*m_in[ii]*m_in[jj]*d;
-      }
-    }while(U<U_threshold);
-  }
-}
 
 int main(int argc, char *argv[])
 {
@@ -440,50 +386,31 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=0.1;
+    world->u[ii]=0.2;
     world->u2[ii]=world->u[ii];
   }
 
   /* initial displacement */
-  generate_glass(world, 8.0, -0.01*G, epsilon, G);
+  generate_glass(world, 10.0, -0.01*G, epsilon, G);
 
   for(ii=0;ii<n;ii++){
-    double x,y,z,rr;
+    double rr;
     double vv;
 
-    /* box-muller transform for normally distributed samples */
-    //x=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
-    //y=sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
-    //z=1.0E-1*sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
-    
-    /* generate 2D 30x30 grid */
-    //x=(double)((ii%50)-25);
-    //y=(double)((ii/50)%50-25);
-    //z=1.0E-10;
+    world->r2[ii*3+0]=world->r[ii*3+0];
+    world->r2[ii*3+1]=world->r[ii*3+1];
+    world->r2[ii*3+2]=world->r[ii*3+2];
 
-    /* generate 3D 13x13x13 grid */
-    //x=(double)((ii%13)-6);
-    //y=(double)((ii/13)%13-6);
-    //z=(double)((ii/(13*13))-6);
+    rr=euclidean_norm(&world->r[ii*3],3)+1.0E-8;
 
-    x=world->r[ii*m+0];
-    y=world->r[ii*m+1];
-    z=world->r[ii*m+2];
+    vv=sqrt(2.0*G*0.0075*2.0/rr/2.0);
+    world->v[ii*3+0]=-vv*world->r[ii*3+1]/rr;
+    world->v[ii*3+1]=vv*world->r[ii*3+0]/rr;
+    world->v[ii*3+2]=0;    
 
-    world->r2[ii*m+0]=world->r[ii*m+0];
-    world->r2[ii*m+1]=world->r[ii*m+1];
-    world->r2[ii*m+2]=world->r[ii*m+2];
-
-    rr=sqrt(x*x+y*y+z*z)+1.0E-8;
-
-    vv=sqrt(2.0*G*0.008*2.0/rr/2.0);
-    world->v[ii*m+0]=-vv*y/rr;
-    world->v[ii*m+1]=vv*x/rr;
-    world->v[ii*m+2]=0;    
-
-    world->v2[ii*m+0]=world->v[ii*m+0];
-    world->v2[ii*m+1]=world->v[ii*m+1];
-    world->v2[ii*m+2]=world->v[ii*m+2];    
+    world->v2[ii*3+0]=world->v[ii*3+0];
+    world->v2[ii*3+1]=world->v[ii*3+1];
+    world->v2[ii*3+2]=world->v[ii*3+2];    
   }
 
   /* compute initial sph variables */

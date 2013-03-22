@@ -24,6 +24,8 @@
 #ifndef __RANDOMH__
 #define __RANDOMH__
 
-double boxmuller();
+static inline double boxmuller(){
+  return sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+}
 
 #endif

@@ -29,7 +29,7 @@
 #endif
 
 #ifndef ADAPTIVE_SMOOTHING
-#define ADAPTIVE_SMOOTHING 1
+#define ADAPTIVE_SMOOTHING 0
 #endif
 
 #ifndef MIN_SMOOTH_LEN

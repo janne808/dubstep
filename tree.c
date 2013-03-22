@@ -27,49 +27,9 @@
 #include <math.h>
 
 #include "dubstep.h"
+#include "sph.h"
 #include "tree.h"
-
-static inline double kernel_grav_f(double r, double epsilon){
-  double val;
-  double u;
-  double u2;
-
-  u=r/epsilon;
-
-  if(u<1.0){
-    u2=u*u;
-    val=-2.0/epsilon*(1.0/3.0*u2-3.0/20.0*u2*u2+1.0/20.0*u2*u2*u)+7.0/5.0*epsilon;
-  }
-  else if(u<2.0){
-    u2=u*u;
-    val=-1.0/15.0*r-1/epsilon*(4.0/3.0*u2-u2*u+3.0/10.0*u2*u2-1.0/30.0*u2*u2*u)+8.0/5.0*epsilon;
-  }
-  else
-    val=1/r;
-  
-  return val;
-}
-
-static inline double kernel_grav_g(double r, double epsilon){
-  double val;
-  double u;
-  double u2;
-
-  u=r/epsilon;
-
-  if(u<1.0){
-    u2=u*u;
-    val=1.0/(epsilon*epsilon*epsilon)*(4.0/3.0-6.0/5.0*u2+1.0/2.0*u2*u);
-  }
-  else if(u<2.0){
-    u2=u*u;
-    val=1.0/(r*r*r)*(-1.0/15.0+8.0/3.0*u2*u-3.0*u2*u2+6.0/5.0*u2*u2*u-1.0/6.0*u2*u2*u2);
-  }
-  else
-    val=1/(r*r*r);
-  
-  return val;
-}
+#include "linear.h"
 
 int init_treeroot(struct cell *tree, struct universe *world, double *r){
   int ii;
@@ -209,7 +169,8 @@ void direct_summation(struct universe *world, double *r, double *a, double G){
   int ii;
 
   /* distance calculation variables */
-  double dx,dy,dz,d,d2;
+  double d;
+  double d2;
 
   /* plummer softening length */
   double epsilon;
@@ -217,10 +178,7 @@ void direct_summation(struct universe *world, double *r, double *a, double G){
   /* calculate gravitational acceleration by direct summation */
   for(ii=0;ii<world->num;ii++){
     /* compute distance */
-    dx=r[0]-world->r[ii*3+0];
-    dy=r[1]-world->r[ii*3+1];
-    dz=r[2]-world->r[ii*3+2];
-    d=sqrt(dx*dx+dy*dy+dz*dz);
+    d=euclidean_distance(r, &world->r[ii*3], 3);
 
     if(d>1E-8){
       epsilon=world->h[ii];
@@ -253,10 +211,13 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
   double l;
 
   /* distance calculation variables */
-  double dx,dy,dz,d,d2,delta;
+  double d,d2,delta;
 
   /* plummer softening factor */
   double epsilon;
+
+  /* temporary vector */
+  double temp[3];
 
   /* init walk pointer */
   wp=0;
@@ -276,28 +237,20 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
     l=child->l;
 
     /* compute distance */
-    dx=r[0]-child->center[0];
-    dy=r[1]-child->center[1];
-    dz=r[2]-child->center[2];
+    d=euclidean_distance(r, child->center, 3);
 
-    d=sqrt(dx*dx+dy*dy+dz*dz);
-    
     /* compute distance from cells geometrical center to center of mass */
     /* for cell opening criterion */
-    dx=child->center[0]-(child->space[0*3+0]-l/2.0);
-    dy=child->center[1]-(child->space[0*3+1]+l/2.0);
-    dz=child->center[2]-(child->space[0*3+2]-l/2.0);
-
-    delta=sqrt(dx*dx+dy*dy+dz*dz);
+    temp[0]=child->center[0]-(child->space[0*3+0]-l/2.0);
+    temp[1]=child->center[1]-(child->space[0*3+1]+l/2.0);
+    temp[2]=child->center[2]-(child->space[0*3+2]-l/2.0);
+    delta=euclidean_norm(&temp[0], 3);
 
     if(child->num>1){
       if(d>child->l/theta+delta){
 	/* approximate cell as ensemble */
 	/* calculate acceleration with softened potential */
-
 	epsilon=child->distr_len;	  
-	//d2=sqrt(d*d+epsilon*epsilon);
-	//d2=1/(d2*d2*d2);
 	d2=kernel_grav_g(d, epsilon);
 
 	a[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
@@ -316,9 +269,6 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
       /* single particle cell */
       /* calculate acceleration with softened potential */
       epsilon=world->h[child->particle_index];
-
-      //d2=sqrt(d*d+epsilon*epsilon);
-      //d2=1/(d2*d2*d2);
       d2=kernel_grav_g(d, epsilon);
 
       a[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
@@ -346,7 +296,10 @@ void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, d
   double l;
 
   /* distance calculation variables */
-  double dx,dy,dz,d;
+  double d;
+
+  /* temporary vector */
+  double temp[3];
 
   /* init walk pointer */
   wp=0;
@@ -367,11 +320,10 @@ void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, d
 
     if(child->num>1){
       /* compute distance from cells geometrical center to particle */
-      dx=r[0]-(child->space[0*3+0]-l/2.0);
-      dy=r[1]-(child->space[0*3+1]+l/2.0);
-      dz=r[2]-(child->space[0*3+2]-l/2.0);
-
-      d=sqrt(dx*dx+dy*dy+dz*dz);
+      temp[0]=r[0]-(child->space[0*3+0]-l/2.0);
+      temp[1]=r[1]-(child->space[0*3+1]+l/2.0);
+      temp[2]=r[2]-(child->space[0*3+2]-l/2.0);
+      d=euclidean_norm(&temp[0],3);
 
       /* if the smoothing length radius intersects with the cells corner */
       /* radius, recurse deeper into the tree to find more particles */
@@ -385,11 +337,7 @@ void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, d
     }
     else{
       /* compute distance from cell center of mass to particle */
-      dx=r[0]-child->center[0];
-      dy=r[1]-child->center[1];
-      dz=r[2]-child->center[2];
-
-      d=sqrt(dx*dx+dy*dy+dz*dz);
+      d=euclidean_distance(&r[0],&child->center[0],3);
 
       if(d/h<2.0||d/h_in[child->particle_index]<2.0){
 	/* add particle index into the neighbouring particle list */
@@ -402,9 +350,19 @@ void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, d
 
 void neighbour_recurse(struct cell *tree, struct cell *root, double *r, double h, double max_h,
 		       double *h_in, int *neighbour_num, int *neighbour_list){
+  /* loop variables */
   int ii;
-  double dx,dy,dz,d;
+
+  /* distance calculation variable */
+  double d;
+
+  /* cell length variable */
   double l;
+
+  /* temporary vector */
+  double temp[3];
+
+  /* tree structure child pointer */
   struct cell *child;
     
   /* check thru child cells */
@@ -417,10 +375,10 @@ void neighbour_recurse(struct cell *tree, struct cell *root, double *r, double h
 
     if(child->num>1){
       /* compute distance from cell centers to particles */
-      dx=r[0]-(child->space[0*3+0]-l/2.0);
-      dy=r[1]-(child->space[0*3+1]+l/2.0);
-      dz=r[2]-(child->space[0*3+2]-l/2.0);
-      d=sqrt(dx*dx+dy*dy+dz*dz);
+      temp[0]=r[0]-(child->space[0*3+0]-l/2.0);
+      temp[1]=r[1]-(child->space[0*3+1]+l/2.0);
+      temp[2]=r[2]-(child->space[0*3+2]-l/2.0);
+      d=euclidean_norm(&temp[0],3);
 
       /* if the smoothing length radius intersects with the cells corner */
       /* radius, recurse deeper into the tree to find more particles */
@@ -430,10 +388,8 @@ void neighbour_recurse(struct cell *tree, struct cell *root, double *r, double h
     }
     else{
       /* compute distance from cell center of mass to particle */
-      dx=r[0]-child->center[0];
-      dy=r[1]-child->center[1];
-      dz=r[2]-child->center[2];
-      d=sqrt(dx*dx+dy*dy+dz*dz);
+      d=euclidean_distance(&r[0],&child->center[0],3);
+
       if(d/h<2.0||d/h_in[child->particle_index]<2.0){
 	/* add particle index into the neighbouring particle list */
 	neighbour_list[*neighbour_num]=child->particle_index;
@@ -491,10 +447,21 @@ void compute_total_energy(struct universe *world, double theta, int lo, int hi){
 
 void potential_recurse(struct cell *tree, struct cell *root, double *r, double m,
 		       double *U, double G, double theta, double epsilon){
+  /* loop variables */
   int ii;
-  double dx,dy,dz,d,d2;
+
+  /* distance calculation variables */
+  double d;
+  double d2;
   double delta;
+
+  /* cell length variable */
   double l;
+
+  /* temporary vector */
+  double temp[3];
+
+  /* tree structure child pointer */
   struct cell *child;
     
   /* check thru child cells */
@@ -505,16 +472,13 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
     l=child->l;
 
     /* compute distance */
-    dx=r[0]-child->center[0];
-    dy=r[1]-child->center[1];
-    dz=r[2]-child->center[2];
-    d=sqrt(dx*dx+dy*dy+dz*dz);
+    d=euclidean_distance(&r[0],&child->center[0],3);
     
     /* compute distance from cell geometrical center to center of mass */
-    dx=child->center[0]-(child->space[0*3+0]-l/2.0);
-    dy=child->center[1]-(child->space[0*3+1]+l/2.0);
-    dz=child->center[2]-(child->space[0*3+2]-l/2.0);
-    delta=sqrt(dx*dx+dy*dy+dz*dz);
+    temp[0]=child->center[0]-(child->space[0*3+0]-l/2.0);
+    temp[1]=child->center[1]-(child->space[0*3+1]+l/2.0);
+    temp[2]=child->center[2]-(child->space[0*3+2]-l/2.0);
+    delta=euclidean_norm(&temp[0],3);
 
     if(child->num>1){
       if(0){
@@ -534,7 +498,6 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
     else{
       /* calculate potential energy with plummer softening */
       epsilon=child->distr_len;	  
-      //d2=1/sqrt(d*d+epsilon*epsilon);
       d2=kernel_grav_f(d, epsilon);
       *U-=G*m*child->mass*d2;
     }
@@ -543,10 +506,21 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
 
 void force_recurse(struct cell *tree, struct cell *root, double *r,
 		   double *f, double G, double theta, double epsilon){
+  /* loop variables */
   int ii;
-  double dx,dy,dz,d,d2;
+
+  /* distance calculation variables */
+  double d;
+  double d2;
   double delta;
+
+  /* cell length variable */
   double l;
+
+  /* temporary vector */
+  double temp[3];
+
+  /* tree structure child pointer */
   struct cell *child;
     
   /* check thru child cells */
@@ -557,23 +531,19 @@ void force_recurse(struct cell *tree, struct cell *root, double *r,
     l=child->l;
 
     /* compute distance */
-    dx=r[0]-child->center[0];
-    dy=r[1]-child->center[1];
-    dz=r[2]-child->center[2];
-    d=sqrt(dx*dx+dy*dy+dz*dz);
+    d=euclidean_distance(&r[0],&child->center[0],3);
     
     /* compute distance from cell geometrical center to center of mass */
-    dx=child->center[0]-(child->space[0*3+0]-l/2.0);
-    dy=child->center[1]-(child->space[0*3+1]+l/2.0);
-    dz=child->center[2]-(child->space[0*3+2]-l/2.0);
-    delta=sqrt(dx*dx+dy*dy+dz*dz);
+    temp[0]=child->center[0]-(child->space[0*3+0]-l/2.0);
+    temp[1]=child->center[1]-(child->space[0*3+1]+l/2.0);
+    temp[2]=child->center[2]-(child->space[0*3+2]-l/2.0);
+    delta=euclidean_norm(&temp[0],3);
 
     if(child->num>1){
       if(d>child->l/theta+delta){
 	/* approximate as ensemble */
-	/* calculate force with plummer softening */
-	d2=sqrt(d*d+epsilon*epsilon);
-	d2=1/(d2*d2*d2);
+	/* calculate force with softened potential */
+	d2=kernel_grav_g(d, epsilon);
 	f[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
 	f[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
 	f[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);	
@@ -584,9 +554,8 @@ void force_recurse(struct cell *tree, struct cell *root, double *r,
       }
     }
     else{
-      /* calculate force with plummer softening */
-      d2=sqrt(d*d+epsilon*epsilon);
-      d2=1/(d2*d2*d2);
+      /* calculate force with softened potential */
+      d2=kernel_grav_g(d, epsilon);
       f[0]-=(G*child->mass)*d2*(r[0]-child->center[0]);
       f[1]-=(G*child->mass)*d2*(r[1]-child->center[1]);
       f[2]-=(G*child->mass)*d2*(r[2]-child->center[2]);
