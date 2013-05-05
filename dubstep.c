@@ -403,7 +403,7 @@ int main(int argc, char *argv[])
 
     rr=euclidean_norm(&world->r[ii*3],3)+1.0E-8;
 
-    vv=sqrt(2.0*G*0.0475*2.0/rr/2.0);
+    vv=sqrt(2.0*G*0.05125*2.0/rr/2.0);
     world->v[ii*3+0]=-vv*world->r[ii*3+1]/rr;
     world->v[ii*3+1]=vv*world->r[ii*3+0]/rr;
     world->v[ii*3+2]=0;    
