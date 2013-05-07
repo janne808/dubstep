@@ -599,6 +599,7 @@ int main(int argc, char *argv[])
 
       /* create threads for parallel tree smoothing length iterators */
       create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
+      //create_smoothing_threads_chunked(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
 
       /* create threads for density computation */
       create_density_threads(world);

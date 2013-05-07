@@ -55,7 +55,7 @@ void generate_glass(struct universe *world, double radius, double U_threshold, d
   r_in[3*0+2]=0.0;
 
   for(ii=1;ii<world->num;ii++){
-    printf("Generating random displacement for particle %d...\n", ii);
+    //printf("Generating random displacement for particle %d...\n", ii);
     do{
       /* generate random displacement */
       r_in[3*ii+0]=radius*boxmuller();

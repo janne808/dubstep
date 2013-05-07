@@ -90,6 +90,7 @@ struct thread_data6{
 };
 
 void *smoothing_thread(void *threadarg);
+void *smoothing_thread_chunked(void *threadarg);
 void *total_energy_thread(void *threadarg);
 void *density_thread(void *threadarg);
 void *pressure_thread(void *threadarg);
@@ -102,6 +103,8 @@ void *corrector_thread(void *threadarg);
 
 void create_smoothing_threads(struct universe *world, int iterations, int neighbours, double min_h,
 			      double max_h, double *r, struct cell *tree, struct cell *root);
+void create_smoothing_threads_chunked(struct universe *world, int iterations, int neighbours, double min_h,
+				      double max_h, double *r, struct cell *tree, struct cell *root);
 void create_density_threads(struct universe *world);
 void create_pressure_threads(struct universe *world);
 void create_soundspeed_threads(struct universe *world);
