@@ -33,7 +33,7 @@
 #include "threads.h"
 #include "timer.h"
 
-#define CHUNK_SIZE 200
+#define CHUNK_SIZE 500
 
 /* globally accessible variable for mutex lock */
 pthread_mutex_t mutexchunk;
@@ -741,7 +741,6 @@ void *corrector_thread(void *threadarg){
 void create_smoothing_threads(struct universe *world, int iterations, int neighbours, double min_h,
 			      double max_h, double *r, struct cell *tree, struct cell *root){
   /* posix thread variables */
-  int thread_slice_num;
   int num_join_threads;
   int thread_rc;
   pthread_t threads[NUM_THREADS+1];
@@ -755,9 +754,6 @@ void create_smoothing_threads(struct universe *world, int iterations, int neighb
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   pthread_mutex_init(&mutexchunk, NULL);
-
-  /* number of slices to compute */
-  //thread_slice_num=world->kick_num/NUM_THREADS;
 
   num_join_threads=0;
   chunk_index=0;
@@ -806,7 +802,6 @@ void create_smoothing_threads(struct universe *world, int iterations, int neighb
 
 void create_total_energy_threads(struct universe *world, double theta){
   /* posix thread variables */
-  int thread_slice_num;
   int num_join_threads;
   int thread_rc;
   pthread_t threads[NUM_THREADS+1];
@@ -824,8 +819,6 @@ void create_total_energy_threads(struct universe *world, double theta){
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   pthread_mutex_init(&mutexchunk, NULL);
-
-  //thread_slice_num=world->num/NUM_THREADS;
 
   num_join_threads=0;
   chunk_index=0;
@@ -868,7 +861,6 @@ void create_total_energy_threads(struct universe *world, double theta){
 
 void create_density_threads(struct universe *world){
   /* posix thread variables */
-  int thread_slice_num;
   int num_join_threads;
   int thread_rc;
   pthread_t threads[NUM_THREADS+1];
@@ -883,7 +875,6 @@ void create_density_threads(struct universe *world){
 
   pthread_mutex_init(&mutexchunk, NULL);
 
-  //thread_slice_num=world->kick_num/NUM_THREADS;
   num_join_threads=0;
   chunk_index=0;
 
@@ -925,7 +916,6 @@ void create_density_threads(struct universe *world){
 
 void create_pressure_threads(struct universe *world){
   /* posix thread variables */
-  int thread_slice_num;
   int num_join_threads;
   int thread_rc;
   pthread_t threads[NUM_THREADS+1];
@@ -940,7 +930,6 @@ void create_pressure_threads(struct universe *world){
 
   pthread_mutex_init(&mutexchunk, NULL);
 
-  //thread_slice_num=world->kick_num/NUM_THREADS;
   num_join_threads=0;
   chunk_index=0;
 
@@ -982,7 +971,6 @@ void create_pressure_threads(struct universe *world){
 
 void create_soundspeed_threads(struct universe *world){
   /* posix thread variables */
-  int thread_slice_num;
   int num_join_threads;
   int thread_rc;
   pthread_t threads[NUM_THREADS+1];
@@ -997,7 +985,6 @@ void create_soundspeed_threads(struct universe *world){
 
   pthread_mutex_init(&mutexchunk, NULL);
 
-  //thread_slice_num=world->kick_num/NUM_THREADS;
   num_join_threads=0;
   chunk_index=0;
 
@@ -1039,7 +1026,6 @@ void create_soundspeed_threads(struct universe *world){
 
 void create_CFL_threads(struct universe *world){
   /* posix thread variables */
-  int thread_slice_num;
   int num_join_threads;
   int thread_rc;
   pthread_t threads[NUM_THREADS+1];
@@ -1054,7 +1040,6 @@ void create_CFL_threads(struct universe *world){
 
   pthread_mutex_init(&mutexchunk, NULL);
 
-  //thread_slice_num=world->kick_num/NUM_THREADS;
   num_join_threads=0;
   chunk_index=0;
 
@@ -1096,7 +1081,6 @@ void create_CFL_threads(struct universe *world){
 
 void create_timebin_threads(struct universe *world){
   /* posix thread variables */
-  int thread_slice_num;
   int num_join_threads;
   int thread_rc;
   pthread_t threads[NUM_THREADS+1];
@@ -1111,7 +1095,6 @@ void create_timebin_threads(struct universe *world){
 
   pthread_mutex_init(&mutexchunk, NULL);
 
-  //thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
   chunk_index=0;
 
@@ -1153,7 +1136,6 @@ void create_timebin_threads(struct universe *world){
 
 void create_acceleration_threads(struct universe *world){
   /* posix thread variables */
-  int thread_slice_num;
   int num_join_threads;
   int thread_rc;
   pthread_t threads[NUM_THREADS+1];
@@ -1168,7 +1150,6 @@ void create_acceleration_threads(struct universe *world){
 
   pthread_mutex_init(&mutexchunk, NULL);
 
-  //thread_slice_num=world->kick_num/NUM_THREADS;
   num_join_threads=0;
   chunk_index=0;
 
@@ -1212,7 +1193,6 @@ void create_acceleration_threads(struct universe *world){
 
 void create_predictor_threads(struct universe *world){
   /* posix thread variables */
-  int thread_slice_num;
   int num_join_threads;
   int thread_rc;
   pthread_t threads[NUM_THREADS+1];
@@ -1227,7 +1207,6 @@ void create_predictor_threads(struct universe *world){
 
   pthread_mutex_init(&mutexchunk, NULL);
 
-  //thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
   chunk_index=0;
 
@@ -1272,7 +1251,6 @@ void create_predictor_threads(struct universe *world){
 
 void create_corrector_threads(struct universe *world){
   /* posix thread variables */
-  int thread_slice_num;
   int num_join_threads;
   int thread_rc;
   pthread_t threads[NUM_THREADS+1];
@@ -1287,7 +1265,6 @@ void create_corrector_threads(struct universe *world){
 
   pthread_mutex_init(&mutexchunk, NULL);
 
-  //thread_slice_num=world->num/NUM_THREADS;
   num_join_threads=0;
   chunk_index=0;
 

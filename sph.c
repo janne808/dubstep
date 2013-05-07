@@ -315,6 +315,8 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
 
   num_neighbours_in=world->num_neighbours;
 
+  N=0;
+
   buffer=(int*)malloc(2*n*sizeof(int));
   if(!buffer){
     printf("Out of memory: smoothing length iteration buffer not allocated.\n");
@@ -357,90 +359,6 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
       exit(1);
     }
     memcpy(world->neighbour_list[ii].list, buffer, N*sizeof(int));
-  }
-  free(buffer);
-}
-
-void compute_smoothing_length_mass(struct universe *world, int iterations, double m_target, int lo, int hi){
-  /* vector norm variables */
-  double r;
-
-  /* loop variables */
-  int ii,jj,kk;
-
-  /* state vector dimensions */
-  int m;
-  int n;
-
-  /* pointers to state vectors */
-  double *r_in;
-  double *h_in;
-  double *m_in;
-
-  double *dt_CFL_in;
-
-  int *num_neighbours_in;
-
-  double h,h_new;
-
-  /* neighboring mass */
-  double N_mass;
-
-  /* */
-  int nn;
-
-  /* particle list buffer */
-  int *buffer;
-
-  m=world->dim;  
-  n=world->num;
-
-  r_in=world->r2;
-  h_in=world->h;
-  m_in=world->m;
-  dt_CFL_in=world->dt_CFL;
-
-  num_neighbours_in=world->num_neighbours;
-
-  buffer=(int*)malloc(2*n*sizeof(int));
-
-  /* iterate towards optimum number of neighbours */
-  for(ii=lo;ii<hi;ii++){
-    h=h_in[ii];
-
-    if(world->neighbour_list[ii].list){
-      world->neighbour_list[ii].num=0;
-      free(world->neighbour_list[ii].list);
-    }
-
-    for(kk=0;kk<iterations;kk++){
-      N_mass=0;
-      nn=0;
-      for(jj=0;jj<n;jj++){
-	/* particle-particle distance */
-	r=euclidean_distance(&r_in[3*ii],&r_in[3*jj],3);
-
-	if(r/h<2.0||r/h_in[jj]<2.0){
-	  buffer[nn++]=jj;
-	  N_mass+=m_in[jj];
-	}
-      }
-      h_new=h*0.5*(1+pow((double)(m_target)/(double)(N_mass),1.0/3.0));
-      if(h_new>0.01&&h_new<4.0)
-	h=h_new;
-      else
-	break;
-    }
-    h_in[ii]=h;
-    num_neighbours_in[ii]=nn;
-    
-    world->neighbour_list[ii].num=nn;
-    world->neighbour_list[ii].list=(int*)malloc(nn*sizeof(int));
-    if(!world->neighbour_list[ii].list){
-      printf("Out of memory: particle neighbour list not allocated.\n");
-      exit(1);
-    }
-    memcpy(world->neighbour_list[ii].list, buffer, nn*sizeof(int));
   }
   free(buffer);
 }
