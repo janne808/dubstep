@@ -61,7 +61,7 @@
 #endif
 
 #ifndef NUM
-#define NUM 3000
+#define NUM 4000
 #endif
 
 #ifndef NUM_THREADS
@@ -82,6 +82,7 @@ struct color{
 /* structure for list of interacting particles */
 struct particlelist{
   int num;
+  int max_size;
   int *list;
 };
 

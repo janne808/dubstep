@@ -305,6 +305,16 @@ int main(int argc, char *argv[])
   world->beta=beta;
 
   world->neighbour_list=(struct particlelist*)malloc(n*sizeof(struct particlelist));
+  /* allocate neighbour list for initial neighbours */
+  /* neighbourhood searcher reallocates more memory when necessary */
+  for(ii=0;ii<world->num;ii++){
+    world->neighbour_list[ii].list=(int*)malloc(100*sizeof(int));
+    if(!world->neighbour_list[ii].list){
+      printf("Out of memory: particle neighbour list not allocated.\n");
+      exit(1);
+    }
+    world->neighbour_list[ii].max_size=100;
+  }
 
   world->m=(double*)malloc(n*sizeof(double));
 
@@ -352,7 +362,6 @@ int main(int argc, char *argv[])
 
   /* initial mass and velocities */
   for(ii=0;ii<n;ii++){
-    world->neighbour_list[ii].list=0;
     world->neighbour_list[ii].num=0;
     world->num_neighbours[ii]=0;
     world->cellindex[ii]=0;
@@ -428,8 +437,11 @@ int main(int argc, char *argv[])
   /* init kick list for SPH computation */
   init_kick_list(world);
 
+  /* create threads for parallel tree smoothing length iterators */
+  create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
+
   /* serial tree smoothing length iterator */
-  compute_smoothing_length_tree(world, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, 10, 25, world->r2, tree, &tree[0], 0, world->num);
+  //compute_smoothing_length_tree(world, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, 10, 25, world->r2, tree, &tree[0], 0, world->num);
 
   /* create threads for density computation */
   create_density_threads(world);

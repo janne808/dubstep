@@ -33,7 +33,7 @@
 #include "threads.h"
 #include "timer.h"
 
-#define CHUNK_SIZE 500
+#define CHUNK_SIZE 1000
 
 /* globally accessible variable for mutex lock */
 pthread_mutex_t mutexchunk;
@@ -51,9 +51,18 @@ struct thread_data6 thread_data_array6[NUM_THREADS+1];
 
 /* multithreading for particle smoothing */
 void *smoothing_thread(void *threadarg){
+  /* thread data structure */
   struct thread_data6 *my_data;
+
+  /* chunk bounds */
   int lo;
   int hi;
+
+  /* particle list buffer */
+  int *buffer;
+
+  /* pointer to world universe structure */
+  struct universe *world;
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timespec structs for thread profiling */
@@ -63,13 +72,23 @@ void *smoothing_thread(void *threadarg){
   struct timespec t;
 #endif
 
+  /* set up pointers */
   my_data=(struct thread_data6 *) threadarg;
+  world=my_data->world;
+
   //printf("Executing thread %d, slice %d to %d.\n", my_data->thread_id, my_data->lo, my_data->hi);
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
   clock_gettime(CLOCK_MONOTONIC, &time1);
 #endif
+
+  /* allocate iteration buffer for thread */
+  buffer=(int*)malloc(world->num*sizeof(int));
+  if(!buffer){
+    printf("Out of memory: smoothing length iteration buffer not allocated.\n");
+    exit(1);
+  }
 
   while(chunk_index<my_data->hi){
     /* handle chunking */
@@ -90,9 +109,12 @@ void *smoothing_thread(void *threadarg){
 				  my_data->r, my_data->tree, my_data->root, lo, hi);
 #else
     compute_constant_smoothing_length_tree(my_data->world, my_data->var1, my_data->var2, my_data->var3, my_data->var4,
-					   my_data->r, my_data->tree, my_data->root, lo, hi);
+					   my_data->r, my_data->tree, my_data->root, lo, hi, buffer);
 #endif
   }
+
+  /* free thread iteration buffer */
+  free(buffer);
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer stop */

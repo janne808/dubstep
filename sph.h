@@ -110,12 +110,15 @@ static inline double artificial_viscosity(double *dv_ij, double h_ij, double rho
 }
 
 void smooth_velocity_field(struct universe *world, int lo, int hi);
+
 void smooth_energy_field(struct universe *world, int lo, int hi);
 
 void compute_smoothing_length_tree(struct universe *world, double min_h, double max_h, int iterations,
-				   int N_target, double *r, struct cell *tree, struct cell *root, int lo, int hi);
+				   int N_target, double *r, struct cell *tree, struct cell *root,
+				   int lo, int hi, int *buffer);
 void compute_constant_smoothing_length_tree(struct universe *world, double min_h, double max_h, int iterations,
-					    int N_target, double *r, struct cell *tree, struct cell *root, int lo, int hi);
+					    int N_target, double *r, struct cell *tree, struct cell *root,
+					    int lo, int hi, int *buffer);
 void compute_smoothing_length_neighbours(struct universe *world, int iterations, int N_target, int lo, int hi);
 void compute_density(struct universe *world, double h, int lo, int hi);
 void compute_pressure(struct universe *world, double gamma, int lo, int hi);
