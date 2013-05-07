@@ -28,9 +28,8 @@
 /* compute time difference in seconds and nanoseconds */
 void timediff(struct timespec start, struct timespec end, struct timespec *out){
   /* compute time difference */
-  /* handle nsec overflow as needed */
-  if((end.tv_nsec-start.tv_nsec)<0){
-    out->tv_nsec=1000000000-start.tv_nsec+end.tv_nsec;
+  if(end.tv_nsec<start.tv_nsec){
+    out->tv_nsec=end.tv_nsec-start.tv_nsec+1000000000;
     out->tv_sec=end.tv_sec-start.tv_sec-1;
   }
   else{

@@ -391,7 +391,7 @@ int main(int argc, char *argv[])
   }
 
   /* initial displacement */
-  generate_glass(world, 10.0, -0.01*G, epsilon, G);
+  generate_glass(world, 15.0, -0.01*G, epsilon, G);
 
   for(ii=0;ii<n;ii++){
     double rr;
@@ -545,13 +545,13 @@ int main(int argc, char *argv[])
     if(calc){
       
       /* timer start */
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+      clock_gettime(CLOCK_MONOTONIC, &time1);
 
       /* integrate predictor */
       create_predictor_threads(world);
 
       /* timer stop */
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+      clock_gettime(CLOCK_MONOTONIC, &time2);
 
       /* compute time */
       timediff(time1, time2, &int_time);
@@ -562,7 +562,7 @@ int main(int argc, char *argv[])
 	 interacting particle list generation */
 
       /* timer start */
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+      clock_gettime(CLOCK_MONOTONIC, &time1);
 
       /* initialize tree root parameters */
       init_treeroot(tree, world, world->r2);
@@ -571,13 +571,13 @@ int main(int argc, char *argv[])
       branch_recurse(world, tree, &tree[0], world->cellindex);
 
       /* timer stop */
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+      clock_gettime(CLOCK_MONOTONIC, &time2);
 
       /* compute time */
       timediff(time1, time2, &treetime);
 
       /* timer start */
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+      clock_gettime(CLOCK_MONOTONIC, &time1);
 
       /* update kick list for SPH computation */
       update_kick_list(world);
@@ -615,19 +615,19 @@ int main(int argc, char *argv[])
       create_acceleration_threads(world);
       
       /* timer stop */
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+      clock_gettime(CLOCK_MONOTONIC, &time2);
 
       /* compute time */
       timediff(time1, time2, &sph_time);
 
       /* timer start */
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+      clock_gettime(CLOCK_MONOTONIC, &time1);
 
       /* integrate corrector */
       create_corrector_threads(world);
 
       /* timer stop */
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+      clock_gettime(CLOCK_MONOTONIC, &time2);
 
       /* compute time */
       timediff(time1, time2, &int2_time);
@@ -670,11 +670,19 @@ int main(int argc, char *argv[])
       	     world->time, world->sub_dt, tree[0].numcells, avg_N, total_u2, 100.0*fabs(total_u2-total_u)/fabs(total_u2));
 #else
       /* display the state of the system */
+      printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f cputime/yr: %fs\n",
+      	     world->time, world->sub_dt, tree[0].numcells, avg_N,
+	     ((double)(treetime.tv_sec)+(double)(treetime.tv_nsec)*1.0E-9+
+	     (double)(sph_time.tv_sec)+(double)(sph_time.tv_nsec)*1.0E-9+
+	     (double)(int_time.tv_sec+int2_time.tv_sec)+(double)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-9)
+	     /(world->sub_dt));
+      /*
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f tree_t: %fms sph_t: %fms int_t: %fms\n",
       	     world->time, world->sub_dt, tree[0].numcells, avg_N,
-	     (double)(treetime.tv_sec)*1.0E3+(double)(treetime.tv_nsec)*1.0E-6,
-	     (double)(sph_time.tv_sec)*1.0E3+(double)(sph_time.tv_nsec)*1.0E-6,
-	     (double)(int_time.tv_sec+int2_time.tv_sec)*1.0E3+(double)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-6);
+	     (double)(treetime.tv_sec)*1.0E3+(double)(treetime.tv_nsec)*1.0E-9,
+	     (double)(sph_time.tv_sec)*1.0E3+(double)(sph_time.tv_nsec)*1.0E-9,
+	     (double)(int_time.tv_sec+int2_time.tv_sec)*1.0E3+(double)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-9);
+      */
 #endif
       /* next time step */
       tt++;

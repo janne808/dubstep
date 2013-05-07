@@ -33,7 +33,7 @@
 #endif
 
 #ifndef MIN_SMOOTH_LEN
-#define MIN_SMOOTH_LEN 0.85
+#define MIN_SMOOTH_LEN 0.65
 #endif
 
 #ifndef MAX_SMOOTH_LEN
@@ -61,7 +61,7 @@
 #endif
 
 #ifndef NUM
-#define NUM 2000
+#define NUM 3000
 #endif
 
 #ifndef NUM_THREADS
