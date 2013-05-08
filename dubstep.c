@@ -683,19 +683,19 @@ int main(int argc, char *argv[])
       	     world->time, world->sub_dt, tree[0].numcells, avg_N, total_u2, 100.0*fabs(total_u2-total_u)/fabs(total_u2));
 #else
       /* display the state of the system */
+      /*
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f cputime/yr: %fs\n",
       	     world->time, world->sub_dt, tree[0].numcells, avg_N,
-	     ((double)(treetime.tv_sec)+(double)(treetime.tv_nsec)*1.0E-9+
-	     (double)(sph_time.tv_sec)+(double)(sph_time.tv_nsec)*1.0E-9+
-	     (double)(int_time.tv_sec+int2_time.tv_sec)+(double)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-9)
+	     ((double)(treetime.tv_sec)+(double)(treetime.tv_nsec)*1.0E-6+
+	     (double)(sph_time.tv_sec)+(double)(sph_time.tv_nsec)*1.0E-6+
+	     (double)(int_time.tv_sec+int2_time.tv_sec)+(double)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-6)
 	     /(world->sub_dt));
-      /*
+      */
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f tree_t: %fms sph_t: %fms int_t: %fms\n",
       	     world->time, world->sub_dt, tree[0].numcells, avg_N,
-	     (double)(treetime.tv_sec)*1.0E3+(double)(treetime.tv_nsec)*1.0E-9,
-	     (double)(sph_time.tv_sec)*1.0E3+(double)(sph_time.tv_nsec)*1.0E-9,
-	     (double)(int_time.tv_sec+int2_time.tv_sec)*1.0E3+(double)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-9);
-      */
+	     (double)(treetime.tv_sec)*1.0E3+(double)(treetime.tv_nsec)*1.0E-6,
+	     (double)(sph_time.tv_sec)*1.0E3+(double)(sph_time.tv_nsec)*1.0E-6,
+	     (double)(int_time.tv_sec+int2_time.tv_sec)*1.0E3+(double)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-6);
 #endif
       /* next time step */
       tt++;

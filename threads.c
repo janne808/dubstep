@@ -75,7 +75,7 @@ void *smoothing_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+  clock_gettime(CLOCK_MONOTONIC, &time1);
 #endif
 
   /* allocate iteration buffer for thread */
@@ -98,7 +98,7 @@ void *smoothing_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer stop */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+  clock_gettime(CLOCK_MONOTONIC, &time2);
 
   /* compute time difference */
   timediff(time1, time2, &t);
@@ -217,14 +217,14 @@ void *total_energy_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+  clock_gettime(CLOCK_MONOTONIC, &time1);
 #endif
 
   compute_total_energy(my_data->world, my_data->var, my_data->lo, my_data->hi);
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer stop */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+  clock_gettime(CLOCK_MONOTONIC, &time2);
 
   /* compute time difference */
   timediff(time1, time2, &t);
@@ -253,14 +253,14 @@ void *density_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+  clock_gettime(CLOCK_MONOTONIC, &time1);
 #endif
 
   compute_density(my_data->world, my_data->var, my_data->lo, my_data->hi);
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer stop */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+  clock_gettime(CLOCK_MONOTONIC, &time2);
 
   /* compute time difference */
   timediff(time1, time2, &t);
@@ -289,14 +289,14 @@ void *pressure_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+  clock_gettime(CLOCK_MONOTONIC, &time1);
 #endif
 
   compute_pressure(my_data->world, my_data->var, my_data->lo, my_data->hi);
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer stop */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+  clock_gettime(CLOCK_MONOTONIC, &time2);
 
   /* compute time difference */
   timediff(time1, time2, &t);
@@ -325,14 +325,14 @@ void *soundspeed_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+  clock_gettime(CLOCK_MONOTONIC, &time1);
 #endif
 
   compute_soundspeed(my_data->world, my_data->var, my_data->lo, my_data->hi);
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer stop */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+  clock_gettime(CLOCK_MONOTONIC, &time2);
 
   /* compute time difference */
   timediff(time1, time2, &t);
@@ -361,14 +361,14 @@ void *CFL_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+  clock_gettime(CLOCK_MONOTONIC, &time1);
 #endif
 
   compute_cfl(my_data->world, my_data->var, my_data->lo, my_data->hi);
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer stop */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+  clock_gettime(CLOCK_MONOTONIC, &time2);
 
   /* compute time difference */
   timediff(time1, time2, &t);
@@ -397,14 +397,14 @@ void *timebin_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+  clock_gettime(CLOCK_MONOTONIC, &time1);
 #endif
 
   update_time_bins(my_data->world, my_data->lo, my_data->hi);
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer stop */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+  clock_gettime(CLOCK_MONOTONIC, &time2);
 
   /* compute time difference */
   timediff(time1, time2, &t);
@@ -432,14 +432,14 @@ void *acceleration_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+  clock_gettime(CLOCK_MONOTONIC, &time1);
 #endif
 
   compute_internal_energy_and_acceleration(my_data->world, my_data->r, my_data->v, my_data->a, my_data->lo, my_data->hi);
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer stop */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+  clock_gettime(CLOCK_MONOTONIC, &time2);
 
   /* compute time difference */
   timediff(time1, time2, &t);
@@ -503,7 +503,7 @@ void *predictor_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+  clock_gettime(CLOCK_MONOTONIC, &time1);
 #endif
 
   for(nn=my_data->lo;nn<my_data->hi;nn++){
@@ -522,7 +522,7 @@ void *predictor_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer stop */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+  clock_gettime(CLOCK_MONOTONIC, &time2);
 
   /* compute time difference */
   timediff(time1, time2, &t);
@@ -591,7 +591,7 @@ void *corrector_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time1);
+  clock_gettime(CLOCK_MONOTONIC, &time1);
 #endif
 
   /* integrate */
@@ -662,7 +662,7 @@ void *corrector_thread(void *threadarg){
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer stop */
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time2);
+  clock_gettime(CLOCK_MONOTONIC, &time2);
 
   /* compute time difference */
   timediff(time1, time2, &t);
