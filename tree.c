@@ -403,10 +403,6 @@ void compute_total_energy(struct universe *world, double theta, int lo, int hi){
   /* loop variables */
   int ii;
 
-  /* state vector dimensions */
-  int m;
-  int n;
-
   /* pointers to state vectors */
   double *r_in;
   double *m_in;
@@ -419,9 +415,6 @@ void compute_total_energy(struct universe *world, double theta, int lo, int hi){
 
   /* pointer to barnes hut tree */
   struct cell *tree;
-
-  m=world->dim;  
-  n=world->num;
 
   r_in=world->r;
   m_in=world->m;
@@ -453,13 +446,13 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
   /* distance calculation variables */
   double d;
   double d2;
-  double delta;
+  //double delta;
 
   /* cell length variable */
-  double l;
+  //double l;
 
   /* temporary vector */
-  double temp[3];
+  //double temp[3];
 
   /* tree structure child pointer */
   struct cell *child;
@@ -469,16 +462,18 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
     child=&tree[root->children[ii]];
 
     /* cell side lengths */
-    l=child->l;
+    //l=child->l;
 
     /* compute distance */
     d=euclidean_distance(&r[0],&child->center[0],3);
     
     /* compute distance from cell geometrical center to center of mass */
+    /*
     temp[0]=child->center[0]-(child->space[0*3+0]-l/2.0);
     temp[1]=child->center[1]-(child->space[0*3+1]+l/2.0);
     temp[2]=child->center[2]-(child->space[0*3+2]-l/2.0);
     delta=euclidean_norm(&temp[0],3);
+    */
 
     if(child->num>1){
       if(0){

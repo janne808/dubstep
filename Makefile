@@ -26,9 +26,9 @@ endif
 # compiler flags
 ifeq ($(CUDA), 1)
 	ifeq ($(SDL),1)
-		CFLAGS=-DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -finline-functions -lm -lGL -ltiff `sdl-config --libs` -L/opt/cuda/lib -lcudart -L/opt/cuda/sdk/lib -lcutil
+		CFLAGS=-DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -finline-functions -lm -lGL -ltiff `sdl-config --libs` -L/opt/cuda/lib -lcudart -L/opt/cuda/sdk/lib
 	else
-		CFLAGS=-DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -finline-functions -lm -lGL -L/opt/cuda/lib -lcudart -L/opt/cuda/sdk/lib -lcutil
+		CFLAGS=-DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -finline-functions -lm -lGL -L/opt/cuda/lib -lcudart -L/opt/cuda/sdk/lib
 	endif
 else
 	ifeq ($(SDL),1)
@@ -39,7 +39,7 @@ else
 endif
 
 dubstep: $(OBJ)
-	$(CC) -o $@ $(OPTS) $(CFLAGS) $(OBJ) 
+	$(CC) -o $@ $(OPTS) $(OBJ) $(CFLAGS) 
 
 dubstep.o: dubstep.c tree.h
 	gcc $(OPTS) $(CFLAGS) -c $<

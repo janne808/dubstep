@@ -101,7 +101,6 @@ void smooth_energy_field(struct universe *world, int lo, int hi){
   int ii,jj,kk;
 
   /* state vector dimensions */
-  int m;
   int n;
 
   /* pointers to state vectors */
@@ -114,7 +113,6 @@ void smooth_energy_field(struct universe *world, int lo, int hi){
   /* smoothed output vector */
   double *u_out;
   
-  m=world->dim;  
   n=world->num;
 
   r_in=world->r2;
@@ -155,10 +153,6 @@ void compute_smoothing_length_tree(struct universe *world, double min_h, double 
   /* loop variables */
   int ii,jj;
 
-  /* state vector dimensions */
-  int m;
-  int n;
-
   /* pointers to state vectors */
   double *r_in;
   double *h_in;
@@ -175,9 +169,6 @@ void compute_smoothing_length_tree(struct universe *world, double min_h, double 
   /* particle pointer */
   int pp;
   
-  m=world->dim;  
-  n=world->num;
-
   r_in=r;
   h_in=world->h;
 
@@ -226,10 +217,6 @@ void compute_constant_smoothing_length_tree(struct universe *world, double min_h
   /* loop variables */
   int ii;
 
-  /* state vector dimensions */
-  int m;
-  int n;
-
   /* pointers to state vectors */
   double *r_in;
   double *h_in;
@@ -242,9 +229,6 @@ void compute_constant_smoothing_length_tree(struct universe *world, double min_h
 
   /* particle pointer */
   int pp;
-
-  m=world->dim;  
-  n=world->num;
 
   r_in=r;
   h_in=world->h;
@@ -287,7 +271,6 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
   int ii,jj,kk;
 
   /* state vector dimensions */
-  int m;
   int n;
 
   /* pointers to state vectors */
@@ -304,7 +287,6 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
   /* particle list buffer */
   int *buffer;
 
-  m=world->dim;  
   n=world->num;
 
   r_in=world->r2;
@@ -368,7 +350,6 @@ void compute_density(struct universe *world, double h, int lo, int hi){
   int ii,jj,kk;
 
   /* state vector dimensions */
-  int m;
   int n;
 
   /* pointers to state vectors */
@@ -380,7 +361,6 @@ void compute_density(struct universe *world, double h, int lo, int hi){
   /* particle pointer */
   int pp;
   
-  m=world->dim;  
   n=world->num;
 
   r_in=world->r2;
@@ -407,9 +387,6 @@ void compute_pressure(struct universe *world, double gamma, int lo, int hi){
   /* loop variables */
   int ii;
 
-  /* state vector dimensions */
-  int n;
-
   /* pointers to state vectors */
   double *p_in;
   double *rho_in;
@@ -418,8 +395,6 @@ void compute_pressure(struct universe *world, double gamma, int lo, int hi){
   /* particle pointer */
   int pp;
   
-  n=world->num;
-
   p_in=world->p;
   rho_in=world->rho;
   u_in=world->u2;
@@ -435,19 +410,12 @@ void compute_soundspeed(struct universe *world, double gamma, int lo, int hi){
   /* loop variables */
   int ii;
 
-  /* state vector dimensions */
-  int m;
-  int n;
-
   /* pointers to state vectors */
   double *p_in;
   double *rho_in;
   double *c_in;
 
   int pp;
-
-  m=world->dim;  
-  n=world->num;
 
   p_in=world->p;
   rho_in=world->rho;
@@ -474,7 +442,6 @@ void compute_cfl(struct universe *world, double C_0, int lo, int hi){
   double dv_ij[3];
 
   /* state vector dimensions */
-  int m;
   int n;
 
   /* pointers to state vectors */
@@ -499,7 +466,6 @@ void compute_cfl(struct universe *world, double C_0, int lo, int hi){
 
   int pp;
   
-  m=world->dim;  
   n=world->num;
 
   r_in=world->r2;
@@ -580,7 +546,6 @@ void compute_internal_energy_and_acceleration(struct universe *world, double *r,
   int kk;
 
   /* state vector dimensions */
-  int m;
   int n;
 
   /* pointers to state vectors */
@@ -592,11 +557,9 @@ void compute_internal_energy_and_acceleration(struct universe *world, double *r,
   double *m_in;
   double *p_in;
   double *h_in;
-  double *dt_CFL_in;
 
   int pp;
 
-  m=world->dim;  
   n=world->num;
 
   r_in=r;
@@ -607,7 +570,6 @@ void compute_internal_energy_and_acceleration(struct universe *world, double *r,
   m_in=world->m;
   p_in=world->p;
   h_in=world->h;
-  dt_CFL_in=world->dt_CFL;
 
   alpha=world->alpha;
   beta=world->beta;

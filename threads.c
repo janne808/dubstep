@@ -454,23 +454,10 @@ void *acceleration_thread(void *threadarg){
 
 void *predictor_thread(void *threadarg){
   int nn;
-
   int m;
-  int n;
-
-  double *a_sph;
-  double *a_tree;
-
-  double *m_in;
-  double *dt_CFL_in;
-
-  double theta;
-  double epsilon;
   double dt;
 
-  struct cell *tree;
   struct universe *world;
-
   struct thread_data5 *my_data;
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
@@ -487,19 +474,7 @@ void *predictor_thread(void *threadarg){
   world=my_data->world;
 
   m=world->dim;
-  n=world->num;
-
-  a_sph=world->a_sph;
-  a_tree=world->a_tree;
-
-  m_in=world->m;
-
-  tree=world->tree;
-
-  theta=my_data->var1;
-  epsilon=my_data->var2;
   dt=world->sub_dt;
-  dt_CFL_in=world->dt_CFL;
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
@@ -539,7 +514,6 @@ void *corrector_thread(void *threadarg){
   int nn;
 
   int m;
-  int n;
 
   double r[3];
   double a[3];
@@ -547,13 +521,7 @@ void *corrector_thread(void *threadarg){
   double *a_sph;
   double *a_tree;
 
-  double *m_in;
-  double *h_in;
-
-  double *dt_CFL_in;
-
   double theta;
-  double epsilon;
   double dt;
 
   struct cell *tree;
@@ -575,19 +543,13 @@ void *corrector_thread(void *threadarg){
   world=my_data->world;
 
   m=world->dim;
-  n=world->num;
 
   a_sph=world->a_sph;
   a_tree=world->a_tree;
 
-  m_in=world->m;
-  h_in=world->h;
-
   tree=world->tree;
 
   theta=my_data->var1;
-  epsilon=my_data->var2;
-  dt_CFL_in=world->dt_CFL;
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
