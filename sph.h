@@ -24,8 +24,8 @@
 #ifndef __SPHH__
 #define __SPHH__
 
-static inline double kernel(double q, double h){
-  double val=q;
+static inline dubfloat_t kernel(dubfloat_t q, dubfloat_t h){
+  dubfloat_t val=q;
 
   if(q<1.0){
     val=1.0-3.0/2.0*val*val+3.0/4.0*val*val*val;
@@ -40,8 +40,8 @@ static inline double kernel(double q, double h){
   return val/(PI*h*h*h);
 }
 
-static inline double kernel_d(double q, double h){
-  double val=q;
+static inline dubfloat_t kernel_d(dubfloat_t q, dubfloat_t h){
+  dubfloat_t val=q;
 
   if(q<1.0){
     val=-3.0*val+9.0/4.0*val*val;
@@ -56,10 +56,10 @@ static inline double kernel_d(double q, double h){
   return val/(PI*h*h*h);
 }
 
-static inline double kernel_grav_f(double r, double epsilon){
-  double val;
-  double u;
-  double u2;
+static inline dubfloat_t kernel_grav_f(dubfloat_t r, dubfloat_t epsilon){
+  dubfloat_t val;
+  dubfloat_t u;
+  dubfloat_t u2;
 
   u=r/epsilon;
 
@@ -77,10 +77,10 @@ static inline double kernel_grav_f(double r, double epsilon){
   return val;
 }
 
-static inline double kernel_grav_g(double r, double epsilon){
-  double val;
-  double u;
-  double u2;
+static inline dubfloat_t kernel_grav_g(dubfloat_t r, dubfloat_t epsilon){
+  dubfloat_t val;
+  dubfloat_t u;
+  dubfloat_t u2;
 
   u=r/epsilon;
 
@@ -98,9 +98,9 @@ static inline double kernel_grav_g(double r, double epsilon){
   return val;
 }
 
-static inline double artificial_viscosity(double *dv_ij, double h_ij, double rho_ij,
-					  double c_ij, double *dr, double rr, double alpha, double beta, double neta){
-  double mu_ij;
+static inline dubfloat_t artificial_viscosity(dubfloat_t *dv_ij, dubfloat_t h_ij, dubfloat_t rho_ij,
+					  dubfloat_t c_ij, dubfloat_t *dr, dubfloat_t rr, dubfloat_t alpha, dubfloat_t beta, dubfloat_t neta){
+  dubfloat_t mu_ij;
 
   mu_ij=0;
   if((dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])<0.0)
@@ -109,24 +109,36 @@ static inline double artificial_viscosity(double *dv_ij, double h_ij, double rho
   return (-alpha*mu_ij*c_ij+beta*mu_ij*mu_ij)/rho_ij;
 }
 
+void build_particle_lattice(struct universe *world);
+
 void smooth_velocity_field(struct universe *world, int lo, int hi);
 
 void smooth_energy_field(struct universe *world, int lo, int hi);
 
-void compute_smoothing_length_tree(struct universe *world, double min_h, double max_h, int iterations,
-				   int N_target, double *r, struct cell *tree, struct cell *root,
+void compute_smoothing_length_tree(struct universe *world, dubfloat_t min_h, dubfloat_t max_h, int iterations,
+				   int N_target, dubfloat_t *r, struct cell *tree, struct cell *root,
 				   int lo, int hi, int *buffer);
-void compute_constant_smoothing_length_tree(struct universe *world, double min_h, double max_h, int iterations,
-					    int N_target, double *r, struct cell *tree, struct cell *root,
+
+void compute_constant_smoothing_length_tree(struct universe *world, dubfloat_t min_h, dubfloat_t max_h, int iterations,
+					    int N_target, dubfloat_t *r, struct cell *tree, struct cell *root,
 					    int lo, int hi, int *buffer);
+
 void compute_smoothing_length_neighbours(struct universe *world, int iterations, int N_target, int lo, int hi);
-void compute_density(struct universe *world, double h, int lo, int hi);
-void compute_pressure(struct universe *world, double gamma, int lo, int hi);
-void compute_soundspeed(struct universe *world, double gamma, int lo, int hi);
-void compute_cfl(struct universe *world, double C_0, int lo, int hi);
-void compute_internal_energy_and_acceleration(struct universe *world, double *r, double *v, double *a, int lo, int hi);
+
+void compute_density(struct universe *world, dubfloat_t h, int lo, int hi);
+
+void compute_pressure(struct universe *world, dubfloat_t gamma, int lo, int hi);
+
+void compute_soundspeed(struct universe *world, dubfloat_t gamma, int lo, int hi);
+
+void compute_cfl(struct universe *world, dubfloat_t C_0, int lo, int hi);
+
+void compute_internal_energy_and_acceleration(struct universe *world, dubfloat_t *r, dubfloat_t *v, dubfloat_t *a, int lo, int hi);
+
 void update_time_bins(struct universe *world, int lo, int hi);
+
 void update_kick_list(struct universe *world);
+
 void init_kick_list(struct universe *world);
 
 #endif

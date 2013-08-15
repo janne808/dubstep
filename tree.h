@@ -27,21 +27,21 @@
 
 /* tree cell */
 struct cell{ 
-  double *r; /* cell particle displacement vector */
-  double *m; /* cell particle mass vector */
+  dubfloat_t *r; /* cell particle displacement vector */
+  dubfloat_t *m; /* cell particle mass vector */
 
   int *particle_index_list; /* cell particle index relative to the world vector */
 
   int particle_index; /* particle index for tree branch end cell */
 
-  double space[3*8]; /* cell spatial limits */
+  dubfloat_t space[3*8]; /* cell spatial limits */
     
-  double l;   /* cell size */
+  dubfloat_t l;   /* cell size */
     
-  double mass; /* total mass of particles */
+  dubfloat_t mass; /* total mass of particles */
   int num; /* number of particles in cell */
-  double center[3]; /* cell center of mass */
-  double distr_len; /* mass distribution length */
+  dubfloat_t center[3]; /* cell center of mass */
+  dubfloat_t distr_len; /* mass distribution length */
     
   int parent; /* parent cell index */
   int children[8]; /* children cell indices */
@@ -51,32 +51,32 @@ struct cell{
 };
 
 /* function prototypes */
-int init_treeroot(struct cell *tree, struct universe *world, double *r);
+int init_treeroot(struct cell *tree, struct universe *world, dubfloat_t *r);
 
-void direct_summation(struct universe *world, double *r, double *a, double G);
+void direct_summation(struct universe *world, dubfloat_t *r, dubfloat_t *a, dubfloat_t G);
 
-void force_walk(struct universe *world, struct cell *tree, struct cell *root, double *r,
-		double *a, double G, double theta, double h);
+void force_walk(struct universe *world, struct cell *tree, struct cell *root, dubfloat_t *r,
+		dubfloat_t *a, dubfloat_t G, dubfloat_t theta, dubfloat_t h);
 
-void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, double max_h,
-		    double *h_in, int *neighbour_num, int *neighbour_list);
+void neighbour_walk(struct cell *tree, struct cell *root, dubfloat_t *r, dubfloat_t h, dubfloat_t max_h,
+		    dubfloat_t *h_in, int *neighbour_num, int *neighbour_list);
 
-void compute_total_energy(struct universe *world, double theta, int lo, int hi);
+void compute_total_energy(struct universe *world, dubfloat_t theta, int lo, int hi);
 
 void tree_branch(struct universe *world, struct cell *tree, struct cell *root, int *cellindex);
 
 void tree_recurse(struct cell *tree, struct cell *root);
 
-void neighbour_recurse(struct cell *tree, struct cell *root, double *r, double h, double max_h,
-		       double *h_in, int *neighbour_num, int *neighbour_list);
+void neighbour_recurse(struct cell *tree, struct cell *root, dubfloat_t *r, dubfloat_t h, dubfloat_t max_h,
+		       dubfloat_t *h_in, int *neighbour_num, int *neighbour_list);
 
 void potential_recurse(struct cell *tree, struct cell *root, 
-		       double *r, double m, double *U, double G, double theta,
-		       double epsilon);
+		       dubfloat_t *r, dubfloat_t m, dubfloat_t *U, dubfloat_t G, dubfloat_t theta,
+		       dubfloat_t epsilon);
 
 void force_recurse(struct cell *tree, struct cell *root,
-		   double *r, double *f, double G, double theta,
-		   double epsilon);
+		   dubfloat_t *r, dubfloat_t *f, dubfloat_t G, dubfloat_t theta,
+		   dubfloat_t epsilon);
 
 void branch_recurse(struct universe *world, struct cell *tree, struct cell *root, int *cellindex);
 

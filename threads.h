@@ -27,7 +27,7 @@
 struct thread_data{
   int thread_id;
   struct universe *world;
-  double var;
+  dubfloat_t var;
   int lo;
   int hi;
 };
@@ -35,9 +35,9 @@ struct thread_data{
 struct thread_data2{
   int thread_id;
   struct universe *world;
-  double *r;
-  double *v;
-  double *a;
+  dubfloat_t *r;
+  dubfloat_t *v;
+  dubfloat_t *a;
   int lo;
   int hi;
 };
@@ -46,10 +46,10 @@ struct thread_data3{
   int thread_id;
   struct universe *world;
   struct cell *tree;
-  double *a_sph;
-  double var1;
-  double var2;
-  double var3;
+  dubfloat_t *a_sph;
+  dubfloat_t var1;
+  dubfloat_t var2;
+  dubfloat_t var3;
   int lo;
   int hi;
 };
@@ -67,10 +67,10 @@ struct thread_data5{
   int thread_id;
   struct universe *world;
   struct cell *tree;
-  double *a_sph;
-  double var1;
-  double var2;
-  double var3;
+  dubfloat_t *a_sph;
+  dubfloat_t var1;
+  dubfloat_t var2;
+  dubfloat_t var3;
   int lo;
   int hi;
 };
@@ -80,11 +80,11 @@ struct thread_data6{
   struct universe *world;
   struct cell *tree;
   struct cell *root;
-  double *r;
-  double var1;
-  double var2;
-  double var3;
-  double var4;
+  dubfloat_t *r;
+  dubfloat_t var1;
+  dubfloat_t var2;
+  dubfloat_t var3;
+  dubfloat_t var4;
   int lo;
   int hi;
 };
@@ -101,10 +101,10 @@ void *acceleration_thread(void *threadarg);
 void *predictor_thread(void *threadarg);
 void *corrector_thread(void *threadarg);
 
-void create_smoothing_threads(struct universe *world, int iterations, int neighbours, double min_h,
-			      double max_h, double *r, struct cell *tree, struct cell *root);
-void create_smoothing_threads_chunked(struct universe *world, int iterations, int neighbours, double min_h,
-				      double max_h, double *r, struct cell *tree, struct cell *root);
+void create_smoothing_threads(struct universe *world, int iterations, int neighbours, dubfloat_t min_h,
+			      dubfloat_t max_h, dubfloat_t *r, struct cell *tree, struct cell *root);
+void create_smoothing_threads_chunked(struct universe *world, int iterations, int neighbours, dubfloat_t min_h,
+				      dubfloat_t max_h, dubfloat_t *r, struct cell *tree, struct cell *root);
 void create_density_threads(struct universe *world);
 void create_pressure_threads(struct universe *world);
 void create_soundspeed_threads(struct universe *world);
@@ -113,6 +113,6 @@ void create_timebin_threads(struct universe *world);
 void create_acceleration_threads(struct universe *world);
 void create_predictor_threads(struct universe *world);
 void create_corrector_threads(struct universe *world);
-void create_total_energy_threads(struct universe *world, double theta);
+void create_total_energy_threads(struct universe *world, dubfloat_t theta);
 
 #endif

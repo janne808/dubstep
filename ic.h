@@ -24,6 +24,6 @@
 #ifndef __ICHH__
 #define __ICHH__
 
-void generate_glass(struct universe *world, double radius, double U_threshold, double epsilon, double G);
+void generate_glass(struct universe *world, dubfloat_t radius, dubfloat_t U_threshold, dubfloat_t epsilon, dubfloat_t G);
 
 #endif

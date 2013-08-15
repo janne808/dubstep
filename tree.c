@@ -31,7 +31,7 @@
 #include "tree.h"
 #include "linear.h"
 
-int init_treeroot(struct cell *tree, struct universe *world, double *r){
+int init_treeroot(struct cell *tree, struct universe *world, dubfloat_t *r){
   int ii;
   int n,m;
   
@@ -41,20 +41,20 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
 
   /* form tree root cell*/
   /* init particle displacement vector */
-  tree[0].r=malloc(m*n*sizeof(double));
+  tree[0].r=malloc(m*n*sizeof(dubfloat_t));
   if(!tree[0].r){
     printf("Out of memory: root displacement vector not allocated.\n");
     return -1;
   }
-  memcpy(tree[0].r, r, m*n*sizeof(double));
+  memcpy(tree[0].r, r, m*n*sizeof(dubfloat_t));
 
   /* init particle mass vector */
-  tree[0].m=malloc(n*sizeof(double));        
+  tree[0].m=malloc(n*sizeof(dubfloat_t));        
   if(!tree[0].m){
     printf("Out of memory: root mass vector not allocated.\n");
     return -1;
   }
-  memcpy(tree[0].m, world->m , n*sizeof(double));
+  memcpy(tree[0].m, world->m , n*sizeof(dubfloat_t));
   
   /* init particle index vector */
   tree[0].particle_index_list=malloc(n*sizeof(int));
@@ -164,16 +164,16 @@ int init_treeroot(struct cell *tree, struct universe *world, double *r){
   return 0;
 }
 
-void direct_summation(struct universe *world, double *r, double *a, double G){
+void direct_summation(struct universe *world, dubfloat_t *r, dubfloat_t *a, dubfloat_t G){
   /* loop variables */
   int ii;
 
   /* distance calculation variables */
-  double d;
-  double d2;
+  dubfloat_t d;
+  dubfloat_t d2;
 
   /* plummer softening length */
-  double epsilon;
+  dubfloat_t epsilon;
 
   /* calculate gravitational acceleration by direct summation */
   for(ii=0;ii<world->num;ii++){
@@ -193,8 +193,8 @@ void direct_summation(struct universe *world, double *r, double *a, double G){
   }
 }
 
-void force_walk(struct universe *world, struct cell *tree, struct cell *root, double *r,
-		double *a, double G, double theta, double h){
+void force_walk(struct universe *world, struct cell *tree, struct cell *root, dubfloat_t *r,
+		dubfloat_t *a, dubfloat_t G, dubfloat_t theta, dubfloat_t h){
   /* loop variables */
   int ii;
 
@@ -208,16 +208,16 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
   int wp;
 
   /* cell side length variable */
-  double l;
+  dubfloat_t l;
 
   /* distance calculation variables */
-  double d,d2,delta;
+  dubfloat_t d,d2,delta;
 
   /* plummer softening factor */
-  double epsilon;
+  dubfloat_t epsilon;
 
   /* temporary vector */
-  double temp[3];
+  dubfloat_t temp[3];
 
   /* init walk pointer */
   wp=0;
@@ -278,8 +278,8 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, do
   }
 }
 
-void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, double max_h,
-		    double *h_in, int *neighbour_num, int *neighbour_list){
+void neighbour_walk(struct cell *tree, struct cell *root, dubfloat_t *r, dubfloat_t h, dubfloat_t max_h,
+		    dubfloat_t *h_in, int *neighbour_num, int *neighbour_list){
   /* loop variables */
   int ii;
 
@@ -293,13 +293,13 @@ void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, d
   int wp;
 
   /* cell side length variable */
-  double l;
+  dubfloat_t l;
 
   /* distance calculation variables */
-  double d;
+  dubfloat_t d;
 
   /* temporary vector */
-  double temp[3];
+  dubfloat_t temp[3];
 
   /* init walk pointer */
   wp=0;
@@ -348,19 +348,19 @@ void neighbour_walk(struct cell *tree, struct cell *root, double *r, double h, d
   }
 }
 
-void neighbour_recurse(struct cell *tree, struct cell *root, double *r, double h, double max_h,
-		       double *h_in, int *neighbour_num, int *neighbour_list){
+void neighbour_recurse(struct cell *tree, struct cell *root, dubfloat_t *r, dubfloat_t h, dubfloat_t max_h,
+		       dubfloat_t *h_in, int *neighbour_num, int *neighbour_list){
   /* loop variables */
   int ii;
 
   /* distance calculation variable */
-  double d;
+  dubfloat_t d;
 
   /* cell length variable */
-  double l;
+  dubfloat_t l;
 
   /* temporary vector */
-  double temp[3];
+  dubfloat_t temp[3];
 
   /* tree structure child pointer */
   struct cell *child;
@@ -399,19 +399,19 @@ void neighbour_recurse(struct cell *tree, struct cell *root, double *r, double h
   }
 }
 
-void compute_total_energy(struct universe *world, double theta, int lo, int hi){
+void compute_total_energy(struct universe *world, dubfloat_t theta, int lo, int hi){
   /* loop variables */
   int ii;
 
   /* pointers to state vectors */
-  double *r_in;
-  double *m_in;
+  dubfloat_t *r_in;
+  dubfloat_t *m_in;
 
   /* total gravitational potential energy */
-  double *U;
+  dubfloat_t *U;
 
   /* total kinetic energy */
-  double *K;
+  dubfloat_t *K;
 
   /* pointer to barnes hut tree */
   struct cell *tree;
@@ -438,21 +438,21 @@ void compute_total_energy(struct universe *world, double theta, int lo, int hi){
   }
 }
 
-void potential_recurse(struct cell *tree, struct cell *root, double *r, double m,
-		       double *U, double G, double theta, double epsilon){
+void potential_recurse(struct cell *tree, struct cell *root, dubfloat_t *r, dubfloat_t m,
+		       dubfloat_t *U, dubfloat_t G, dubfloat_t theta, dubfloat_t epsilon){
   /* loop variables */
   int ii;
 
   /* distance calculation variables */
-  double d;
-  double d2;
-  //double delta;
+  dubfloat_t d;
+  dubfloat_t d2;
+  //dubfloat_t delta;
 
   /* cell length variable */
-  //double l;
+  //dubfloat_t l;
 
   /* temporary vector */
-  //double temp[3];
+  //dubfloat_t temp[3];
 
   /* tree structure child pointer */
   struct cell *child;
@@ -499,21 +499,21 @@ void potential_recurse(struct cell *tree, struct cell *root, double *r, double m
   }
 }
 
-void force_recurse(struct cell *tree, struct cell *root, double *r,
-		   double *f, double G, double theta, double epsilon){
+void force_recurse(struct cell *tree, struct cell *root, dubfloat_t *r,
+		   dubfloat_t *f, dubfloat_t G, dubfloat_t theta, dubfloat_t epsilon){
   /* loop variables */
   int ii;
 
   /* distance calculation variables */
-  double d;
-  double d2;
-  double delta;
+  dubfloat_t d;
+  dubfloat_t d2;
+  dubfloat_t delta;
 
   /* cell length variable */
-  double l;
+  dubfloat_t l;
 
   /* temporary vector */
-  double temp[3];
+  dubfloat_t temp[3];
 
   /* tree structure child pointer */
   struct cell *child;
@@ -611,13 +611,13 @@ void branch_recurse(struct universe *world, struct cell *tree, struct cell *root
 
 void tree_branch(struct universe *world, struct cell *tree, struct cell *root, int *cellindex){
     struct cell *newcell;
-    double x,y,z;
-    double *r,*m;
+    dubfloat_t x,y,z;
+    dubfloat_t *r,*m;
     int *particle_index_list;
-    double h;
-    double cell_r[3*8];
+    dubfloat_t h;
+    dubfloat_t cell_r[3*8];
     int ii,jj,nn;
-    double hh;
+    dubfloat_t hh;
 
     /* root particle displacement, mass and particle index vectors */
     r=root->r;
@@ -725,8 +725,8 @@ void tree_branch(struct universe *world, struct cell *tree, struct cell *root, i
       newcell->l=h;
 
       /* allocate memory for particle displacement, mass and index vectors */
-      newcell->r=(double*)malloc(3*root->num*sizeof(double));
-      newcell->m=(double*)malloc(root->num*sizeof(double));
+      newcell->r=(dubfloat_t*)malloc(3*root->num*sizeof(dubfloat_t));
+      newcell->m=(dubfloat_t*)malloc(root->num*sizeof(dubfloat_t));
       newcell->particle_index_list=(int*)malloc(root->num*sizeof(int));
 
       /* calculate new subcell particle displacement and mass vectors */

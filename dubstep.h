@@ -33,11 +33,11 @@
 #endif
 
 #ifndef MIN_SMOOTH_LEN
-#define MIN_SMOOTH_LEN 0.65
+#define MIN_SMOOTH_LEN 0.7
 #endif
 
 #ifndef MAX_SMOOTH_LEN
-#define MAX_SMOOTH_LEN 1.0
+#define MAX_SMOOTH_LEN 0.7
 #endif
 
 #ifndef ADAPTIVE_SOFTENING
@@ -45,7 +45,7 @@
 #endif
 
 #ifndef SOFTENING_FACTOR
-#define SOFTENING_FACTOR 1.0
+#define SOFTENING_FACTOR 0.7
 #endif
 
 #ifndef GEOMETRIC_MEAN_SYMMETRIZATION
@@ -56,12 +56,8 @@
 #define ARITHMETIC_MEAN_SYMMETRIZATION 1
 #endif
 
-#ifndef SPH_SPEEDHACK
-#define SPH_SPEEDHACK 1
-#endif
-
 #ifndef NUM
-#define NUM 8000
+#define NUM 10000
 #endif
 
 #ifndef NUM_THREADS
@@ -72,11 +68,17 @@
 #define PI 3.14159265358979323846264
 #endif
 
+#if CUDA
+typedef float dubfloat_t;
+#else
+typedef double dubfloat_t;
+#endif
+
 /* structure for RGB color */
 struct color{
-  double r;
-  double g;
-  double b;
+  dubfloat_t r;
+  dubfloat_t g;
+  dubfloat_t b;
 };
 
 /* structure for list of interacting particles */
@@ -96,49 +98,49 @@ struct universe{
 
   struct cell *tree; /* tree cell array */
 
-  double G; /* gravitational constant */
+  dubfloat_t G; /* gravitational constant */
 
-  double *r; /* particle displacement vectors */
-  double *r2; /* particle displacement halfstep vectors */
-  double *v; /* particle velocity vectors */ 
-  double *v2; /* particle velocity halfstep vectors */ 
-  double *a; /* particle acceleration vectors*/
-  double *a2; /* particle acceleration halfstep vectors*/
+  dubfloat_t *r; /* particle displacement vectors */
+  dubfloat_t *r2; /* particle displacement halfstep vectors */
+  dubfloat_t *v; /* particle velocity vectors */ 
+  dubfloat_t *v2; /* particle velocity halfstep vectors */ 
+  dubfloat_t *a; /* particle acceleration vectors*/
+  dubfloat_t *a2; /* particle acceleration halfstep vectors*/
 
-  double *m; /* particle mass array */
+  dubfloat_t *m; /* particle mass array */
 
-  double *rho; /* particle density array */
-  double *p; /* particle pressure array */
-  double *c; /* particle speed of sound array */
+  dubfloat_t *rho; /* particle density array */
+  dubfloat_t *p; /* particle pressure array */
+  dubfloat_t *c; /* particle speed of sound array */
 
-  double *u; /* particle internal energy array */
-  double *u2; /* particle internal energy halfstep array */
-  double *du; /* particle internal energy array */
-  double *du2; /* particle internal energy halfstep array */
+  dubfloat_t *u; /* particle internal energy array */
+  dubfloat_t *u2; /* particle internal energy halfstep array */
+  dubfloat_t *du; /* particle internal energy array */
+  dubfloat_t *du2; /* particle internal energy halfstep array */
 
-  double *del_rho; /* particle density partial derivative array */
+  dubfloat_t *del_rho; /* particle density partial derivative array */
 
-  double *h; /* particle smoothing length parameter array */
+  dubfloat_t *h; /* particle smoothing length parameter array */
 
-  double *dt_CFL; /* particle time step array */
+  dubfloat_t *dt_CFL; /* particle time step array */
 
   int *cellindex; /* particle's residing tree cell index */
 
-  double *a_sph; /* particle hydrodynamic acceleration vector array */
-  double *a_tree; /* particle gravitational acceleration vector array */
+  dubfloat_t *a_sph; /* particle hydrodynamic acceleration vector array */
+  dubfloat_t *a_tree; /* particle gravitational acceleration vector array */
 
   /* model parameters */
-  double dt;
-  double epsilon;
-  double gamma;
-  double theta;
-  double alpha;
-  double beta;
+  dubfloat_t dt;
+  dubfloat_t epsilon;
+  dubfloat_t gamma;
+  dubfloat_t theta;
+  dubfloat_t alpha;
+  dubfloat_t beta;
 
-  double time; /* current universal time */
+  dubfloat_t time; /* current universal time */
 
   int timediv;
-  double sub_dt;
+  dubfloat_t sub_dt;
 
   int *kick;
   int *kick_list;
@@ -147,12 +149,12 @@ struct universe{
   int *time_bin;
 
   /* total system energy */
-  double u_int;
-  double u_grav;
-  double u_kin;
+  dubfloat_t u_int;
+  dubfloat_t u_grav;
+  dubfloat_t u_kin;
 
-  double avg_u;
-  double min_u;
+  dubfloat_t avg_u;
+  dubfloat_t min_u;
 };
 
 #endif

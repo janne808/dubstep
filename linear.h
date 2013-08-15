@@ -24,12 +24,12 @@
 #ifndef __LINEARH__
 #define __LINEARH__
 
-static inline double euclidean_norm(double *r, int dim){
+static inline dubfloat_t euclidean_norm(dubfloat_t *r, int dim){
   /* loop variable */
   int ii;
 
   /* inner product sum variable */
-  double sum;
+  dubfloat_t sum;
 
   sum=0;
   for(ii=0;ii<dim;ii++){
@@ -39,12 +39,12 @@ static inline double euclidean_norm(double *r, int dim){
   return sqrt(sum);
 }
 
-static inline double euclidean_distance(double *r, double *v, int dim){
+static inline dubfloat_t euclidean_distance(dubfloat_t *r, dubfloat_t *v, int dim){
   /* loop variable */
   int ii;
 
   /* inner product sum variable */
-  double sum;
+  dubfloat_t sum;
 
   sum=0;
   for(ii=0;ii<dim;ii++){

@@ -32,9 +32,33 @@
 #include "tree.h"
 #include "linear.h"
 
+void build_particle_lattice(struct universe *world){
+  /* loop variables */
+  int ii;
+
+  /* cell size */
+  dubfloat_t l=0.25;
+
+  /* maximum displacement */
+  dubfloat_t max_r;
+
+  /* search for largest displacement */
+  max_r=0;
+  for(ii=0;ii<world->num;ii++){
+    if(world->r[3*ii+0]>max_r)
+      max_r=world->r[3*ii+0];
+    if(world->r[3*ii+1]>max_r)
+      max_r=world->r[3*ii+1];
+    if(world->r[3*ii+2]>max_r)
+      max_r=world->r[3*ii+2];
+  }
+
+  /* make sure the lattice divides evenly with cell size */
+}
+
 void smooth_velocity_field(struct universe *world, int lo, int hi){
   /* vector norm variables */
-  double r;
+  dubfloat_t r;
 
   /* loop variables */
   int ii,jj,kk;
@@ -44,14 +68,14 @@ void smooth_velocity_field(struct universe *world, int lo, int hi){
   int n;
 
   /* pointers to state vectors */
-  double *r_in;
-  double *rho_in;
-  double *m_in;
-  double *h_in;
-  double *v_in;
+  dubfloat_t *r_in;
+  dubfloat_t *rho_in;
+  dubfloat_t *m_in;
+  dubfloat_t *h_in;
+  dubfloat_t *v_in;
 
   /* smoothed output vector */
-  double *v_out;
+  dubfloat_t *v_out;
   
   m=world->dim;  
   n=world->num;
@@ -62,7 +86,7 @@ void smooth_velocity_field(struct universe *world, int lo, int hi){
   h_in=world->h;
   v_in=world->v;
 
-  v_out=(double*)malloc(m*n*sizeof(double));
+  v_out=(dubfloat_t*)malloc(m*n*sizeof(dubfloat_t));
   if(!v_out){
     printf("Out of memory: velocity field smoothing vector not allocated.\n");
     exit(1);
@@ -95,7 +119,7 @@ void smooth_velocity_field(struct universe *world, int lo, int hi){
 
 void smooth_energy_field(struct universe *world, int lo, int hi){
   /* vector norm variables */
-  double r;
+  dubfloat_t r;
 
   /* loop variables */
   int ii,jj,kk;
@@ -104,14 +128,14 @@ void smooth_energy_field(struct universe *world, int lo, int hi){
   int n;
 
   /* pointers to state vectors */
-  double *r_in;
-  double *rho_in;
-  double *m_in;
-  double *h_in;
-  double *u_in;
+  dubfloat_t *r_in;
+  dubfloat_t *rho_in;
+  dubfloat_t *m_in;
+  dubfloat_t *h_in;
+  dubfloat_t *u_in;
 
   /* smoothed output vector */
-  double *u_out;
+  dubfloat_t *u_out;
   
   n=world->num;
 
@@ -121,7 +145,7 @@ void smooth_energy_field(struct universe *world, int lo, int hi){
   h_in=world->h;
   u_in=world->u;
 
-  u_out=(double*)malloc(n*sizeof(double));
+  u_out=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
   if(!u_out){
     printf("Out of memory: energy smoothing vector not allocated.\n");
     exit(1);
@@ -148,20 +172,20 @@ void smooth_energy_field(struct universe *world, int lo, int hi){
   world->u=u_out;
 }
 
-void compute_smoothing_length_tree(struct universe *world, double min_h, double max_h, int iterations, int N_target,
-				   double *r, struct cell *tree, struct cell *root, int lo, int hi, int *buffer){
+void compute_smoothing_length_tree(struct universe *world, dubfloat_t min_h, dubfloat_t max_h, int iterations, int N_target,
+				   dubfloat_t *r, struct cell *tree, struct cell *root, int lo, int hi, int *buffer){
   /* loop variables */
   int ii,jj;
 
   /* pointers to state vectors */
-  double *r_in;
-  double *h_in;
+  dubfloat_t *r_in;
+  dubfloat_t *h_in;
 
   /* pointer to particle neighbour number vector */
   int *num_neighbours_in;
 
   /* pointer to smoothing length iteration variables */
-  double h,h_new;
+  dubfloat_t h,h_new;
 
   /* number of interacting particles */
   int N;
@@ -185,7 +209,7 @@ void compute_smoothing_length_tree(struct universe *world, double min_h, double 
       N=0;
       neighbour_walk(tree, root, &r_in[3*pp], h, max_h, h_in, &N, buffer);
       
-      h_new=h*0.5*(1.0+pow((double)(N_target)/(double)(N),1.0/3.0));
+      h_new=h*0.5*(1.0+pow((dubfloat_t)(N_target)/(dubfloat_t)(N),1.0/3.0));
       if(h_new>min_h&&h_new<max_h)
 	h=h_new;
       else
@@ -212,14 +236,14 @@ void compute_smoothing_length_tree(struct universe *world, double min_h, double 
   }
 }
 
-void compute_constant_smoothing_length_tree(struct universe *world, double min_h, double max_h, int iterations, int N_target,
-					    double *r, struct cell *tree, struct cell *root, int lo, int hi, int *buffer){
+void compute_constant_smoothing_length_tree(struct universe *world, dubfloat_t min_h, dubfloat_t max_h, int iterations, int N_target,
+					    dubfloat_t *r, struct cell *tree, struct cell *root, int lo, int hi, int *buffer){
   /* loop variables */
   int ii;
 
   /* pointers to state vectors */
-  double *r_in;
-  double *h_in;
+  dubfloat_t *r_in;
+  dubfloat_t *h_in;
 
   /* pointer to particle neighbour number vector */
   int *num_neighbours_in;
@@ -265,7 +289,7 @@ void compute_constant_smoothing_length_tree(struct universe *world, double min_h
 
 void compute_smoothing_length_neighbours(struct universe *world, int iterations, int N_target, int lo, int hi){
   /* vector norm variables */
-  double r;
+  dubfloat_t r;
 
   /* loop variables */
   int ii,jj,kk;
@@ -274,12 +298,12 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
   int n;
 
   /* pointers to state vectors */
-  double *r_in;
-  double *h_in;
+  dubfloat_t *r_in;
+  dubfloat_t *h_in;
 
   int *num_neighbours_in;
 
-  double h,h_new;
+  dubfloat_t h,h_new;
 
   /* number of interacting particles */
   int N;
@@ -322,7 +346,7 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
 	  N++;
 	  }
       }
-      h_new=h*0.5*(1+pow((double)(N_target)/(double)(N),1.0/3.0));
+      h_new=h*0.5*(1+pow((dubfloat_t)(N_target)/(dubfloat_t)(N),1.0/3.0));
       if(h_new>0.01&&h_new<1.0)
 	h=h_new;
       else
@@ -342,9 +366,9 @@ void compute_smoothing_length_neighbours(struct universe *world, int iterations,
   free(buffer);
 }
 
-void compute_density(struct universe *world, double h, int lo, int hi){
+void compute_density(struct universe *world, dubfloat_t h, int lo, int hi){
   /* vector norm variables */
-  double r;
+  dubfloat_t r;
 
   /* loop variables */
   int ii,jj,kk;
@@ -353,10 +377,10 @@ void compute_density(struct universe *world, double h, int lo, int hi){
   int n;
 
   /* pointers to state vectors */
-  double *r_in;
-  double *rho_in;
-  double *m_in;
-  double *h_in;
+  dubfloat_t *r_in;
+  dubfloat_t *rho_in;
+  dubfloat_t *m_in;
+  dubfloat_t *h_in;
 
   /* particle pointer */
   int pp;
@@ -383,14 +407,14 @@ void compute_density(struct universe *world, double h, int lo, int hi){
   }
 }
 
-void compute_pressure(struct universe *world, double gamma, int lo, int hi){
+void compute_pressure(struct universe *world, dubfloat_t gamma, int lo, int hi){
   /* loop variables */
   int ii;
 
   /* pointers to state vectors */
-  double *p_in;
-  double *rho_in;
-  double *u_in;
+  dubfloat_t *p_in;
+  dubfloat_t *rho_in;
+  dubfloat_t *u_in;
 
   /* particle pointer */
   int pp;
@@ -406,14 +430,14 @@ void compute_pressure(struct universe *world, double gamma, int lo, int hi){
   }
 }
 
-void compute_soundspeed(struct universe *world, double gamma, int lo, int hi){
+void compute_soundspeed(struct universe *world, dubfloat_t gamma, int lo, int hi){
   /* loop variables */
   int ii;
 
   /* pointers to state vectors */
-  double *p_in;
-  double *rho_in;
-  double *c_in;
+  dubfloat_t *p_in;
+  dubfloat_t *rho_in;
+  dubfloat_t *c_in;
 
   int pp;
 
@@ -427,42 +451,42 @@ void compute_soundspeed(struct universe *world, double gamma, int lo, int hi){
   }
 }
 
-void compute_cfl(struct universe *world, double C_0, int lo, int hi){
+void compute_cfl(struct universe *world, dubfloat_t C_0, int lo, int hi){
   /* vector norm variables */
-  double rr;
-  double dr[3];
+  dubfloat_t rr;
+  dubfloat_t dr[3];
 
   /* loop variables */
   int ii,jj,kk;
 
   /* smoothing kernel variable */
-  double dW;
-  double dW_ij[3];
+  dubfloat_t dW;
+  dubfloat_t dW_ij[3];
 
-  double dv_ij[3];
+  dubfloat_t dv_ij[3];
 
   /* state vector dimensions */
   int n;
 
   /* pointers to state vectors */
-  double *r_in;
-  double *rho_in;
-  double *m_in;
-  double *h_in;
-  double *v_in;
-  double *c_in;
+  dubfloat_t *r_in;
+  dubfloat_t *rho_in;
+  dubfloat_t *m_in;
+  dubfloat_t *h_in;
+  dubfloat_t *v_in;
+  dubfloat_t *c_in;
 
-  double *dt_CFL_in;
+  dubfloat_t *dt_CFL_in;
 
-  double div_v_ij;
+  dubfloat_t div_v_ij;
 
-  double mu_ij,max_mu;
+  dubfloat_t mu_ij,max_mu;
 
-  double h_ij;
+  dubfloat_t h_ij;
 
-  double alpha;
-  double beta;
-  double neta=0.01;
+  dubfloat_t alpha;
+  dubfloat_t beta;
+  dubfloat_t neta=0.01;
 
   int pp;
   
@@ -522,23 +546,23 @@ void compute_cfl(struct universe *world, double C_0, int lo, int hi){
   }
 }
 
-void compute_internal_energy_and_acceleration(struct universe *world, double *r, double *v, double *a, int lo, int hi){
+void compute_internal_energy_and_acceleration(struct universe *world, dubfloat_t *r, dubfloat_t *v, dubfloat_t *a, int lo, int hi){
   /* vector norm variables */
-  double rr;
-  double dr[3];
+  dubfloat_t rr;
+  dubfloat_t dr[3];
 
   /* smoothing kernel variable */
-  double dW;
-  double dW_ij[3];
+  dubfloat_t dW;
+  dubfloat_t dW_ij[3];
 
-  double dv_ij[3];
+  dubfloat_t dv_ij[3];
 
   /* artificial viscosity variables */
-  double Pi_ij;
-  double alpha=1.0;
-  double beta=1.0;
-  double neta=0.01;
-  double av;
+  dubfloat_t Pi_ij;
+  dubfloat_t alpha=1.0;
+  dubfloat_t beta=1.0;
+  dubfloat_t neta=0.01;
+  dubfloat_t av;
 
   /* loop variables */
   int ii;
@@ -549,14 +573,14 @@ void compute_internal_energy_and_acceleration(struct universe *world, double *r,
   int n;
 
   /* pointers to state vectors */
-  double *r_in;
-  double *v_in;
-  double *rho_in;
-  double *c_in;
-  double *du_in;
-  double *m_in;
-  double *p_in;
-  double *h_in;
+  dubfloat_t *r_in;
+  dubfloat_t *v_in;
+  dubfloat_t *rho_in;
+  dubfloat_t *c_in;
+  dubfloat_t *du_in;
+  dubfloat_t *m_in;
+  dubfloat_t *p_in;
+  dubfloat_t *h_in;
 
   int pp;
 
@@ -649,9 +673,9 @@ void update_time_bins(struct universe *world, int lo, int hi){
   int ii,nn;
 
   /* correction term variable */
-  double ksi;
+  dubfloat_t ksi;
 
-  double old_dt;
+  dubfloat_t old_dt;
 
   /* update particle time bins */
   for(nn=lo;nn<hi;nn++){

@@ -14,7 +14,7 @@ endif
 
 # compilers
 CC=gcc
-NVCC=nvcc
+NVCC=/usr/local/cuda-5.0/bin/nvcc
 
 # compiler options
 ifeq ($(SDL),1)
@@ -26,43 +26,48 @@ endif
 # compiler flags
 ifeq ($(CUDA), 1)
 	ifeq ($(SDL),1)
-		CFLAGS=-DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -finline-functions -lm -lGL -ltiff `sdl-config --libs` -L/opt/cuda/lib -lcudart -L/opt/cuda/sdk/lib
+		CFLAGS=-DCUDA=1 -DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -finline-functions -I/usr/local/cuda-5.0/include -lm -lGL -lrt -ltiff `sdl-config --libs` -L/usr/local/cuda-5.0/lib -lcudart
 	else
-		CFLAGS=-DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -finline-functions -lm -lGL -L/opt/cuda/lib -lcudart -L/opt/cuda/sdk/lib
+		CFLAGS=-DCUDA=1 -DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -finline-functions -I/usr/local/cuda-5.0/include -lm -lGL -lrt -L/usr/local/cuda-5.0/lib -lcudart
 	endif
 else
 	ifeq ($(SDL),1)
-		CFLAGS=-DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -lm -lGL -ltiff -lrt `sdl-config --libs`
+		CFLAGS=-DCUDA=0 -DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -lm -lGL -ltiff -lrt `sdl-config --libs`
 	else
-		CFLAGS=-DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -lm -lGL -lrt
+		CFLAGS=-DCUDA=0 -DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -lm -lGL -lrt
 	endif
 endif
 
+ifeq ($(CUDA), 1)
 dubstep: $(OBJ)
-	$(CC) -o $@ $(OPTS) $(OBJ) $(CFLAGS) 
+	$(NVCC) -m32 -o $@ $+ -DCUDA=1 -DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -I/usr/local/cuda-5.0/include -lm -lGL -lrt -ltiff `sdl-config --libs` -L/usr/local/cuda-5.0/lib -lcudart
+else
+dubstep: $(OBJ)
+	$(CC) -o $@ $+ $(OPTS) $(CFLAGS) 
+endif
 
-dubstep.o: dubstep.c tree.h
-	gcc $(OPTS) $(CFLAGS) -c $<
+dubstep.o: dubstep.c
+	$(CC) $(OPTS) $(CFLAGS) -c $<
 
 tree.o: tree.c tree.h
-	gcc $(OPTS) $(CFLAGS) -c $<
+	$(CC) $(OPTS) $(CFLAGS) -c $<
 
 sph.o: 	sph.c sph.h
-	gcc $(OPTS) $(CFLAGS) -c $<
+	$(CC) $(OPTS) $(CFLAGS) -c $<
 
 ifeq ($(CUDA), 1)
 sph_cuda.o: sph_cuda.cu sph_cuda.h
-	nvcc --compiler-options -fno-strict-aliasing -I. -I/opt/cuda/NVIDIA_CUDA_SDK/common/inc -I/opt/cuda/include -c $<
+	$(NVCC) -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 -m32 -I. -I/usr/local/cuda-5.0/include -c $<
 endif
 
 threads.o: threads.c threads.h
-	gcc $(OPTS) $(CFLAGS) -c $<
+	$(CC) $(OPTS) $(CFLAGS) -c $<
 
 timer.o: timer.c timer.h
-	gcc $(OPTS) $(CFLAGS) -c $<
+	$(CC) $(OPTS) $(CFLAGS) -c $<
 
 ic.o: ic.c ic.h
-	gcc $(OPTS) $(CFLAGS) -c $<
+	$(CC) $(OPTS) $(CFLAGS) -c $<
 
 .PHONY: clean
 clean:

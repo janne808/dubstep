@@ -24,7 +24,12 @@
 #ifndef __SPHCUDAH__
 #define __SPHCUDAH__
 
+#ifdef __cplusplus
+extern "C" void compute_smoothing_length_neighbours_cuda(struct universe *world, int iterations, int N_target);
+#else
 void compute_smoothing_length_neighbours_cuda(struct universe *world, int iterations, int N_target);
-void smoothing_length_iterator(float *r, float *origin, int *buffer, int *buffer_index, float *h, int n);
+#endif
+
+void smoothing_length_iterator(dubfloat_t *r, dubfloat_t *origin, int *buffer, int *buffer_index, dubfloat_t *h, int n);
 
 #endif

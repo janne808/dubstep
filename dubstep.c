@@ -35,9 +35,19 @@
 #include <tiffio.h>
 #endif
 
+#if CUDA
+#include <cuda_runtime.h>
+#include <cuda.h>
+#endif
+
 #include "dubstep.h"
 #include "tree.h"
 #include "sph.h"
+
+#if CUDA
+#include "sph_cuda.h"
+#endif
+
 #include "threads.h"
 #include "timer.h"
 #include "random.h"
@@ -45,13 +55,13 @@
 #include "linear.h"
 
 #if ENABLE_GUI
-void colormap(double val, struct color *col){
+void colormap(dubfloat_t val, struct color *col){
   int nn;
 
-  double x_map[6]={0.0, 0.2, 0.45, 0.7, 0.85, 1.0};
-  double r_map[6]={0.0, 0.0, 0.0, 1.0, 1.0, 0.65};
-  double g_map[6]={0.0, 0.0, 1.0, 1.0, 0.0, 0.0};
-  double b_map[6]={0.65, 1.0, 1.0, 0.0, 0.0, 0.0};
+  dubfloat_t x_map[6]={0.0, 0.2, 0.45, 0.7, 0.85, 1.0};
+  dubfloat_t r_map[6]={0.0, 0.0, 0.0, 1.0, 1.0, 0.65};
+  dubfloat_t g_map[6]={0.0, 0.0, 1.0, 1.0, 0.0, 0.0};
+  dubfloat_t b_map[6]={0.65, 1.0, 1.0, 0.0, 0.0, 0.0};
 
   /* crop value to fit the map */
   if(val>0.99)
@@ -121,33 +131,33 @@ int main(int argc, char *argv[])
   struct cell *tree=0;
 
   /* physical variables */
-  double *r, *a_tree, *a_sph;
+  dubfloat_t *r, *a_tree, *a_sph;
 
   /* computational model parameters */
 
   /* gravitation constant normalized to astronomical units */
   /* i.e. mass is normalized to solar mass, time to 1 year and */
   /* distance to AU */
-  double G=4.0*PI*PI;
+  dubfloat_t G=4.0*PI*PI;
 
   /* tree cell opening length parameter */
-  double theta=0.85;
+  dubfloat_t theta=0.85;
 
   /* maximum timestep */
-  double dt=0.085;
+  dubfloat_t dt=0.085;
 
   /* plummer gravitational softening factor*/
-  double epsilon=SOFTENING_FACTOR;
+  dubfloat_t epsilon=SOFTENING_FACTOR;
 
   /* initial smoothing length */
-  double h=MAX_SMOOTH_LEN;
+  dubfloat_t h=MAX_SMOOTH_LEN;
 
   /* artificial viscosity parameters */
-  double alpha=1.0;
-  double beta=1.0;
+  dubfloat_t alpha=1.0;
+  dubfloat_t beta=1.0;
 
   /* adiabatic exponent*/
-  double gamma=1.4;
+  dubfloat_t gamma=1.6;
 
   /* time bin handling variables */
   int max_bin;
@@ -176,29 +186,29 @@ int main(int argc, char *argv[])
   /* particle neighbour statistics */
   int max_N;
   int min_N;
-  double avg_N;
+  dubfloat_t avg_N;
 
 #if (defined ENERGY_PROFILING)&&ENERGY_PROFILING
   /* variables for energy conservation profiling */
-  double total_u;
-  double total_u2;
+  dubfloat_t total_u;
+  dubfloat_t total_u2;
 #endif
 
 #if ENABLE_GUI
   /* UI variables */
-  double rot[3];
-  double rot2[3];
+  dubfloat_t rot[3];
+  dubfloat_t rot2[3];
   int mouse_x,mouse_y;
   int mouse_dx,mouse_dy;
   int buttonstate;
-  double zoom=1/5.0;
-  double zoom2;
+  dubfloat_t zoom=1/5.0;
+  dubfloat_t zoom2;
 
-  double density;
-  double max_density;
+  dubfloat_t density;
+  dubfloat_t max_density;
 
-  double pressure;
-  double max_pressure;
+  dubfloat_t pressure;
+  dubfloat_t max_pressure;
 
   struct color *col=0;
 
@@ -243,7 +253,7 @@ int main(int argc, char *argv[])
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
   // colour depth:
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-  // you want it double buffered?
+  // you want it dubfloat_t buffered?
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, true);
 
   if(SDL_SetVideoMode(screen_width, screen_height, bpp,
@@ -316,38 +326,38 @@ int main(int argc, char *argv[])
     world->neighbour_list[ii].max_size=100;
   }
 
-  world->m=(double*)malloc(n*sizeof(double));
+  world->m=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
 
-  world->r=(double*)malloc(m*n*sizeof(double));
-  world->r2=(double*)malloc(m*n*sizeof(double));
-  world->v=(double*)malloc(m*n*sizeof(double));
-  world->v2=(double*)malloc(m*n*sizeof(double));
-  world->a=(double*)malloc(m*n*sizeof(double));
-  world->a2=(double*)malloc(m*n*sizeof(double));
+  world->r=(dubfloat_t*)malloc(m*n*sizeof(dubfloat_t));
+  world->r2=(dubfloat_t*)malloc(m*n*sizeof(dubfloat_t));
+  world->v=(dubfloat_t*)malloc(m*n*sizeof(dubfloat_t));
+  world->v2=(dubfloat_t*)malloc(m*n*sizeof(dubfloat_t));
+  world->a=(dubfloat_t*)malloc(m*n*sizeof(dubfloat_t));
+  world->a2=(dubfloat_t*)malloc(m*n*sizeof(dubfloat_t));
 
-  world->rho=(double*)malloc(n*sizeof(double));
-  world->p=(double*)malloc(n*sizeof(double));
-  world->c=(double*)malloc(n*sizeof(double));
+  world->rho=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
+  world->p=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
+  world->c=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
 
-  world->u=(double*)malloc(n*sizeof(double));
-  world->u2=(double*)malloc(n*sizeof(double));
-  world->du=(double*)malloc(n*sizeof(double));
-  world->du2=(double*)malloc(n*sizeof(double));
+  world->u=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
+  world->u2=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
+  world->du=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
+  world->du2=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
 
-  world->del_rho=(double*)malloc(n*sizeof(double));
+  world->del_rho=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
 
-  world->h=(double*)malloc(n*sizeof(double));
+  world->h=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
 
-  world->dt_CFL=(double*)malloc(n*sizeof(double));
+  world->dt_CFL=(dubfloat_t*)malloc(n*sizeof(dubfloat_t));
   world->kick=(int*)malloc(n*sizeof(int));
   world->kick_list=(int*)malloc(n*sizeof(int));
   world->time_bin=(int*)malloc(n*sizeof(int));
 
   world->cellindex=(int*)malloc(n*sizeof(int));
 
-  r=(double*)malloc(m*sizeof(double));
-  a_tree=(double*)malloc(m*n*sizeof(double));
-  a_sph=(double*)malloc(m*n*sizeof(double));
+  r=(dubfloat_t*)malloc(m*sizeof(dubfloat_t));
+  a_tree=(dubfloat_t*)malloc(m*n*sizeof(dubfloat_t));
+  a_sph=(dubfloat_t*)malloc(m*n*sizeof(dubfloat_t));
 
   world->num_neighbours=(int*)malloc(n*sizeof(int));
 
@@ -369,7 +379,7 @@ int main(int argc, char *argv[])
     world->dt_CFL[ii]=world->sub_dt;
     world->kick[ii]=1;
     world->time_bin[ii]=0;
-    world->m[ii]=0.25/(double)(n);
+    world->m[ii]=0.5/(dubfloat_t)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -395,16 +405,16 @@ int main(int argc, char *argv[])
 
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
-    world->u[ii]=0.2;
+    world->u[ii]=0.1;
     world->u2[ii]=world->u[ii];
   }
 
   /* initial displacement */
-  generate_glass(world, 15.0, -0.01*G, epsilon, G);
+  generate_glass(world, 25.0, -0.01*G, epsilon, G);
 
   for(ii=0;ii<n;ii++){
-    double rr;
-    double vv;
+    dubfloat_t rr;
+    dubfloat_t vv;
 
     world->r2[ii*3+0]=world->r[ii*3+0];
     world->r2[ii*3+1]=world->r[ii*3+1];
@@ -594,12 +604,16 @@ int main(int argc, char *argv[])
       /* update kick list for SPH computation */
       update_kick_list(world);
 
+#if CUDA
+      compute_smoothing_length_neighbours_cuda(world, 1, 25);
+#else
       /* serial tree smoothing length iterator */
       //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
 
       /* create threads for parallel tree smoothing length iterators */
       create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
       //create_smoothing_threads_chunked(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
+#endif
 
       /* create threads for density computation */
       create_density_threads(world);
@@ -685,16 +699,16 @@ int main(int argc, char *argv[])
       /* display current state of the system */
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f cputime/yr: %fs\n",
       	     world->time, world->sub_dt, tree[0].numcells, avg_N,
-	     ((double)(treetime.tv_sec)+(double)(treetime.tv_nsec)*1.0E-9+
-	     (double)(sph_time.tv_sec)+(double)(sph_time.tv_nsec)*1.0E-9+
-	     (double)(int_time.tv_sec+int2_time.tv_sec)+(double)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-9)
+	     ((dubfloat_t)(treetime.tv_sec)+(dubfloat_t)(treetime.tv_nsec)*1.0E-9+
+	     (dubfloat_t)(sph_time.tv_sec)+(dubfloat_t)(sph_time.tv_nsec)*1.0E-9+
+	     (dubfloat_t)(int_time.tv_sec+int2_time.tv_sec)+(dubfloat_t)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-9)
 	     /(world->sub_dt));
       /*
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f tree_t: %fms sph_t: %fms int_t: %fms\n",
       	     world->time, world->sub_dt, tree[0].numcells, avg_N,
-	     (double)(treetime.tv_sec)*1.0E3+(double)(treetime.tv_nsec)*1.0E-6,
-	     (double)(sph_time.tv_sec)*1.0E3+(double)(sph_time.tv_nsec)*1.0E-6,
-	     (double)(int_time.tv_sec+int2_time.tv_sec)*1.0E3+(double)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-6);
+	     (dubfloat_t)(treetime.tv_sec)*1.0E3+(dubfloat_t)(treetime.tv_nsec)*1.0E-6,
+	     (dubfloat_t)(sph_time.tv_sec)*1.0E3+(dubfloat_t)(sph_time.tv_nsec)*1.0E-6,
+	     (dubfloat_t)(int_time.tv_sec+int2_time.tv_sec)*1.0E3+(dubfloat_t)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-6);
       */
 #endif
       /* next time step */
@@ -743,11 +757,11 @@ int main(int argc, char *argv[])
     SDL_GL_SwapBuffers();
 
     // write the opengl view as tiff on disk
-    //if(fmod(world->time,0.1)<fmod(world->time-world->sub_dt,0.1)){
-    //  sprintf(filename, "/usr/crap/testrun/%08d.tif",tiff_frame);
-    //  writeframe(filename);
-    //  tiff_frame++;
-    //}
+    if(fmod(world->time,0.5)<fmod(world->time-world->sub_dt,0.5)){
+      sprintf(filename, "/home/janne808/testrun/%08d.tif",tiff_frame);
+      writeframe(filename);
+      tiff_frame++;
+    }
 #endif
   }
     

@@ -105,7 +105,7 @@ void *smoothing_thread(void *threadarg){
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
-	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
+	 (dubfloat_t)(t.tv_sec*1.0E3)+(dubfloat_t)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -195,7 +195,7 @@ void *smoothing_thread_chunked(void *threadarg){
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
-	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
+	 (dubfloat_t)(t.tv_sec*1.0E3)+(dubfloat_t)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -231,7 +231,7 @@ void *total_energy_thread(void *threadarg){
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
-	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
+	 (dubfloat_t)(t.tv_sec*1.0E3)+(dubfloat_t)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -267,7 +267,7 @@ void *density_thread(void *threadarg){
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
-	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
+	 (dubfloat_t)(t.tv_sec*1.0E3)+(dubfloat_t)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -303,7 +303,7 @@ void *pressure_thread(void *threadarg){
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
-	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
+	 (dubfloat_t)(t.tv_sec*1.0E3)+(dubfloat_t)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -339,7 +339,7 @@ void *soundspeed_thread(void *threadarg){
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
-	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
+	 (dubfloat_t)(t.tv_sec*1.0E3)+(dubfloat_t)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -375,7 +375,7 @@ void *CFL_thread(void *threadarg){
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
-	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec)*1.0E-6);
+	 (dubfloat_t)(t.tv_sec*1.0E3)+(dubfloat_t)(t.tv_nsec)*1.0E-6);
 #endif
 
   pthread_exit(NULL);
@@ -411,7 +411,7 @@ void *timebin_thread(void *threadarg){
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
-	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec)*1.0E-6);
+	 (dubfloat_t)(t.tv_sec*1.0E3)+(dubfloat_t)(t.tv_nsec)*1.0E-6);
 #endif
 
   pthread_exit(NULL);
@@ -446,7 +446,7 @@ void *acceleration_thread(void *threadarg){
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
-	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
+	 (dubfloat_t)(t.tv_sec*1.0E3)+(dubfloat_t)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -455,7 +455,7 @@ void *acceleration_thread(void *threadarg){
 void *predictor_thread(void *threadarg){
   int nn;
   int m;
-  double dt;
+  dubfloat_t dt;
 
   struct universe *world;
   struct thread_data5 *my_data;
@@ -504,7 +504,7 @@ void *predictor_thread(void *threadarg){
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
-	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
+	 (dubfloat_t)(t.tv_sec*1.0E3)+(dubfloat_t)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
@@ -515,19 +515,23 @@ void *corrector_thread(void *threadarg){
 
   int m;
 
-  double r[3];
-  double a[3];
+  dubfloat_t r[3];
+  dubfloat_t a[3];
 
-  double *a_sph;
-  double *a_tree;
+  dubfloat_t *a_sph;
+  dubfloat_t *a_tree;
 
-  double theta;
-  double dt;
+  dubfloat_t theta;
+  dubfloat_t dt;
 
   struct cell *tree;
   struct universe *world;
 
   struct thread_data5 *my_data;
+
+#if (defined ADAPTIVE_SOFTENING)&&ADAPTIVE_SOFTENING
+  dubfloat_t *h_in;
+#endif
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timespec structs for thread profiling */
@@ -550,6 +554,10 @@ void *corrector_thread(void *threadarg){
   tree=world->tree;
 
   theta=my_data->var1;
+
+#if (defined ADAPTIVE_SOFTENING)&&ADAPTIVE_SOFTENING
+  h_in=world->h;
+#endif
 
 #if (defined THREAD_PROFILING)&&THREAD_PROFILING
   /* timer start */
@@ -631,14 +639,14 @@ void *corrector_thread(void *threadarg){
 
   /* printf thread profiling */
   printf("thread_id: %d\tslice: %d to %d\ttime: %fms\n", my_data->thread_id, my_data->lo, my_data->hi,
-	 (double)(t.tv_sec*1.0E3)+(double)(t.tv_nsec*1.0E-6));
+	 (dubfloat_t)(t.tv_sec*1.0E3)+(dubfloat_t)(t.tv_nsec*1.0E-6));
 #endif
 
   pthread_exit(NULL);
 }
 
-void create_smoothing_threads(struct universe *world, int iterations, int neighbours, double min_h,
-			      double max_h, double *r, struct cell *tree, struct cell *root){
+void create_smoothing_threads(struct universe *world, int iterations, int neighbours, dubfloat_t min_h,
+			      dubfloat_t max_h, dubfloat_t *r, struct cell *tree, struct cell *root){
   /* posix thread variables */
   int thread_slice_num;
   int num_join_threads;
@@ -723,8 +731,8 @@ void create_smoothing_threads(struct universe *world, int iterations, int neighb
   }
 }
 
-void create_smoothing_threads_chunked(struct universe *world, int iterations, int neighbours, double min_h,
-				      double max_h, double *r, struct cell *tree, struct cell *root){
+void create_smoothing_threads_chunked(struct universe *world, int iterations, int neighbours, dubfloat_t min_h,
+				      dubfloat_t max_h, dubfloat_t *r, struct cell *tree, struct cell *root){
   /* posix thread variables */
   int num_join_threads;
   int thread_rc;
@@ -1366,7 +1374,7 @@ void create_corrector_threads(struct universe *world){
   }      
 }
 
-void create_total_energy_threads(struct universe *world, double theta){
+void create_total_energy_threads(struct universe *world, dubfloat_t theta){
   /* posix thread variables */
   int thread_slice_num;
   int num_join_threads;

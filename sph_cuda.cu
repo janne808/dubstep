@@ -32,7 +32,7 @@
 #define BLOCK_SIZE 8
 #define NUM_BLOCKS 8
 
-__global__ void smoothing_length_iterator_kernel(float *r, float *origin, int *buffer, int *buffer_index, float *h, int n){
+__global__ void smoothing_length_iterator_kernel(dubfloat_t *r, dubfloat_t *origin, int *buffer, int *buffer_index, dubfloat_t *h, int n){
   // loop index
   int ii;
 
@@ -52,8 +52,8 @@ __global__ void smoothing_length_iterator_kernel(float *r, float *origin, int *b
   }
 
   // find particle neighbours in every thread slice
-  for(ii=lo;ii<hi;ii++){
-  }
+  //for(ii=lo;ii<hi;ii++){
+  //}
 
   // wait for threads to finish
   __syncthreads();
@@ -61,127 +61,55 @@ __global__ void smoothing_length_iterator_kernel(float *r, float *origin, int *b
 
 void compute_smoothing_length_neighbours_cuda(struct universe *world, int iterations, int N_target){
   /* loop variables */
-  int ii,jj,kk;
+  int ii;
+  int jj;
+  int kk;
 
   /* state vector dimensions */
   int m;
   int n;
 
   /* pointers to state vectors */
-  double *r_in;
-  double *h_in;
-
-  int *num_neighbours_in;
-
-  /* host particle list buffer */
-  int *buffer;
+  dubfloat_t *r_in;
+  dubfloat_t *h_in;
 
   /* device buffers */
-  float *r_d;
-  float *origin_d;
+  dubfloat_t *r_d;
 
-  int *buffer_d;
-  int *buffer_index_d;
+  /* pointer to particle neighbour number vector */
+  int *num_neighbours_in;
 
-  float *h_d;
-  float *h;
+  /* maximum list length */
+  int max_list_len;
 
-  int *buffer_index;
+  /* flattened neighbour list on device mem */
+  int *flat_list_d;
 
-  float origin[3];
+  /* allocate particle displacement vector on device */
+  cudaMalloc(&r_d, 3*world->num*sizeof(dubfloat_t));
 
-  // target for number of threads
-  int num_threads=NUM_BLOCKS*BLOCK_SIZE;
+  /* copy particle displacement vector on device */
+  cudaMemcpy(r_d, world->r, 3*world->num*sizeof(dubfloat_t), cudaMemcpyHostToDevice);    
 
-  // compute execution configuration
-  int blockSize=BLOCK_SIZE;
-  int nBlocks=num_threads/blockSize;
-
-  m=world->dim;  
-  n=world->num;
-
-  r_in=world->r2;
-  h_in=world->h;
-
-  num_neighbours_in=world->num_neighbours;
-
-  // allocate particle list buffer on device
-  cudaMalloc((void**)&buffer_d, num_threads*n*sizeof(int));
-  cudaMalloc((void**)&buffer_index_d, num_threads*sizeof(int));
-
-  // set up vector indeces
-  buffer_index=(int*)malloc(num_threads*sizeof(int));
-  for(ii=0;ii<num_threads;ii++)
-    buffer_index[ii]=0;
-
-  // allocate particle displacement vector on device
-  cudaMalloc((void**)&r_d, m*n*sizeof(float));
-
-  // allocate particle origin vector on device
-  cudaMalloc((void**)&origin_d, m*sizeof(float));
-
-  // copy particle displacement vector on device
-  cudaMemcpy(r_d, r_in, m*n*sizeof(float), cudaMemcpyHostToDevice);
-
-  // allocate smoothing length parameter on device
-  cudaMalloc((void**)&h_d, sizeof(float));
-
-  // allocate smoothing length parameter on host
-  h=(float*)malloc(sizeof(float));
-
-  // allocate particle list buffer
-  buffer=(int*)malloc(n*sizeof(int));
-
-  /* iterate towards optimum number of neighbours */
-  for(ii=0;ii<n;ii++){
-    // particle origin displacement vector
-    origin[0]=(float)r_in[m*ii+0];
-    origin[1]=(float)r_in[m*ii+1];
-    origin[2]=(float)r_in[m*ii+2];
-
-    *h=(float)h_in[ii];
-    
-    // copy smoothing length parameter to device
-    cudaMemcpy(h_d, h, sizeof(float), cudaMemcpyHostToDevice);
-      
-    // copy particle origin vector on device
-    cudaMemcpy(origin_d, &origin, m*sizeof(float), cudaMemcpyHostToDevice);
-
-    // copy empty buffer vector index on device
-    cudaMemcpy(buffer_index_d, buffer_index, num_threads*sizeof(int), cudaMemcpyHostToDevice);
-
-    if(world->neighbour_list[ii].list){
-      world->neighbour_list[ii].num=0;
-      free(world->neighbour_list[ii].list);
-    }
-
-    // call kernel
-    smoothing_length_iterator_kernel <<< nBlocks, blockSize >>> (r_d, origin_d, buffer_d, buffer_index_d, h_d, n);
-
-    // copy smoothing length parameter to host
-    cudaMemcpy(h, h_d, sizeof(float), cudaMemcpyDeviceToHost);
-
-    h_in[ii]=(double)*h;
-
-    num_neighbours_in[ii]=num_threads;
-    
-    world->neighbour_list[ii].num=num_threads;
-    world->neighbour_list[ii].list=(int*)malloc(num_threads*sizeof(int));
-    if(!world->neighbour_list[ii].list){
-      printf("Out of memory: particle neighbour list not allocated.\n");
-      exit(1);
-    }
-    memcpy(world->neighbour_list[ii].list, buffer, num_threads*sizeof(int));
+  /* flatten out neighbour list */
+  /* search for max list size */
+  max_list_len=0;
+  for(ii=0;ii<world->num;ii++){
+	if(world->neighbour_list[ii].max_size>max_list_len)
+		max_list_len=world->neighbour_list[ii].max_size;
   }
 
-  // clean up
-  free(buffer);
-  free(h);
-  cudaFree(h_d);
+  /* add slack to max size for new neighbours */
+  max_list_len+=50;
+
+  /* set up flat list to device memory */
+  /* allocate list on device */
+  cudaMalloc(&flat_list_d, world->num*max_list_len*sizeof(int));
+
+  /* free device list */
+  cudaFree(flat_list_d);
+
+  /* free device particle displacement vector */
   cudaFree(r_d);
-  cudaFree(origin_d);
-  free(buffer_index);
-  cudaFree(buffer_index_d);
-  cudaFree(buffer_d);
 }
 

@@ -31,20 +31,20 @@
 #include "linear.h"
 #include "ic.h"
 
-void generate_glass(struct universe *world, double radius, double U_threshold, double epsilon, double G){
+void generate_glass(struct universe *world, dubfloat_t radius, dubfloat_t U_threshold, dubfloat_t epsilon, dubfloat_t G){
   /* loop variables */
   int ii;
   int jj;
 
   /* distance computation variables */
-  double d;
+  dubfloat_t d;
 
   /* pointers to state vectors */
-  double *r_in;
-  double *m_in;
+  dubfloat_t *r_in;
+  dubfloat_t *m_in;
 
   /* total gravitational potential energy */
-  double U;
+  dubfloat_t U;
 
   r_in=world->r;
   m_in=world->m;
@@ -62,9 +62,9 @@ void generate_glass(struct universe *world, double radius, double U_threshold, d
       r_in[3*ii+1]=radius*boxmuller();
       r_in[3*ii+2]=0.05*radius*boxmuller();
       //do{
-      //r_in[3*ii+0]=radius*(2.0*((double)rand()/RAND_MAX)-1.0);
-      //r_in[3*ii+1]=radius*(2.0*((double)rand()/RAND_MAX)-1.0);
-      //r_in[3*ii+2]=0.000001*radius*(2.0*((double)rand()/RAND_MAX)-1.0);
+      //r_in[3*ii+0]=radius*(2.0*((dubfloat_t)rand()/RAND_MAX)-1.0);
+      //r_in[3*ii+1]=radius*(2.0*((dubfloat_t)rand()/RAND_MAX)-1.0);
+      //r_in[3*ii+2]=0.000001*radius*(2.0*((dubfloat_t)rand()/RAND_MAX)-1.0);
       //}while(sqrt(r_in[3*ii+0]*r_in[3*ii+0]+
       //	  r_in[3*ii+1]*r_in[3*ii+1]+
       //	  r_in[3*ii+2]*r_in[3*ii+2])>radius);
