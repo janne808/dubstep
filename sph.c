@@ -1,4 +1,3 @@
-
 /* smoothed particle hydrodynamics routines */
 
 /*
@@ -31,30 +30,7 @@
 #include "sph.h"
 #include "tree.h"
 #include "linear.h"
-
-void build_particle_lattice(struct universe *world){
-  /* loop variables */
-  int ii;
-
-  /* cell size */
-  dubfloat_t l=0.25;
-
-  /* maximum displacement */
-  dubfloat_t max_r;
-
-  /* search for largest displacement */
-  max_r=0;
-  for(ii=0;ii<world->num;ii++){
-    if(world->r[3*ii+0]>max_r)
-      max_r=world->r[3*ii+0];
-    if(world->r[3*ii+1]>max_r)
-      max_r=world->r[3*ii+1];
-    if(world->r[3*ii+2]>max_r)
-      max_r=world->r[3*ii+2];
-  }
-
-  /* make sure the lattice divides evenly with cell size */
-}
+#include "lattice.h"
 
 void smooth_velocity_field(struct universe *world, int lo, int hi){
   /* vector norm variables */

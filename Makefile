@@ -7,9 +7,9 @@ OPTIMIZATION_LEVEL=3
 
 # object files
 ifeq ($(CUDA), 1)
-	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o sph_cuda.o
+	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o lattice.o sph_cuda.o
 else
-	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o
+	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o lattice.o
 endif
 
 # compilers
@@ -34,7 +34,7 @@ else
 	ifeq ($(SDL),1)
 		CFLAGS=-DCUDA=0 -DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -lm -lGL -ltiff -lrt `sdl-config --libs`
 	else
-		CFLAGS=-DCUDA=0 -DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -lm -lGL -lrt
+		CFLAGS=-DCUDA=0 -DINFINITY=HUGE_VAL -DENABLE_GUI=$(SDL) -DTHREAD_PROFILING=$(THREAD_PROFILING) -DENERGY_PROFILING=$(ENERGY_PROFILING) -O$(OPTIMIZATION_LEVEL) -lm -lrt
 	endif
 endif
 
@@ -67,6 +67,9 @@ timer.o: timer.c timer.h
 	$(CC) $(OPTS) $(CFLAGS) -c $<
 
 ic.o: ic.c ic.h
+	$(CC) $(OPTS) $(CFLAGS) -c $<
+
+lattice.o: lattice.c lattice.h
 	$(CC) $(OPTS) $(CFLAGS) -c $<
 
 .PHONY: clean

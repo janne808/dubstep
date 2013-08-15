@@ -434,10 +434,6 @@ int main(int argc, char *argv[])
 
   /* compute initial sph variables */
 
-  /* create threads for smoothing length interation and
-     interacting particle list generation */
-  //create_smoothing_threads(world, 10, 25);
-      
   /* initialize tree root parameters */
   init_treeroot(tree, world, world->r2);
     
@@ -612,7 +608,6 @@ int main(int argc, char *argv[])
 
       /* create threads for parallel tree smoothing length iterators */
       create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
-      //create_smoothing_threads_chunked(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
 #endif
 
       /* create threads for density computation */
@@ -757,11 +752,11 @@ int main(int argc, char *argv[])
     SDL_GL_SwapBuffers();
 
     // write the opengl view as tiff on disk
-    if(fmod(world->time,0.5)<fmod(world->time-world->sub_dt,0.5)){
-      sprintf(filename, "/home/janne808/testrun/%08d.tif",tiff_frame);
-      writeframe(filename);
-      tiff_frame++;
-    }
+    //if(fmod(world->time,0.5)<fmod(world->time-world->sub_dt,0.5)){
+    //  sprintf(filename, "/home/janne808/testrun/%08d.tif",tiff_frame);
+    //  writeframe(filename);
+    //  tiff_frame++;
+    //}
 #endif
   }
     

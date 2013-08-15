@@ -57,11 +57,11 @@
 #endif
 
 #ifndef NUM
-#define NUM 10000
+#define NUM 5000
 #endif
 
 #ifndef NUM_THREADS
-#define NUM_THREADS 4
+#define NUM_THREADS 1
 #endif
 
 #ifndef PI
