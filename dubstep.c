@@ -53,6 +53,7 @@
 #include "random.h"
 #include "ic.h"
 #include "linear.h"
+#include "statistics.h"
 
 #if ENABLE_GUI
 void colormap(dubfloat_t val, struct color *col){
@@ -198,11 +199,12 @@ int main(int argc, char *argv[])
   /* UI variables */
   dubfloat_t rot[3];
   dubfloat_t rot2[3];
-  int mouse_x,mouse_y;
-  int mouse_dx,mouse_dy;
-  int buttonstate;
+  int mouse_x=0;
+  int mouse_y=0;
+  int mouse_dx=0;
+  int mouse_dy=0;
+  int buttonstate=0;
   dubfloat_t zoom=1/5.0;
-  dubfloat_t zoom2;
 
   dubfloat_t density;
   dubfloat_t max_density;
@@ -212,15 +214,19 @@ int main(int argc, char *argv[])
 
   struct color *col=0;
 
-  int tiff_frame=0;
+  //int tiff_frame=0;
 #endif
 
 #if ENABLE_GUI
-  char filename[128];
+  //char filename[128];
 #endif
 
   /* world structure */
   struct universe *world=0;
+
+  /* simple moving averages */
+  dubfloat_t cputime;
+  struct sma_data *cputime_sma;
 
 #if ENABLE_GUI
   event=(SDL_Event*)malloc(sizeof(SDL_Event));
@@ -403,6 +409,9 @@ int main(int argc, char *argv[])
   world->a_sph=a_sph;
   world->a_tree=a_tree;
 
+  /* initialize simple moving averages */
+  cputime_sma=cputime_sma_init();
+  
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
     world->u[ii]=0.1;
@@ -503,7 +512,6 @@ int main(int argc, char *argv[])
   rot[1]=0;
   rot2[0]=rot[0];
   rot2[1]=rot[1];
-  zoom2=0;
 #endif
 
   while(run){
@@ -545,9 +553,6 @@ int main(int argc, char *argv[])
 	  rot[1]+=rot2[1];
 	  rot2[0]=0;
 	  rot2[1]=0;
-	}else if(buttonstate==SDL_BUTTON_RIGHT){
-	  //zoom+=zoom2;
-	  //zoom2=0;
 	}
 	buttonstate=0;
 	break;
@@ -574,11 +579,6 @@ int main(int argc, char *argv[])
       /* compute time */
       timediff(time1, time2, &int_time);
 
-      /* compute sph variables */
-
-      /* create threads for smoothing length interation and
-	 interacting particle list generation */
-
       /* timer start */
       clock_gettime(CLOCK_MONOTONIC, &time1);
 
@@ -600,27 +600,30 @@ int main(int argc, char *argv[])
       /* update kick list for SPH computation */
       update_kick_list(world);
 
+      /* update SPH only if there are kickable particles */
+      if(world->kick_num>0){
 #if CUDA
-      compute_smoothing_length_neighbours_cuda(world, 1, 25);
+	compute_smoothing_length_neighbours_cuda(world, 1, 25);
 #else
-      /* serial tree smoothing length iterator */
-      //compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
+	/* serial tree smoothing length iterator */
+	//compute_smoothing_length_tree(world, h, 1, 25, world->r2, tree, &tree[0], 0, world->num);
 
-      /* create threads for parallel tree smoothing length iterators */
-      create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
+	/* create threads for parallel tree smoothing length iterators */
+	create_smoothing_threads(world, 1, 25, MIN_SMOOTH_LEN, MAX_SMOOTH_LEN, world->r2, tree, &tree[0]);
 #endif
 
-      /* create threads for density computation */
-      create_density_threads(world);
+	/* create threads for density computation */
+	create_density_threads(world);
 
-      /* create threads for pressure computation */
-      create_pressure_threads(world);
+	/* create threads for pressure computation */
+	create_pressure_threads(world);
 
-      /* create threads for sound speed computation */
-      create_soundspeed_threads(world);
+	/* create threads for sound speed computation */
+	create_soundspeed_threads(world);
 
-      /* create threads for CFL computation */
-      create_CFL_threads(world);
+	/* create threads for CFL computation */
+	create_CFL_threads(world);
+      }
 
       /* create threads  for particle time bin update */
       create_timebin_threads(world);
@@ -633,9 +636,12 @@ int main(int argc, char *argv[])
       }
       world->sub_dt=world->dt/pow(2,max_bin+1);
 
-      /* create threads for hydrodynamic acceleration and internal energy computation */
-      create_acceleration_threads(world);
-      
+      /* update SPH only if there are kickable particles */
+      if(world->kick_num>0){
+	/* create threads for hydrodynamic acceleration and internal energy computation */
+	create_acceleration_threads(world);
+      }
+
       /* timer stop */
       clock_gettime(CLOCK_MONOTONIC, &time2);
 
@@ -680,6 +686,15 @@ int main(int argc, char *argv[])
       }
       avg_N=avg_N/world->num;
 
+      /* calculate cputime per year */
+      cputime=((dubfloat_t)(treetime.tv_sec)+(dubfloat_t)(treetime.tv_nsec)*1.0E-9+
+	       (dubfloat_t)(sph_time.tv_sec)+(dubfloat_t)(sph_time.tv_nsec)*1.0E-9+
+	       (dubfloat_t)(int_time.tv_sec+int2_time.tv_sec)+
+	       (dubfloat_t)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-9)/(world->sub_dt);
+
+      /* update moving averages */
+      cputime=cputime_sma_update(cputime,cputime_sma);
+
 #if (defined ENERGY_PROFILING)&&ENERGY_PROFILING
       /* compute total gravitational potential and kinetic energy */
       create_total_energy_threads(world, 0.1);
@@ -689,21 +704,19 @@ int main(int argc, char *argv[])
 
       /* display the state of the system */
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f u_total: %.1f u_error: %f%%\n",
-      	     world->time, world->sub_dt, tree[0].numcells, avg_N, total_u2, 100.0*fabs(total_u2-total_u)/fabs(total_u2));
+      	     world->time, world->sub_dt, tree[0].numcells, avg_N, total_u2,
+	     100.0*fabs(total_u2-total_u)/fabs(total_u2));
 #else
       /* display current state of the system */
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f cputime/yr: %fs\n",
-      	     world->time, world->sub_dt, tree[0].numcells, avg_N,
-	     ((dubfloat_t)(treetime.tv_sec)+(dubfloat_t)(treetime.tv_nsec)*1.0E-9+
-	     (dubfloat_t)(sph_time.tv_sec)+(dubfloat_t)(sph_time.tv_nsec)*1.0E-9+
-	     (dubfloat_t)(int_time.tv_sec+int2_time.tv_sec)+(dubfloat_t)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-9)
-	     /(world->sub_dt));
+      	     world->time, world->sub_dt, tree[0].numcells, avg_N, cputime);
       /*
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f tree_t: %fms sph_t: %fms int_t: %fms\n",
       	     world->time, world->sub_dt, tree[0].numcells, avg_N,
 	     (dubfloat_t)(treetime.tv_sec)*1.0E3+(dubfloat_t)(treetime.tv_nsec)*1.0E-6,
 	     (dubfloat_t)(sph_time.tv_sec)*1.0E3+(dubfloat_t)(sph_time.tv_nsec)*1.0E-6,
-	     (dubfloat_t)(int_time.tv_sec+int2_time.tv_sec)*1.0E3+(dubfloat_t)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-6);
+	     (dubfloat_t)(int_time.tv_sec+int2_time.tv_sec)*1.0E3+
+	     (dubfloat_t)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-6);
       */
 #endif
       /* next time step */
@@ -763,6 +776,8 @@ int main(int argc, char *argv[])
   printf("\ncleaning up...\n");    
     
   /* clean up vectors */
+  free(cputime_sma->samples);
+  free(cputime_sma);
   free(world->num_neighbours);
   free(a_tree);
   free(a_sph);

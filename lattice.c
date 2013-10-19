@@ -37,10 +37,18 @@ void build_particle_lattice(struct universe *world){
   int ii;
 
   /* cell size */
-  //dubfloat_t l=0.25;
+  dubfloat_t l=1.0;
 
   /* maximum displacement */
   dubfloat_t max_r;
+
+  /* number of cells */
+  int cell_num;
+
+  /* buffers */
+  int *x_buffer;
+  int *y_buffer;
+  int *z_buffer;
 
   /* search for largest displacement */
   max_r=0;
@@ -53,6 +61,8 @@ void build_particle_lattice(struct universe *world){
       max_r=world->r[3*ii+2];
   }
 
-  /* make sure the lattice divides evenly with cell size */
+  /* make sure lattice size is integer multiply of cell size */
+  /* number of cells along one dimension */
+  cell_num=1;
 }
 

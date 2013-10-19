@@ -2,14 +2,14 @@
 THREAD_PROFILING=0
 ENERGY_PROFILING=0
 CUDA=0
-SDL=0
+SDL=1
 OPTIMIZATION_LEVEL=3
 
 # object files
 ifeq ($(CUDA), 1)
-	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o lattice.o sph_cuda.o
+	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o lattice.o statistics.o sph_cuda.o
 else
-	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o lattice.o
+	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o lattice.o statistics.o 
 endif
 
 # compilers
@@ -70,6 +70,9 @@ ic.o: ic.c ic.h
 	$(CC) $(OPTS) $(CFLAGS) -c $<
 
 lattice.o: lattice.c lattice.h
+	$(CC) $(OPTS) $(CFLAGS) -c $<
+
+statistics.o: statistics.c statistics.h
 	$(CC) $(OPTS) $(CFLAGS) -c $<
 
 .PHONY: clean

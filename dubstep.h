@@ -57,7 +57,7 @@
 #endif
 
 #ifndef NUM
-#define NUM 5000
+#define NUM 1000
 #endif
 
 #ifndef NUM_THREADS
