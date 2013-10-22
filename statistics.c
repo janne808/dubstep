@@ -1,4 +1,4 @@
-/* statistics code */
+/* statistics routines */
 
 /*
  *  (C) 2013 Janne Heikkarainen <janne.heikkarainen@tut.fi>
@@ -29,13 +29,11 @@
 #include "dubstep.h"
 #include "statistics.h"
 
-#define CPUTIME_SMA_SIZE 16
-
-struct sma_data *cputime_sma_init(){
+struct sma_data *sma_init(int sma_length){
   /* loop variables */
   int ii;
 
-  /* data structs*/
+  /* data structs */
   struct sma_data *data;
 
   /* allocate structure */
@@ -45,17 +43,20 @@ struct sma_data *cputime_sma_init(){
     exit(0);
   }
 
+  /* initialize with length */
+  data->length=sma_length;
+
   /* allocate sample buffer */
-  data->samples=(dubfloat_t *)malloc(CPUTIME_SMA_SIZE*sizeof(dubfloat_t));
+  data->samples=(dubfloat_t *)malloc(data->length*sizeof(dubfloat_t));
   if(!data->samples){
-    printf("Out of memory: cputime SMA sample buffer not allocated.");
+    printf("Out of memory: SMA sample buffer not allocated.");
     exit(0);
   }
 
   /* initialize structure variables */
   data->sum=0.0;
 
-  for(ii=0;ii<CPUTIME_SMA_SIZE;ii++){
+  for(ii=0;ii<data->length;ii++){
     data->samples[ii]=0.0;
   }
 
@@ -65,19 +66,19 @@ struct sma_data *cputime_sma_init(){
   return data;
 }
 
-dubfloat_t cputime_sma_update(dubfloat_t input, struct sma_data *data){
+dubfloat_t sma_update(dubfloat_t input, struct sma_data *data){
   /* subtract last sample from the sum */
-  data->sum-=data->samples[data->write_point]/(dubfloat_t)(CPUTIME_SMA_SIZE);
+  data->sum-=data->samples[data->write_point]/(dubfloat_t)(data->length);
 
   /* insert input into sample buffer */
   data->samples[data->write_point++]=input;
 
   /* make sure write point is within buffer bounds */
-  if(data->write_point>CPUTIME_SMA_SIZE-1)
-    data->write_point-=CPUTIME_SMA_SIZE;
+  if(data->write_point>data->length-1)
+    data->write_point-=data->length;
 
   /* add new sample to sum */
-  data->sum+=input/(dubfloat_t)(CPUTIME_SMA_SIZE);
+  data->sum+=input/(dubfloat_t)(data->length);
 
   /* return updated sum */
   return data->sum;

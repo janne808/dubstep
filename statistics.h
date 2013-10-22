@@ -28,9 +28,10 @@ struct sma_data{
   dubfloat_t sum;
   dubfloat_t *samples;
   int write_point;
+  int length;
 };
 
-struct sma_data *cputime_sma_init();
-dubfloat_t cputime_sma_update(dubfloat_t input, struct sma_data *data);
+struct sma_data *sma_init(int sma_length);
+dubfloat_t sma_update(dubfloat_t input, struct sma_data *data);
 
 #endif

@@ -410,7 +410,7 @@ int main(int argc, char *argv[])
   world->a_tree=a_tree;
 
   /* initialize simple moving averages */
-  cputime_sma=cputime_sma_init();
+  cputime_sma=sma_init(16);
   
   /* initial thermal energy */
   for(ii=0;ii<n;ii++){
@@ -693,7 +693,7 @@ int main(int argc, char *argv[])
 	       (dubfloat_t)(int_time.tv_nsec+int2_time.tv_nsec)*1.0E-9)/(world->sub_dt);
 
       /* update moving averages */
-      cputime=cputime_sma_update(cputime,cputime_sma);
+      cputime=sma_update(cputime,cputime_sma);
 
 #if (defined ENERGY_PROFILING)&&ENERGY_PROFILING
       /* compute total gravitational potential and kinetic energy */
