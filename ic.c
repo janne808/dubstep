@@ -60,7 +60,7 @@ void generate_glass(struct universe *world, dubfloat_t radius, dubfloat_t U_thre
       /* generate random displacement */
       r_in[3*ii+0]=radius*boxmuller();
       r_in[3*ii+1]=radius*boxmuller();
-      r_in[3*ii+2]=0.05*radius*boxmuller();
+      r_in[3*ii+2]=radius*boxmuller();
       //do{
       //r_in[3*ii+0]=radius*(2.0*((dubfloat_t)rand()/RAND_MAX)-1.0);
       //r_in[3*ii+1]=radius*(2.0*((dubfloat_t)rand()/RAND_MAX)-1.0);
