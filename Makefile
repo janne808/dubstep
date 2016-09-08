@@ -3,7 +3,7 @@ THREAD_PROFILING=0
 ENERGY_PROFILING=0
 CUDA=0
 SDL=0
-OPTIMIZATION_LEVEL=3
+OPTIMIZATION_LEVEL=0
 
 # object files
 ifeq ($(CUDA), 1)
@@ -18,9 +18,9 @@ NVCC=/usr/local/cuda-5.0/bin/nvcc
 
 # compiler options
 ifeq ($(SDL),1)
-	OPTS=-Wall -pthread `sdl-config --cflags`
+	OPTS=-Wall -pthread -g `sdl-config --cflags`
 else
-	OPTS=-Wall -pthread
+	OPTS=-Wall -pthread -g
 endif
 
 # compiler flags

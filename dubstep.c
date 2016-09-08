@@ -190,6 +190,9 @@ int main(int argc, char *argv[])
 
   struct timespec time1, time2;
 
+  struct timespec run_time1, run_time2;
+  struct timespec run_time;
+
   /* particle neighbour statistics */
   int max_N;
   int min_N;
@@ -545,6 +548,9 @@ int main(int argc, char *argv[])
   rot2[1]=rot[1];
 #endif
 
+  /* timer start */
+  clock_gettime(CLOCK_MONOTONIC, &run_time1);
+
   while(run && tt<max_tt){
 #if ENABLE_GUI
     /* check and handle events */
@@ -733,14 +739,26 @@ int main(int argc, char *argv[])
       total_u=total_u2;
       total_u2=world->u_int+world->u_grav+world->u_kin;
 
+      /* get current system time */
+      clock_gettime(CLOCK_MONOTONIC, &run_time2);
+
+      /* compute runtime */
+      timediff(run_time1, run_time2, &run_time);
+
       /* display the state of the system */
-      printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f u_total: %.1f u_error: %f%%\n",
-      	     world->time, world->sub_dt, tree[0].numcells, avg_N, total_u2,
+      printf("[%.5fs] time: %.1fyr dt: %f cells: %d avg_N: %.1f u_total: %.1f u_error: %f%%\n",
+      	     (dubfloat_t)run_time.tv_sec+(dubfloat_t)run_time.tv_nsec*1.0E-9, world->time, world->sub_dt, tree[0].numcells, avg_N, total_u2,
 	     100.0*fabs(total_u2-total_u)/fabs(total_u2));
 #else
+      /* get current system time */
+      clock_gettime(CLOCK_MONOTONIC, &run_time2);
+
+      /* compute runtime */
+      timediff(run_time1, run_time2, &run_time);
+
       /* display current state of the system */
-      printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f cputime/yr: %fs\n",
-      	     world->time, world->sub_dt, tree[0].numcells, avg_N, cputime);
+      printf("[%.5fs] time: %.1fyr dt: %f cells: %d avg_N: %.1f cputime/yr: %fs\n",
+      	     (dubfloat_t)run_time.tv_sec+(dubfloat_t)run_time.tv_nsec*1.0E-9, world->time, world->sub_dt, tree[0].numcells, avg_N, cputime);
       /*
       printf("time: %.1fyr dt: %f cells: %d avg_N: %.1f tree_t: %fms sph_t: %fms int_t: %fms\n",
       	     world->time, world->sub_dt, tree[0].numcells, avg_N,
