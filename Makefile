@@ -2,14 +2,14 @@
 THREAD_PROFILING=0
 ENERGY_PROFILING=0
 CUDA=0
-SDL=1
+SDL=0
 OPTIMIZATION_LEVEL=3
 
 # object files
 ifeq ($(CUDA), 1)
-	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o lattice.o statistics.o sph_cuda.o
+	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o lattice.o statistics.o random.o sph_cuda.o
 else
-	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o lattice.o statistics.o 
+	OBJ=dubstep.o tree.o sph.o threads.o timer.o ic.o lattice.o statistics.o random.o
 endif
 
 # compilers

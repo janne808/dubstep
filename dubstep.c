@@ -22,9 +22,11 @@
  */
 
 #include <pthread.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
@@ -155,7 +157,7 @@ int main(int argc, char *argv[])
 
   /* artificial viscosity parameters */
   dubfloat_t alpha=1.0;
-  dubfloat_t beta=1.0;
+  dubfloat_t beta=4.0;
 
   /* adiabatic exponent*/
   dubfloat_t gamma=1.6;
@@ -174,8 +176,12 @@ int main(int argc, char *argv[])
 
   /* run flag for main loop */
   int run;
+  int max_tt=(int)INFINITY;
   int calc;
 
+  /* getops variables */
+  int c;
+  
   /* time measurement variables */
   struct timespec treetime;
   struct timespec int_time;
@@ -228,6 +234,27 @@ int main(int argc, char *argv[])
   dubfloat_t cputime;
   struct sma_data *cputime_sma;
 
+  /* handle arguments with getopt */
+  while ((c = getopt (argc, argv, "n:")) != -1){
+    switch(c){
+       case 'n':
+	 max_tt=atoi(optarg);
+	 break;
+       case '?':
+	 if (optopt == 'c')
+	   fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+	 else if (isprint (optopt))
+	   fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+	 else
+	   fprintf (stderr,
+		    "Unknown option character `\\x%x'.\n",
+		    optopt);
+	 exit(1);
+       default:
+	 exit(1);
+    }
+  }
+  
 #if ENABLE_GUI
   event=(SDL_Event*)malloc(sizeof(SDL_Event));
   if(!event){
@@ -376,6 +403,8 @@ int main(int argc, char *argv[])
   /* init pseudorandom number generator */
   srand(32423423);
 
+  printf("Generating initial conditions...\n");
+
   /* initial mass and velocities */
   for(ii=0;ii<n;ii++){
     world->neighbour_list[ii].num=0;
@@ -385,7 +414,7 @@ int main(int argc, char *argv[])
     world->dt_CFL[ii]=world->sub_dt;
     world->kick[ii]=1;
     world->time_bin[ii]=0;
-    world->m[ii]=0.5/(dubfloat_t)(n);
+    world->m[ii]=0.35/(dubfloat_t)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -419,7 +448,7 @@ int main(int argc, char *argv[])
   }
 
   /* initial displacement */
-  generate_glass(world, 25.0, -0.01*G, epsilon, G);
+  generate_glass(world, 40.0, -0.1*G, epsilon, G);
 
   for(ii=0;ii<n;ii++){
     dubfloat_t rr;
@@ -431,7 +460,7 @@ int main(int argc, char *argv[])
 
     rr=euclidean_norm(&world->r[ii*3],3)+1.0E-8;
 
-    vv=sqrt(2.0*G*0.05125*2.0/rr/2.0);
+    vv=sqrt(2.0*G*0.05*2.0/rr/2.0);
     world->v[ii*3+0]=-vv*world->r[ii*3+1]/rr;
     world->v[ii*3+1]=vv*world->r[ii*3+0]/rr;
     world->v[ii*3+2]=0;    
@@ -440,6 +469,8 @@ int main(int argc, char *argv[])
     world->v2[ii*3+1]=world->v[ii*3+1];
     world->v2[ii*3+2]=world->v[ii*3+2];    
   }
+
+  printf("Initializing SPH...\n");
 
   /* compute initial sph variables */
 
@@ -514,7 +545,7 @@ int main(int argc, char *argv[])
   rot2[1]=rot[1];
 #endif
 
-  while(run){
+  while(run && tt<max_tt){
 #if ENABLE_GUI
     /* check and handle events */
     while(SDL_PollEvent(event)){

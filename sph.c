@@ -619,7 +619,7 @@ void compute_internal_energy_and_acceleration(struct universe *world, dubfloat_t
 	
 	/* asymmetric form */	
 	du_in[pp]+=(m_in[kk]*(p_in[pp]/(rho_in[pp]*rho_in[pp])+0.5*Pi_ij))*
-	           (dv_ij[0]*dW_ij[0]+dv_ij[1]*dW_ij[1]+dv_ij[2]*dW_ij[2]);
+	               (dv_ij[0]*dW_ij[0]+dv_ij[1]*dW_ij[1]+dv_ij[2]*dW_ij[2]);
 
 #if !(defined GEOMETRIC_MEAN_SYMMETRIZATION || defined ARITHMETIC_MEAN_SYMMETRIZATION)
 	// arithmetic mean symmetrization

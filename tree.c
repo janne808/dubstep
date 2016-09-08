@@ -228,6 +228,19 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, du
     wp++;
   } 
 
+  /* central gravitation */
+  /*
+  temp[0]=0.0;
+  temp[1]=0.0;
+  temp[2]=0.0;
+  d=euclidean_distance(r, &temp[0], 3);
+  d2=kernel_grav_g(d, 1.0);
+
+  a[0]-=(G*0.4)*d2*(r[0]);
+  a[1]-=(G*0.4)*d2*(r[1]);
+  a[2]-=(G*0.4)*d2*(r[2]);	
+  */
+  
   while(wp>0){
     /* pop a cell from the node stack */
     wp--;
@@ -241,13 +254,13 @@ void force_walk(struct universe *world, struct cell *tree, struct cell *root, du
 
     /* compute distance from cells geometrical center to center of mass */
     /* for cell opening criterion */
-    temp[0]=child->center[0]-(child->space[0*3+0]-l/2.0);
-    temp[1]=child->center[1]-(child->space[0*3+1]+l/2.0);
-    temp[2]=child->center[2]-(child->space[0*3+2]-l/2.0);
+    temp[0]=child->center[0]-(child->space[0*3+0]-(l/2.0));
+    temp[1]=child->center[1]-(child->space[0*3+1]+(l/2.0));
+    temp[2]=child->center[2]-(child->space[0*3+2]-(l/2.0));
     delta=euclidean_norm(&temp[0], 3);
 
     if(child->num>1){
-      if(d>child->l/theta+delta){
+      if(d>(child->l/theta)+delta){
 	/* approximate cell as ensemble */
 	/* calculate acceleration with softened potential */
 	epsilon=child->distr_len;	  

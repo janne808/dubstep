@@ -102,11 +102,13 @@ static inline dubfloat_t artificial_viscosity(dubfloat_t *dv_ij, dubfloat_t h_ij
 					  dubfloat_t c_ij, dubfloat_t *dr, dubfloat_t rr, dubfloat_t alpha, dubfloat_t beta, dubfloat_t neta){
   dubfloat_t mu_ij;
 
-  mu_ij=0;
-  if((dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])<0.0)
-    mu_ij=(dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])/(rr*rr/(h_ij)+neta);
+  if((dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2])<0.0){
+    mu_ij=(h_ij*(dv_ij[0]*dr[0]+dv_ij[1]*dr[1]+dv_ij[2]*dr[2]))/(rr*rr+neta*h_ij*h_ij);
+    return (-alpha*mu_ij*c_ij+beta*mu_ij*mu_ij)/rho_ij;
+  }
+  else
+    return 0.0;
 
-  return (-alpha*mu_ij*c_ij+beta*mu_ij*mu_ij)/rho_ij;
 }
 
 void build_particle_lattice(struct universe *world);

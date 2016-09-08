@@ -28,4 +28,6 @@ static inline double boxmuller(){
   return sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
 }
 
+dubfloat_t rejection_sampling();
+
 #endif

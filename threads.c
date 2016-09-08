@@ -592,9 +592,13 @@ void *corrector_thread(void *threadarg){
       a_tree[nn*m+1]=a[1];
       a_tree[nn*m+2]=a[2];
 
-      world->a2[nn*m+0]=a_tree[nn*m+0]+a_sph[nn*m+0];
-      world->a2[nn*m+1]=a_tree[nn*m+1]+a_sph[nn*m+1];
-      world->a2[nn*m+2]=a_tree[nn*m+2]+a_sph[nn*m+2];
+      world->a2[nn*m+0]=a_tree[nn*m+0];
+      world->a2[nn*m+1]=a_tree[nn*m+1];
+      world->a2[nn*m+2]=a_tree[nn*m+2];
+
+      world->a2[nn*m+0]+=a_sph[nn*m+0];
+      world->a2[nn*m+1]+=a_sph[nn*m+1];
+      world->a2[nn*m+2]+=a_sph[nn*m+2];
 
       world->v2[nn*m+0]=world->v[nn*m+0]+(world->a2[nn*m+0])*dt*0.5;
       world->v2[nn*m+1]=world->v[nn*m+1]+(world->a2[nn*m+1])*dt*0.5;

@@ -29,23 +29,23 @@
 #endif
 
 #ifndef ADAPTIVE_SMOOTHING
-#define ADAPTIVE_SMOOTHING 0
+#define ADAPTIVE_SMOOTHING 1
 #endif
 
 #ifndef MIN_SMOOTH_LEN
-#define MIN_SMOOTH_LEN 0.7
+#define MIN_SMOOTH_LEN 1.0
 #endif
 
 #ifndef MAX_SMOOTH_LEN
-#define MAX_SMOOTH_LEN 0.7
+#define MAX_SMOOTH_LEN 4.0
 #endif
 
 #ifndef ADAPTIVE_SOFTENING
-#define ADAPTIVE_SOFTENING 0
+#define ADAPTIVE_SOFTENING 1
 #endif
 
 #ifndef SOFTENING_FACTOR
-#define SOFTENING_FACTOR 0.7
+#define SOFTENING_FACTOR 1.0
 #endif
 
 #ifndef GEOMETRIC_MEAN_SYMMETRIZATION
@@ -57,7 +57,7 @@
 #endif
 
 #ifndef NUM
-#define NUM 4000
+#define NUM 2000
 #endif
 
 #ifndef NUM_THREADS

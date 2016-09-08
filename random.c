@@ -26,5 +26,23 @@
 #include <string.h>
 #include <math.h>
 
+#include "dubstep.h"
 #include "random.h"
 
+dubfloat_t rejection_sampling(){
+  dubfloat_t t;
+  dubfloat_t u;
+
+  t=50.0*(dubfloat_t)rand()/RAND_MAX;
+  u=(dubfloat_t)rand()/RAND_MAX;
+
+  while(u>(dubfloat_t)exp(-((dubfloat_t)pow(t-18.0,2))/2.0)){
+      t=50.0*(dubfloat_t)rand()/RAND_MAX;
+      u=(dubfloat_t)rand()/RAND_MAX;
+  }
+
+  if((dubfloat_t)rand()/RAND_MAX>0.5)
+    t*=-1.0;
+
+  return t;
+}
