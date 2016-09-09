@@ -4,8 +4,8 @@
 AC_PREREQ([2.69])
 AC_INIT([dubstep], [0.003], [janne808@radiofreerobotron.net])
 AC_CONFIG_SRCDIR([src/lattice.h])
-AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([src/config.h])
+AM_INIT_AUTOMAKE
 
 # Checks for programs.
 AC_PROG_CC
