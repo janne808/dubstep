@@ -24,8 +24,12 @@
 #ifndef __RANDOMH__
 #define __RANDOMH__
 
-static inline double boxmuller(){
-  return sqrt(-2*log((double)rand()/RAND_MAX))*cos(2.0*PI*(double)rand()/RAND_MAX);
+static inline dubfloat_t boxmuller(){
+  return sqrt(-2*log((dubfloat_t)rand()/RAND_MAX))*cos(2.0*PI*(dubfloat_t)rand()/RAND_MAX);
+}
+
+static inline dubfloat_t uniform_rand(){
+  return 2.0*(dubfloat_t)rand()/RAND_MAX-1.0;
 }
 
 dubfloat_t rejection_sampling();

@@ -21,6 +21,7 @@
  *  along with Dubstep.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include <pthread.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -31,9 +32,12 @@
 #include <math.h>
 #include <time.h>
 
-#if ENABLE_GUI
+#if ENABLE_SDL
 #include <SDL.h>
 #include <SDL_opengl.h>
+#endif
+
+#if ENABLE_TIFFIO
 #include <tiffio.h>
 #endif
 
@@ -57,7 +61,7 @@
 #include "linear.h"
 #include "statistics.h"
 
-#if ENABLE_GUI
+#if ENABLE_SDL
 void colormap(dubfloat_t val, struct color *col){
   int nn;
 
@@ -80,7 +84,9 @@ void colormap(dubfloat_t val, struct color *col){
     }
   }
 }
+#endif
 
+#if ENABLE_TIFFIO
 void writeframe(char* path){
   TIFF *file;
   GLubyte *image, *p;
@@ -119,7 +125,6 @@ void writeframe(char* path){
     TIFFClose(file);
   }
 }
-
 #endif
 
 int main(int argc, char *argv[])
@@ -165,7 +170,7 @@ int main(int argc, char *argv[])
   /* time bin handling variables */
   int max_bin;
 
-#if ENABLE_GUI
+#if ENABLE_SDL
   /* SDL variables */
   const SDL_VideoInfo *info;
   int bpp;
@@ -204,7 +209,7 @@ int main(int argc, char *argv[])
   dubfloat_t total_u2;
 #endif
 
-#if ENABLE_GUI
+#if ENABLE_SDL
   /* UI variables */
   dubfloat_t rot[3];
   dubfloat_t rot2[3];
@@ -226,7 +231,7 @@ int main(int argc, char *argv[])
   //int tiff_frame=0;
 #endif
 
-#if ENABLE_GUI
+#if ENABLE_SDL
   //char filename[128];
 #endif
 
@@ -258,7 +263,7 @@ int main(int argc, char *argv[])
     }
   }
   
-#if ENABLE_GUI
+#if ENABLE_SDL
   event=(SDL_Event*)malloc(sizeof(SDL_Event));
   if(!event){
     printf("Out of memory: SDL event not allocated.\n");
@@ -417,7 +422,7 @@ int main(int argc, char *argv[])
     world->dt_CFL[ii]=world->sub_dt;
     world->kick[ii]=1;
     world->time_bin[ii]=0;
-    world->m[ii]=0.35/(dubfloat_t)(n);
+    world->m[ii]=7.0/(dubfloat_t)(n);
     world->v[ii*m+0]=0;
     world->v[ii*m+1]=0;
     world->v[ii*m+2]=0;
@@ -451,7 +456,7 @@ int main(int argc, char *argv[])
   }
 
   /* initial displacement */
-  generate_glass(world, 40.0, -0.1*G, epsilon, G);
+  generate_glass(world, 10.0, -0.1*G, epsilon, G);
 
   for(ii=0;ii<n;ii++){
     dubfloat_t rr;
@@ -462,12 +467,15 @@ int main(int argc, char *argv[])
     world->r2[ii*3+2]=world->r[ii*3+2];
 
     rr=euclidean_norm(&world->r[ii*3],3)+1.0E-8;
-
-    vv=sqrt(2.0*G*0.05*2.0/rr/2.0);
+    vv=sqrt(2.0*G*2.4*2.0/rr/2.0);
     world->v[ii*3+0]=-vv*world->r[ii*3+1]/rr;
     world->v[ii*3+1]=vv*world->r[ii*3+0]/rr;
     world->v[ii*3+2]=0;    
 
+    world->v[ii*3+0]+=2.8*uniform_rand();
+    world->v[ii*3+1]+=2.8*uniform_rand();
+    world->v[ii*3+2]+=2.8*uniform_rand();
+      
     world->v2[ii*3+0]=world->v[ii*3+0];
     world->v2[ii*3+1]=world->v[ii*3+1];
     world->v2[ii*3+2]=world->v[ii*3+2];    
@@ -541,7 +549,7 @@ int main(int argc, char *argv[])
   run=1;
   calc=1;
 
-#if ENABLE_GUI
+#if ENABLE_SDL
   rot[0]=0;
   rot[1]=0;
   rot2[0]=rot[0];
@@ -552,7 +560,7 @@ int main(int argc, char *argv[])
   clock_gettime(CLOCK_MONOTONIC, &run_time1);
 
   while(run && tt<max_tt){
-#if ENABLE_GUI
+#if ENABLE_SDL
     /* check and handle events */
     while(SDL_PollEvent(event)){
       switch(event->type){
@@ -774,7 +782,7 @@ int main(int argc, char *argv[])
       world->time+=world->sub_dt;
     }
 
-#if ENABLE_GUI
+#if ENABLE_SDL
     /* update graphics */
     glClearColor(0.0f,0.0f,0.0f,0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -860,7 +868,7 @@ int main(int argc, char *argv[])
   /* clean up tree */
   free(tree);
 
-#if (defined ENABLE_GUI)&&ENABLE_GUI
+#if (defined ENABLE_SDL)&&ENABLE_SDL
   /* clean up SDL */
   SDL_Quit();
 #endif

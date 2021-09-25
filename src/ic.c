@@ -46,39 +46,20 @@ void generate_glass(struct universe *world, dubfloat_t radius, dubfloat_t U_thre
   /* total gravitational potential energy */
   dubfloat_t U;
 
-  dubfloat_t rad;
-  dubfloat_t theta;
+  dubfloat_t x,y,z;
 
   r_in=world->r;
   m_in=world->m;
 
   /* initial displacement */
-  r_in[3*0+0]=0.0;
-  r_in[3*0+1]=0.0;
-  r_in[3*0+2]=0.0;
-
-  for(ii=1;ii<world->num;ii++){
+  for(ii=0;ii<world->num;ii++){
     //printf("Generating random displacement for particle %d...\n", ii);
     do{
       /* generate random displacement */
-      rad=rejection_sampling();
-      theta=2.0*PI*(dubfloat_t)rand()/RAND_MAX;
-      r_in[3*ii+0]=rad*cos(theta);
-      r_in[3*ii+1]=rad*sin(theta);
-      r_in[3*ii+2]=50.0*boxmuller()*0.1;      
-
-      //r_in[3*ii+0]=radius*boxmuller();
-      //r_in[3*ii+1]=radius*boxmuller();
-      //r_in[3*ii+2]=radius*boxmuller()*0.1;
-
-      //do{
-      //r_in[3*ii+0]=radius*(2.0*((dubfloat_t)rand()/RAND_MAX)-1.0);
-      //r_in[3*ii+1]=radius*(2.0*((dubfloat_t)rand()/RAND_MAX)-1.0);
-      //r_in[3*ii+2]=0.000001*radius*(2.0*((dubfloat_t)rand()/RAND_MAX)-1.0);
-      //}while(sqrt(r_in[3*ii+0]*r_in[3*ii+0]+
-      //	  r_in[3*ii+1]*r_in[3*ii+1]+
-      //	  r_in[3*ii+2]*r_in[3*ii+2])>radius);
-
+      r_in[3*ii+0]=radius*boxmuller();
+      r_in[3*ii+1]=radius*boxmuller();
+      r_in[3*ii+2]=radius*boxmuller();
+      
       /* calculate total gravitational energy for new displacement */
       /* unit is AU^3/(M_solar*yr^2)*M_solar^2/AU */
       U=0.0;
@@ -87,8 +68,7 @@ void generate_glass(struct universe *world, dubfloat_t radius, dubfloat_t U_thre
 	d=sqrt(d*d+epsilon*epsilon);
 	U-=G*m_in[ii]*m_in[jj]*d;
       }
-      //}while(U<U_threshold);
-    }while(0);
+    }while(U<U_threshold);
   }
 }
 
