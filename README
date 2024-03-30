@@ -3,3 +3,8 @@ POSIX/CUDA Self-gravitating Smoothed Particle Hydrodynamics Simulator
 
 Use at your own risk.
 
+Installation steps for minimum build on Debian/Ubuntu:
+apt install automake autoconf gcc make pkg-config
+./autogen.sh
+./configure
+make
