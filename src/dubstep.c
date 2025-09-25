@@ -31,6 +31,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <limits.h>
 
 #if ENABLE_SDL
 #include <SDL.h>
@@ -181,7 +182,7 @@ int main(int argc, char *argv[])
 
   /* run flag for main loop */
   int run;
-  int max_tt=(int)INFINITY;
+  int max_tt=INT_MAX;
   int calc;
 
   /* getops variables */
@@ -529,9 +530,7 @@ int main(int argc, char *argv[])
 	break;
       }
     }
-    //printf("%d\t", world->time_bin[nn]);
   }
-  //printf("\n");
 
   /* determine minimum timestep to take from maximum bin */
   max_bin=0;
@@ -558,8 +557,9 @@ int main(int argc, char *argv[])
 
   /* timer start */
   clock_gettime(CLOCK_MONOTONIC, &run_time1);
-
+  
   while(run && tt<max_tt){
+    
 #if ENABLE_SDL
     /* check and handle events */
     while(SDL_PollEvent(event)){
